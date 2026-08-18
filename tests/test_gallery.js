@@ -45,6 +45,11 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Filtered Blast Thumbnails Count:', blastThumbnails);
     assert.strictEqual(blastThumbnails, 2, 'There should be 2 Blast thumbnails');
 
+    // Verify card height is tightly packed (< 130px) and not stretched across sidebar height
+    const cardHeight = await page.$eval('#gallery-grid > div:first-child', el => el.offsetHeight);
+    console.log('  ✓ Gallery Card Height (Packed):', `${cardHeight}px`);
+    assert(cardHeight >= 100 && cardHeight <= 135, 'Gallery card height should be tightly packed without vertical stretching');
+
     // 5. Test Click on Thumbnail to Focus and Navigate Viewport
     const viewBefore = await page.evaluate(() => ({ ...window.__CYTO_APP__.state.view }));
     await page.click('#gallery-grid > div:first-child');

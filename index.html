@@ -539,7 +539,7 @@
         </div>
 
         <!-- Thumbnail Grid -->
-        <div class="flex-1 overflow-y-auto p-2 grid grid-cols-2 gap-2" id="gallery-grid">
+        <div class="flex-1 overflow-y-auto p-2 grid grid-cols-2 gap-2 content-start auto-rows-max" id="gallery-grid">
           <!-- Rendered via JS -->
         </div>
       </div>
@@ -2296,12 +2296,12 @@
         const isSelected = ann.id === state.selectedCellId;
 
         return `
-          <div data-cell-id="${ann.id}" class="gal-cell-card bg-[#110f12] border ${isSelected ? 'border-[#e52246] ring-1 ring-[#e52246]' : 'border-[#272527]'} hover:border-[#5a575a] rounded-lg p-1.5 cursor-pointer transition flex flex-col space-y-1 group">
-            <div class="relative w-full h-[88px] bg-black rounded overflow-hidden flex items-center justify-center">
+          <div data-cell-id="${ann.id}" class="gal-cell-card bg-[#110f12] border ${isSelected ? 'border-[#e52246] ring-1 ring-[#e52246]' : 'border-[#272527]'} hover:border-[#5a575a] rounded-lg p-1.5 cursor-pointer transition flex flex-col space-y-1 group h-fit self-start">
+            <div class="relative w-full h-[88px] bg-black rounded overflow-hidden flex items-center justify-center shrink-0">
               <canvas id="crop-thumb-${ann.id}" width="120" height="88" class="w-full h-full object-contain block"></canvas>
               <span class="absolute top-1 left-1 px-1 py-0.2 rounded text-[8px] font-mono text-white font-bold shadow-sm" style="background-color: ${cls.color}">${cls.code}</span>
             </div>
-            <div class="flex items-center justify-between text-[10px] font-mono px-0.5">
+            <div class="flex items-center justify-between text-[10px] font-mono px-0.5 shrink-0">
               <span class="text-[#9e9a9e] truncate">${ann.id}</span>
               <span class="text-[#e52246] font-bold">${Math.round(ann.confidence * 100)}%</span>
             </div>
