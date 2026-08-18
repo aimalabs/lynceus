@@ -233,10 +233,31 @@
       <div class="h-3.5 w-px bg-[#373437]"></div>
 
       <!-- Action Buttons -->
-      <button id="btn-export-json" title="Export Annotations JSON" class="px-2 py-1 text-[11px] text-[#9e9a9e] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition font-mono flex items-center space-x-1" data-help="Export Annotations|Downloads full JSON dataset containing all cell boxes and metadata.|JSON">
-        <svg class="w-3 h-3 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        <span class="hidden sm:inline">Export</span>
-      </button>
+      <!-- Export & Download Dropdown -->
+      <div class="relative" id="export-dropdown-container">
+        <button id="btn-export-dropdown-trigger" class="px-2 py-1 text-[11px] text-[#9e9a9e] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition font-mono flex items-center space-x-1" data-help="Export Suite|Download annotations JSON, clinical CSV report, or viewport PNG snapshot.|EXPORT">
+          <svg class="w-3 h-3 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span class="hidden sm:inline">Export</span>
+          <svg class="w-2.5 h-2.5 text-[#7a767a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+        </button>
+
+        <!-- Export Dropdown Menu -->
+        <div id="export-dropdown-menu" class="hidden absolute right-0 top-full mt-1 w-52 bg-[#1B191E] border border-[#373437] rounded-xl shadow-2xl p-1 z-50 font-mono text-xs">
+          <div class="px-2 py-1 text-[10px] text-[#7a767a] uppercase tracking-wider font-semibold border-b border-[#373437] mb-1">Data Exchange</div>
+          <button id="btn-export-json" class="w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-white transition">
+            <span>Export JSON</span>
+            <span class="text-[10px] text-[#e52246]">.json</span>
+          </button>
+          <button id="btn-export-csv" class="w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition">
+            <span>Clinical CSV Report</span>
+            <span class="text-[10px] text-[#10b981]">.csv</span>
+          </button>
+          <button id="btn-export-snapshot" class="w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition">
+            <span>Viewport Snapshot</span>
+            <span class="text-[10px] text-[#38bdf8]">.png</span>
+          </button>
+        </div>
+      </div>
 
       <button id="btn-reset-detections" title="Reset to Default Detections" class="p-1 text-[11px] text-[#7a767a] hover:text-[#e52246] bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition font-mono" data-help="Reset Annotations|Restores preloaded AI detections and clears manual edits.|RESET">
         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
@@ -393,17 +414,17 @@
         </div>
       </div>
 
-      <!-- Interactive Minimap Panel (Floating cleanly in top-right corner) -->
-      <div id="minimap-panel" class="absolute top-3 right-3 bg-[#1a181b]/95 backdrop-blur-md border border-[#373437] rounded-xl shadow-2xl p-2 z-20 flex flex-col space-y-1.5 transition-all">
-        <div class="flex items-center justify-between px-1 text-[10px] font-mono text-[#9e9a9e]">
+      <!-- Interactive Slide Navigator (Minimap - Bottom Right, Minimal Border) -->
+      <div id="minimap-panel" class="absolute bottom-3 right-3 bg-[#131215]/85 backdrop-blur-sm border border-[#272527] rounded-lg p-1 shadow-lg z-20 flex flex-col space-y-1 transition-all">
+        <div class="flex items-center justify-between px-1 text-[9px] font-mono text-[#7a767a]">
           <span class="flex items-center space-x-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-[#e52246]"></span>
-            <span>SLIDE NAVIGATOR</span>
+            <span class="w-1 h-1 rounded-full bg-[#e52246]"></span>
+            <span>NAVIGATOR</span>
           </span>
-          <button id="btn-close-minimap" class="text-[#7a767a] hover:text-white px-1">✕</button>
+          <button id="btn-close-minimap" class="text-[#7a767a] hover:text-white px-0.5" title="Minimize Navigator">✕</button>
         </div>
-        <div class="relative rounded overflow-hidden border border-[#373437] bg-black cursor-crosshair" style="width: 180px; height: 135px;" id="minimap-container">
-          <canvas id="minimap-canvas" width="180" height="135" class="block"></canvas>
+        <div class="relative rounded overflow-hidden border border-[#272527] bg-black cursor-crosshair" style="width: 160px; height: 120px;" id="minimap-container">
+          <canvas id="minimap-canvas" width="160" height="120" class="block"></canvas>
         </div>
       </div>
     </div>
@@ -532,6 +553,93 @@
     <button id="ctx-action-delete" class="w-full text-left px-3 py-1.5 hover:bg-[#e52246]/20 text-[#e52246] flex items-center space-x-2">
       <span>Delete Annotation</span>
     </button>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcuts-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#1B191E] border border-[#373437] rounded-2xl shadow-2xl w-full max-w-md p-5 text-white font-mono text-xs space-y-4">
+      <div class="flex items-center justify-between border-b border-[#373437] pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-4 h-4 rounded-full bg-[#e52246] flex items-center justify-center text-[10px] font-bold text-white">?</div>
+          <h3 class="font-display font-bold text-sm text-white">Keyboard Shortcuts</h3>
+        </div>
+        <button id="btn-close-shortcuts" class="text-[#9e9a9e] hover:text-white text-sm px-1.5 py-0.5 rounded hover:bg-[#272527]">✕</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 text-[11px]">
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Select Tool</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">V</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Bounding Box</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">B</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Circle ROI</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">C</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Point Centroid</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">P</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Caliper Ruler</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">M</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Eraser Tool</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">E</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Toggle Overlays</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">H</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Toggle Reticle</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">R</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Fit to Screen</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">0</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Zoom In / Out</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">+ / -</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Undo / Redo</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">⌘Z / ⌘Y</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#9e9a9e]">Reclassify Cell</span>
+          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">1-8</kbd>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-App Reset Confirmation Modal -->
+  <div id="reset-confirm-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#1B191E] border border-[#373437] rounded-2xl shadow-2xl w-full max-w-sm p-5 text-white font-mono text-xs space-y-4">
+      <div class="flex items-center space-x-2 border-b border-[#373437] pb-3">
+        <div class="w-4 h-4 rounded-full bg-[#e52246]/20 text-[#e52246] flex items-center justify-center font-bold">!</div>
+        <h3 class="font-display font-bold text-sm text-white">Reset Annotations?</h3>
+      </div>
+      <p class="text-[#B4AFBA] text-[11px] leading-relaxed">
+        This will restore the 40 original AI detections and discard all custom boxes, points, and caliper measurements.
+      </p>
+      <div class="flex items-center justify-end space-x-2 pt-2">
+        <button id="btn-cancel-reset" class="px-3 py-1.5 rounded-lg bg-[#272527] hover:bg-[#373437] text-white text-xs font-semibold transition">Cancel</button>
+        <button id="btn-confirm-reset" class="px-4 py-1.5 rounded-lg bg-[#e52246] hover:bg-[#ce1438] text-white text-xs font-semibold transition">Confirm Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notification -->
+  <div id="app-toast" class="fixed top-14 left-1/2 -translate-x-1/2 bg-[#1B191E]/95 border border-[#e52246]/60 px-4 py-2 rounded-xl text-xs font-mono text-white shadow-2xl z-50 flex items-center space-x-2 transition-all duration-300 opacity-0 pointer-events-none -translate-y-2">
+    <span class="w-2 h-2 rounded-full bg-[#e52246] animate-pulse"></span>
+    <span id="toast-message">Notification message</span>
   </div>
 
   <!-- Optical Pixel Size Calibrator Modal -->
@@ -1523,6 +1631,17 @@
       }
 
       // Tool selection shortcuts
+      if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+        openShortcutsModal();
+        return;
+      }
+      if (e.key === 'Escape') {
+        closeShortcutsModal();
+        closeCalibratorModal();
+        contextMenu.classList.add('hidden');
+        return;
+      }
+
       if (k === 'v' || (k === '1' && !state.selectedCellId)) setTool('select');
       else if (k === 'b' || (k === '2' && !state.selectedCellId)) setTool('box');
       else if (k === 'c' || (k === '3' && !state.selectedCellId)) setTool('circle');
@@ -1542,6 +1661,26 @@
         }
       }
     });
+
+    function openShortcutsModal() {
+      const modal = document.getElementById('shortcuts-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeShortcutsModal() {
+      const modal = document.getElementById('shortcuts-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    const btnCloseShortcuts = document.getElementById('btn-close-shortcuts');
+    if (btnCloseShortcuts) btnCloseShortcuts.onclick = closeShortcutsModal;
+
+    const shortcutsBackdrop = document.getElementById('shortcuts-modal');
+    if (shortcutsBackdrop) {
+      shortcutsBackdrop.onclick = (e) => {
+        if (e.target === shortcutsBackdrop) closeShortcutsModal();
+      };
+    }
 
     // Tool Dropdown Menu Setup
     const toolTrigger = document.getElementById('tool-dropdown-trigger');
@@ -1995,23 +2134,312 @@
       }
     }
 
+    function switchRightTab(tabName) {
+      const inspTabBtn = document.getElementById('tab-btn-inspector');
+      const galTabBtn = document.getElementById('tab-btn-gallery');
+      const inspContent = document.getElementById('inspector-tab-content');
+      const galContent = document.getElementById('gallery-tab-content');
+
+      if (tabName === 'gallery') {
+        if (inspTabBtn) inspTabBtn.className = 'px-2 py-0.5 rounded text-[#9e9a9e] hover:text-white transition flex items-center space-x-1';
+        if (galTabBtn) galTabBtn.className = 'px-2 py-0.5 rounded bg-[#e52246] text-white font-bold transition flex items-center space-x-1';
+        if (inspContent) inspContent.classList.add('hidden');
+        if (galContent) galContent.classList.remove('hidden');
+        renderGallery();
+      } else {
+        if (inspTabBtn) inspTabBtn.className = 'px-2 py-0.5 rounded bg-[#e52246] text-white font-bold transition flex items-center space-x-1';
+        if (galTabBtn) galTabBtn.className = 'px-2 py-0.5 rounded text-[#9e9a9e] hover:text-white transition flex items-center space-x-1';
+        if (inspContent) inspContent.classList.remove('hidden');
+        if (galContent) galContent.classList.add('hidden');
+      }
+    }
+
+    const tabBtnInsp = document.getElementById('tab-btn-inspector');
+    if (tabBtnInsp) tabBtnInsp.onclick = () => switchRightTab('inspector');
+    const tabBtnGal = document.getElementById('tab-btn-gallery');
+    if (tabBtnGal) tabBtnGal.onclick = () => switchRightTab('gallery');
+
+    function renderGallery() {
+      const grid = document.getElementById('gallery-grid');
+      if (!grid || !state.imageLoaded) return;
+      const filter = state.galleryFilter || 'all';
+      const cells = state.annotations.filter(a => filter === 'all' || a.classId === filter);
+
+      const badge = document.getElementById('gallery-count-badge');
+      if (badge) badge.textContent = `${cells.length}`;
+
+      grid.innerHTML = cells.map(ann => {
+        const cls = state.taxonomy.find(t => t.id === ann.classId) || state.taxonomy[0];
+        const isSelected = ann.id === state.selectedCellId;
+
+        return `
+          <div data-cell-id="${ann.id}" class="gal-cell-card bg-[#110f12] border ${isSelected ? 'border-[#e52246] ring-1 ring-[#e52246]' : 'border-[#373437]'} hover:border-[#5a575a] rounded-lg p-1.5 cursor-pointer transition flex flex-col space-y-1 group">
+            <div class="relative w-full aspect-square bg-black rounded overflow-hidden">
+              <canvas id="crop-thumb-${ann.id}" width="80" height="80" class="w-full h-full block"></canvas>
+              <span class="absolute top-1 left-1 px-1 py-0.2 rounded text-[8px] font-mono text-white font-bold" style="background-color: ${cls.color}">${cls.code}</span>
+            </div>
+            <div class="flex items-center justify-between text-[10px] font-mono">
+              <span class="text-[#9e9a9e] truncate">${ann.id}</span>
+              <span class="text-[#e52246] font-bold">${Math.round(ann.confidence * 100)}%</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      cells.forEach(ann => {
+        const thumbCanvas = document.getElementById(`crop-thumb-${ann.id}`);
+        if (thumbCanvas) {
+          const tCtx = thumbCanvas.getContext('2d');
+          const pad = 10;
+          const srcX = Math.max(0, ann.x - pad);
+          const srcY = Math.max(0, ann.y - pad);
+          const srcW = Math.min(state.image.naturalWidth - srcX, ann.width + pad * 2);
+          const srcH = Math.min(state.image.naturalHeight - srcY, ann.height + pad * 2);
+          tCtx.drawImage(state.image, srcX, srcY, srcW, srcH, 0, 0, 80, 80);
+        }
+      });
+
+      document.querySelectorAll('.gal-cell-card').forEach(card => {
+        card.onclick = () => {
+          const cid = card.getAttribute('data-cell-id');
+          const ann = state.annotations.find(a => a.id === cid);
+          if (ann) {
+            selectCell(ann.id);
+            focusOnCell(ann);
+          }
+        };
+      });
+    }
+
+    document.querySelectorAll('.btn-gal-filter').forEach(btn => {
+      btn.onclick = () => {
+        const filter = btn.getAttribute('data-gallery-filter');
+        state.galleryFilter = filter;
+        document.querySelectorAll('.btn-gal-filter').forEach(b => {
+          if (b.getAttribute('data-gallery-filter') === filter) {
+            b.className = 'btn-gal-filter px-2 py-0.5 rounded bg-[#e52246] text-white font-bold shrink-0';
+          } else {
+            b.className = 'btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#9e9a9e] hover:text-white shrink-0';
+          }
+        });
+        renderGallery();
+      };
+    });
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const toast = document.getElementById('app-toast');
+      const msgEl = document.getElementById('toast-message');
+      if (!toast || !msgEl) return;
+      msgEl.textContent = msg;
+      toast.classList.remove('opacity-0', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', '-translate-y-2');
+      }, 2500);
+    }
+
+    // Export Dropdown & Handlers
+    const exportTrigger = document.getElementById('btn-export-dropdown-trigger');
+    const exportMenu = document.getElementById('export-dropdown-menu');
+    if (exportTrigger && exportMenu) {
+      exportTrigger.onclick = (e) => {
+        e.stopPropagation();
+        exportMenu.classList.toggle('hidden');
+      };
+      window.addEventListener('click', (e) => {
+        if (!exportMenu.contains(e.target) && e.target !== exportTrigger) {
+          exportMenu.classList.add('hidden');
+        }
+      });
+    }
+
+    function exportAnnotationsJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+        slide: 'smear-02.jpeg',
+        micronsPerPixel: state.micronsPerPixel,
+        annotations: state.annotations,
+        measurements: state.measurements,
+        exportedAt: new Date().toISOString()
+      }, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `aimalabs_annotations_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      if (exportMenu) exportMenu.classList.add('hidden');
+      showToast(`✓ ${state.annotations.length} annotations exported as JSON`);
+    }
+
+    function exportDifferentialCSV() {
+      const wbcClasses = ['neutrophil', 'lymphocyte', 'monocyte', 'eosinophil', 'basophil', 'blast'];
+      const visible = getVisibleAnnotations();
+      const wbcCells = visible.filter(a => wbcClasses.includes(a.classId));
+      const totalWBC = wbcCells.length;
+
+      let csv = "Cell Lineage,Code,Count,WBC Percentage,Reference Range,Clinical Status\n";
+      state.taxonomy.forEach(t => {
+        const isWBC = wbcClasses.includes(t.id);
+        const count = visible.filter(a => a.classId === t.id).length;
+        const pct = isWBC && totalWBC > 0 ? ((count / totalWBC) * 100).toFixed(1) + "%" : "N/A";
+        const ref = t.range ? `${t.range[0]}-${t.range[1]}%` : "N/A";
+        let status = "NORMAL";
+        if (t.id === 'blast' && count > 0) status = "CRITICAL ALERT";
+        else if (isWBC && totalWBC >= 10) {
+          const p = parseFloat(pct);
+          if (p > t.range[1]) status = "ELEVATED";
+          else if (p < t.range[0]) status = "DECREASED";
+        }
+        csv += `"${t.name}","${t.code}",${count},"${pct}","${ref}","${status}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `aimalabs_wbc_differential_${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      if (exportMenu) exportMenu.classList.add('hidden');
+      showToast("✓ Clinical WBC Differential Report exported as CSV");
+    }
+
+    function exportViewportSnapshotPNG() {
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = canvas.width;
+      exportCanvas.height = canvas.height;
+      const eCtx = exportCanvas.getContext('2d');
+      eCtx.drawImage(canvas, 0, 0);
+
+      const url = exportCanvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `aimalabs_viewport_snapshot_${Date.now()}.png`;
+      a.click();
+      if (exportMenu) exportMenu.classList.add('hidden');
+      showToast("✓ Viewport snapshot saved as PNG");
+    }
+
+    const btnExpJson = document.getElementById('btn-export-json');
+    if (btnExpJson) btnExpJson.onclick = exportAnnotationsJSON;
+    const btnExpCsv = document.getElementById('btn-export-csv');
+    if (btnExpCsv) btnExpCsv.onclick = exportDifferentialCSV;
+    const btnExpSnap = document.getElementById('btn-export-snapshot');
+    if (btnExpSnap) btnExpSnap.onclick = exportViewportSnapshotPNG;
+
+    // Reset Confirmation Modal Handlers
+    const resetModal = document.getElementById('reset-confirm-modal');
+    const btnResetDet = document.getElementById('btn-reset-detections');
+    const btnCancelReset = document.getElementById('btn-cancel-reset');
+    const btnConfirmReset = document.getElementById('btn-confirm-reset');
+
+    if (btnResetDet && resetModal) {
+      btnResetDet.onclick = () => {
+        resetModal.classList.remove('hidden');
+      };
+    }
+    if (btnCancelReset && resetModal) {
+      btnCancelReset.onclick = () => {
+        resetModal.classList.add('hidden');
+      };
+    }
+    if (resetModal) {
+      resetModal.onclick = (e) => {
+        if (e.target === resetModal) resetModal.classList.add('hidden');
+      };
+    }
+    if (btnConfirmReset) {
+      btnConfirmReset.onclick = () => {
+        pushHistory('Reset Detections');
+        state.annotations = JSON.parse(JSON.stringify(INITIAL_ANNOTATIONS));
+        state.measurements = [];
+        state.selectedCellId = null;
+        state.selectedMeasurementId = null;
+        updateInspector();
+        renderTaxonomyList();
+        updateUI();
+        render();
+        renderMinimap();
+        if (document.getElementById('gallery-tab-content') && !document.getElementById('gallery-tab-content').classList.contains('hidden')) {
+          renderGallery();
+        }
+        if (resetModal) resetModal.classList.add('hidden');
+        showToast("✓ Annotations reset to 40 default AI detections");
+      };
+    }
+
     function renderTaxonomyList() {
       const list = document.getElementById('taxonomy-list');
+      if (!list) return;
+      const wbcClasses = ['neutrophil', 'lymphocyte', 'monocyte', 'eosinophil', 'basophil', 'blast'];
+      const visible = getVisibleAnnotations();
+      const wbcCells = visible.filter(a => wbcClasses.includes(a.classId));
+      const totalWBC = wbcCells.length;
+
+      // Update stacked bar
+      const stackedBar = document.getElementById('wbc-stacked-bar');
+      const totalCountEl = document.getElementById('wbc-total-count');
+      const alertBanner = document.getElementById('wbc-alert-banner');
+      const alertText = document.getElementById('wbc-alert-text');
+
+      if (totalCountEl) totalCountEl.textContent = `${totalWBC} WBCs`;
+
+      if (stackedBar) {
+        stackedBar.innerHTML = wbcClasses.map(cid => {
+          const cls = state.taxonomy.find(t => t.id === cid);
+          const count = visible.filter(a => a.classId === cid).length;
+          const pct = totalWBC > 0 ? (count / totalWBC) * 100 : 0;
+          if (pct === 0) return '';
+          return `<div style="width: ${pct}%; background-color: ${cls.color}" title="${cls.short}: ${pct.toFixed(1)}% (${count})"></div>`;
+        }).join('');
+      }
+
+      // Check alerts
+      const blastCount = visible.filter(a => a.classId === 'blast').length;
+      const neuCount = visible.filter(a => a.classId === 'neutrophil').length;
+      const neuPct = totalWBC > 0 ? (neuCount / totalWBC) * 100 : 0;
+
+      if (alertBanner && alertText) {
+        if (blastCount > 0) {
+          alertBanner.classList.remove('hidden');
+          alertText.textContent = `⚠️ ${blastCount} Blast(s) Detected (${((blastCount/totalWBC)*100).toFixed(1)}%)`;
+        } else if (totalWBC >= 10 && neuPct > 70) {
+          alertBanner.classList.remove('hidden');
+          alertText.textContent = `Neutrophilia: ${neuPct.toFixed(1)}% (Ref: 40-70%)`;
+        } else {
+          alertBanner.classList.add('hidden');
+        }
+      }
+
       list.innerHTML = state.taxonomy.map(cls => {
         const isChecked = state.classFilter[cls.id] !== false;
         const count = state.annotations.filter(a => a.classId === cls.id && a.confidence >= state.minConfidence).length;
+        const isWBC = wbcClasses.includes(cls.id);
+        const wbcPct = isWBC && totalWBC > 0 ? ((count / totalWBC) * 100).toFixed(1) : null;
+        const refStr = cls.range ? (cls.range[0] === cls.range[1] ? (cls.range[0] === 0 ? '0%' : `${cls.range[0]}%`) : `${cls.range[0]}-${cls.range[1]}%`) : null;
         
         return `
-          <div class="p-2 rounded-lg border border-[#373437] bg-[#110f12]/80 flex items-center justify-between group hover:border-[#5a575a] transition-colors">
-            <label class="flex items-center space-x-2.5 cursor-pointer flex-1 min-w-0 pr-2">
-              <input type="checkbox" data-class="${cls.id}" ${isChecked ? 'checked' : ''} class="class-filter-checkbox rounded bg-[#272527] border-[#373437] text-[#e52246] focus:ring-0 cursor-pointer">
-              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${cls.color}"></span>
-              <span class="text-xs font-semibold text-white truncate ${isChecked ? '' : 'text-[#7a767a] line-through'}">${cls.name}</span>
-            </label>
-            <div class="flex items-center space-x-1.5 shrink-0">
-              <button data-solo="${cls.id}" class="btn-solo text-[10px] font-mono text-[#9e9a9e] hover:text-white opacity-0 group-hover:opacity-100 transition px-1 py-0.5 rounded bg-[#272527]">Solo</button>
-              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded text-white font-bold bg-[#272527]">${count}</span>
+          <div class="px-2 py-1.5 rounded hover:bg-[#1f1d21] flex flex-col space-y-0.5 group border-b border-white/[0.04] transition-colors">
+            <div class="flex items-center justify-between">
+              <label class="flex items-center space-x-2 cursor-pointer flex-1 min-w-0 pr-1">
+                <input type="checkbox" data-class="${cls.id}" ${isChecked ? 'checked' : ''} class="class-filter-checkbox rounded bg-[#272527] border-[#373437] text-[#e52246] focus:ring-0 cursor-pointer w-3 h-3">
+                <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${cls.color}"></span>
+                <span class="text-xs font-medium text-white truncate ${isChecked ? '' : 'text-[#7a767a] line-through'}">${cls.short}</span>
+              </label>
+              <div class="flex items-center space-x-1 shrink-0">
+                <button data-solo="${cls.id}" class="btn-solo text-[9px] font-mono text-[#7a767a] hover:text-white opacity-0 group-hover:opacity-100 transition px-1 py-0.2 rounded hover:bg-[#272527]">Solo</button>
+                <span class="text-[11px] font-mono text-white font-medium w-5 text-right">${count}</span>
+              </div>
             </div>
+            ${wbcPct !== null || refStr ? `
+              <div class="flex items-center justify-between text-[10px] font-mono text-[#7a767a] pl-5">
+                <span>${wbcPct !== null ? `<span class="text-[#B4AFBA]">${wbcPct}%</span>` : '<span class="text-[#5a575a]">Non-WBC</span>'}</span>
+                ${refStr ? `<span class="text-[#5a575a]">Ref: ${refStr}</span>` : ''}
+              </div>
+            ` : ''}
           </div>
         `;
       }).join('');

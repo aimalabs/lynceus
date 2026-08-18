@@ -29,8 +29,8 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
       clientHeight: el.clientHeight
     }));
     console.log('  ✓ Minimap Canvas Size:', minimapCanvas);
-    assert.strictEqual(minimapCanvas.width, 180, 'Minimap width should be 180');
-    assert.strictEqual(minimapCanvas.height, 135, 'Minimap height should be 135');
+    assert.strictEqual(minimapCanvas.width, 160, 'Minimap width should be 160');
+    assert.strictEqual(minimapCanvas.height, 120, 'Minimap height should be 120');
 
     // 2. Test Minimap Click to Pan
     const initialView = await page.evaluate(() => ({ ...window.__CYTO_APP__.state.view }));
