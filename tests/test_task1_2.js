@@ -28,16 +28,16 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Initial View State:', initialView);
     assert(initialView.zoom > 0.2 && initialView.zoom < 2.0, 'Initial zoom should be reasonable');
 
-    // 2. Test Zoom In via Button (+)
-    await page.click('#btn-zoom-in');
+    // 2. Test Zoom In via Keyboard (+)
+    await page.keyboard.press('Equal'); // '+'
     const zoomInView = await page.evaluate(() => window.__CYTO_APP__.state.view.zoom);
-    console.log('  ✓ Zoom After In Button:', zoomInView);
+    console.log('  ✓ Zoom After Keyboard +:', zoomInView);
     assert(zoomInView > initialView.zoom, 'Zoom should have increased');
 
-    // 3. Test Zoom Out via Button (-)
-    await page.click('#btn-zoom-out');
+    // 3. Test Zoom Out via Keyboard (-)
+    await page.keyboard.press('Minus'); // '-'
     const zoomOutView = await page.evaluate(() => window.__CYTO_APP__.state.view.zoom);
-    console.log('  ✓ Zoom After Out Button:', zoomOutView);
+    console.log('  ✓ Zoom After Keyboard -:', zoomOutView);
     assert(zoomOutView < zoomInView, 'Zoom should have decreased');
 
     // 4. Test Fit via Reset Button (0)
@@ -46,14 +46,16 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Reset Zoom (Fit):', resetZoom);
     assert(Math.abs(resetZoom - initialView.zoom) < 0.05, 'Reset zoom should return close to initial fit');
 
-    // 5. Test Keyboard Navigation (+, -, 0)
-    await page.keyboard.press('Equal'); // '+'
-    const kbZoomIn = await page.evaluate(() => window.__CYTO_APP__.state.view.zoom);
-    assert(kbZoomIn > resetZoom, 'Keyboard + should zoom in');
-
-    await page.keyboard.press('Minus'); // '-'
-    const kbZoomOut = await page.evaluate(() => window.__CYTO_APP__.state.view.zoom);
-    assert(kbZoomOut < kbZoomIn, 'Keyboard - should zoom out');
+    // 5. Test Mouse Wheel Zoom
+    const canvasCenter = await page.$eval('#microscope-canvas', el => {
+      const r = el.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    });
+    await page.mouse.move(canvasCenter.x, canvasCenter.y);
+    await page.mouse.wheel({ deltaY: -100 }); // Zoom in
+    const wheelZoom = await page.evaluate(() => window.__CYTO_APP__.state.view.zoom);
+    console.log('  ✓ Mouse Wheel Zoom In:', wheelZoom);
+    assert(wheelZoom > resetZoom, 'Mouse wheel should zoom in');
 
     await page.keyboard.press('Digit0'); // '0'
     const kbZoomReset = await page.evaluate(() => window.__CYTO_APP__.state.view.zoom);

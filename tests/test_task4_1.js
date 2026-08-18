@@ -23,8 +23,8 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
 
     // 1. Verify "aimalabs" brand title & header
     const brandText = await page.evaluate(() => document.querySelector('header').textContent);
-    console.log('  ✓ Header content:', brandText.slice(0, 40));
-    assert(brandText.includes('aimalabs'), 'Header must contain "aimalabs" platform name');
+    console.log('  ✓ Header content:', brandText.trim().slice(0, 40));
+    assert(brandText.toLowerCase().includes('aimalabs'), 'Header must contain "aimalabs" platform name');
 
     // 2. Test Tool Selection via Hotkeys and Buttons
     await page.keyboard.press('KeyB'); // Box tool
@@ -46,6 +46,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
 
     // 3. Test Drawing a New Bounding Box on Canvas
     const initialCount = await page.evaluate(() => window.__CYTO_APP__.state.annotations.length);
+    await page.click('#tool-dropdown-trigger');
     await page.click('button[data-tool="box"]');
 
     // Draw a box from (300, 300) to (400, 400)
@@ -59,6 +60,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert.strictEqual(countAfterBox, initialCount + 1, 'Drawing box should add a new annotation');
 
     // 4. Test Drawing a Caliper Measurement
+    await page.click('#tool-dropdown-trigger');
     await page.click('button[data-tool="measure"]');
     await page.mouse.move(500, 300);
     await page.mouse.down();
@@ -70,6 +72,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert.strictEqual(measurementsCount, 1, 'Should record caliper measurement');
 
     // 5. Test Quick Point Placement
+    await page.click('#tool-dropdown-trigger');
     await page.click('button[data-tool="point"]');
     await page.mouse.click(700, 400);
 
@@ -78,6 +81,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert.strictEqual(countAfterPoint, countAfterBox + 1, 'Point placement should add another cell');
 
     // 6. Test Eraser Tool
+    await page.click('#tool-dropdown-trigger');
     await page.click('button[data-tool="erase"]');
     await page.mouse.click(700, 400); // Erase the placed point cell
 

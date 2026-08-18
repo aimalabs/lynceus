@@ -25,10 +25,14 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     // Open index.html directly from file system
     await page.goto(indexPath, { waitUntil: 'load' });
 
-    // 1. Verify Page Title
+    // 1. Verify Page Title & Brand Anchor
     const title = await page.title();
     console.log('  ✓ Title:', title);
-    assert(title.includes('CytoVision'), 'Title should contain CytoVision');
+    assert(title.includes('aimalabs'), 'Title should contain aimalabs');
+
+    const brandText = await page.$eval('.brand b', el => el.textContent.trim());
+    console.log('  ✓ Brand Header Text:', brandText);
+    assert.strictEqual(brandText, 'AIMALABS', 'Brand header text should be AIMALABS');
 
     // 2. Verify Slide Info Header
     const slideTitle = await page.$eval('#slide-title', el => el.textContent.trim());

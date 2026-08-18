@@ -23,22 +23,24 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
 
     // 1. Verify Scale Bar Element
     const scaleText = await page.$eval('#scale-value-text', el => el.textContent.trim());
-    const objectiveTag = await page.$eval('#objective-tag', el => el.textContent.trim());
+    const objectiveTag = await page.$eval('#active-obj-label', el => el.textContent.trim());
     console.log('  ✓ Initial Scale Bar:', { scale: scaleText, objective: objectiveTag });
     assert(scaleText.includes('µm'), 'Scale bar should display micron units');
 
-    // 2. Test Objective Preset Buttons (e.g. 100x Oil Immersion)
+    // 2. Test Objective Preset Buttons (e.g. 100x Oil Immersion via Objective Dropdown)
+    await page.click('#obj-dropdown-trigger');
     const oilBtn = await page.$('button[data-zoom="1.00"]');
     assert(oilBtn, '100x Oil button should exist');
     await oilBtn.click();
 
     const zoom100 = await page.evaluate(() => window.__CYTO_APP__.state.view.zoom);
-    const objTag100 = await page.$eval('#objective-tag', el => el.textContent.trim());
+    const objTag100 = await page.$eval('#active-obj-label', el => el.textContent.trim());
     console.log('  ✓ After clicking 100x Oil Immersion:', { zoom: zoom100, tag: objTag100 });
     assert.strictEqual(zoom100, 1.0, 'Zoom should be 1.0 for 100x Oil');
     assert(objTag100.includes('100× Oil'), 'Objective tag should indicate 100x Oil Immersion');
 
     // 3. Test 10x Preset
+    await page.click('#obj-dropdown-trigger');
     const lowBtn = await page.$('button[data-zoom="0.10"]');
     await lowBtn.click();
     const zoom10 = await page.evaluate(() => window.__CYTO_APP__.state.view.zoom);
