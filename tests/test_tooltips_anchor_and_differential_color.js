@@ -31,7 +31,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     });
 
     await page.mouse.move(segBox.x, segBox.y);
-    await new Promise(r => setTimeout(r, 60));
+    await new Promise(r => setTimeout(r, 120));
 
     const tooltipInfo = await page.evaluate(() => {
       const tt = document.getElementById('app-help-tooltip');
@@ -75,7 +75,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
         return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
       });
       await page.mouse.move(bBox.x, bBox.y);
-      await new Promise(r => setTimeout(r, 60));
+      await new Promise(r => setTimeout(r, 120));
 
       const blastTtInfo = await page.evaluate(() => {
         const tt = document.getElementById('app-help-tooltip');

@@ -1714,23 +1714,38 @@
       const ttWidth = helpTooltip.offsetWidth || 240;
       const ttHeight = helpTooltip.offsetHeight || 75;
 
-      // Center horizontally relative to target widget
-      let left = targetRect.left + (targetRect.width / 2) - (ttWidth / 2);
-      
-      // Preferred position: below the target widget
-      let top = targetRect.bottom + 8;
+      // Check if target is inside a dropdown menu
+      const isInsideDropdown = !!target.closest('#tool-dropdown-menu, #obj-dropdown-menu, #export-dropdown-menu, .dropdown-menu');
 
-      // If overflowing below screen, place above target widget
-      if (top + ttHeight > window.innerHeight - 8) {
-        top = targetRect.top - ttHeight - 8;
+      let left, top;
+
+      if (isInsideDropdown) {
+        // Position on the SIDE of the dropdown menu so items are never covered
+        if (targetRect.right + ttWidth + 14 <= window.innerWidth) {
+          left = targetRect.right + 8; // place on right side
+        } else {
+          left = targetRect.left - ttWidth - 8; // place on left side
+        }
+        top = targetRect.top + (targetRect.height / 2) - (ttHeight / 2);
+      } else {
+        // Center horizontally relative to target widget
+        left = targetRect.left + (targetRect.width / 2) - (ttWidth / 2);
+        
+        // Preferred position: below the target widget
+        top = targetRect.bottom + 8;
+
+        // If overflowing below screen, place above target widget
+        if (top + ttHeight > window.innerHeight - 8) {
+          top = targetRect.top - ttHeight - 8;
+        }
       }
 
-      // Clamp horizontal bounds within viewport
+      // Clamp horizontal and vertical bounds within viewport
       left = Math.max(10, Math.min(window.innerWidth - ttWidth - 10, left));
-      top = Math.max(10, top);
+      top = Math.max(10, Math.min(window.innerHeight - ttHeight - 10, top));
 
-      helpTooltip.style.left = `${left}px`;
-      helpTooltip.style.top = `${top}px`;
+      helpTooltip.style.left = `${Math.round(left)}px`;
+      helpTooltip.style.top = `${Math.round(top)}px`;
     }
 
     document.addEventListener('mouseover', (e) => {
