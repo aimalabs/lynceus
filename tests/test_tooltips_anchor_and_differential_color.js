@@ -39,8 +39,8 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
       const desc = document.getElementById('help-tooltip-desc').textContent;
       const opacity = window.getComputedStyle(tt).opacity;
       const borderColor = tt.style.borderColor;
-      const rect = tt.getBoundingClientRect();
-      return { opacity, title, desc, borderColor, rect };
+      const r = tt.getBoundingClientRect();
+      return { opacity, title, desc, borderColor, left: r.left, top: r.top };
     });
 
     console.log('  ✓ Neutrophil Segment Tooltip:', {
@@ -54,7 +54,6 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert(tooltipInfo.borderColor.includes('56, 189, 248') || tooltipInfo.borderColor.includes('#38bdf8'), 'Tooltip border must match Neutrophil blue color');
 
     // 2. Verify Tooltip is Anchored (does not jitter on mousemove within widget)
-    const initialTooltipPos = { ...tooltipInfo.rect };
     await page.mouse.move(segBox.x + 2, segBox.y + 1); // small sub-pixel mousemove within segment
 
     const movedTooltipPos = await page.evaluate(() => {
@@ -63,9 +62,28 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
       return { left: r.left, top: r.top };
     });
 
-    assert.strictEqual(movedTooltipPos.left, initialTooltipPos.left, 'Tooltip position must remain statically anchored to widget');
-    assert.strictEqual(movedTooltipPos.top, initialTooltipPos.top, 'Tooltip position must remain statically anchored to widget');
+    assert.strictEqual(movedTooltipPos.left, tooltipInfo.left, 'Tooltip position must remain statically anchored to widget');
+    assert.strictEqual(movedTooltipPos.top, tooltipInfo.top, 'Tooltip position must remain statically anchored to widget');
     console.log('  ✓ Tooltip is cleanly anchored relative to widget (no mouse-following jitter)');
+
+    // 3. Test Dropdown Item Tooltip is on the SIDE
+    await page.click('#tool-dropdown-trigger');
+    const boxToolBtn = await page.$('#tool-dropdown-menu button[data-tool="box"]');
+    if (boxToolBtn) {
+      const bBox = await page.$eval('#tool-dropdown-menu button[data-tool="box"]', el => {
+        const r = el.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2, right: r.right };
+      });
+      await page.mouse.move(bBox.x, bBox.y);
+      await new Promise(r => setTimeout(r, 120));
+
+      const dropdownTtLeft = await page.evaluate(() => {
+        const tt = document.getElementById('app-help-tooltip');
+        return tt.getBoundingClientRect().left;
+      });
+      console.log('  ✓ Tooltip Left for Dropdown Item:', { ttLeft: dropdownTtLeft, menuRight: bBox.right });
+      assert(dropdownTtLeft >= bBox.right - 2, 'Tooltip for dropdown item must be positioned on the side (to the right)');
+    }
 
     // 3. Hover over Blast segment (coral red)
     const blastSegment = await page.$('#wbc-stacked-bar > div:last-child');
@@ -87,8 +105,9 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
       assert(blastTtInfo.title.includes('Blast') || blastTtInfo.title.includes('Atypical'), 'Title should reflect Blast cell');
     }
 
-    // 4. Click anywhere to dismiss tooltip
-    await page.mouse.click(200, 200);
+    // 4. Click on canvas to dismiss tooltip
+    await page.mouse.click(500, 500);
+    await new Promise(r => setTimeout(r, 120));
     const isDismissed = await page.evaluate(() => {
       const tt = document.getElementById('app-help-tooltip');
       return window.getComputedStyle(tt).opacity === '0';

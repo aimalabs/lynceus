@@ -139,3 +139,4 @@ Ensure the interface is snappy, visually polished, and fully functional without 
   - [x] 7.1.9 Test thumbnail gallery filtering and click-to-navigate (`test_gallery.js`).
   - [x] 7.1.10 Test `localStorage` persistence and data exchange (`test_data_exchange.js`).
   - [x] 7.1.11 Test optical pixel size calibrator and dynamic recalculation (`test_pixel_calibrator.js`).
+  - [x] 7.1.12 Test anchor-based tooltips and differential color hover (`test_tooltips_anchor_and_differential_color.js`).
