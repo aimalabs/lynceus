@@ -92,32 +92,42 @@ Ensure the interface is snappy, visually polished, and fully functional without 
   - [x] 4.2.2 Implement Undo / Redo history stack (`Ctrl+Z`, `Ctrl+Y` / `Cmd+Z`, `Cmd+Shift+Z`) for all mutations.
   - [x] 4.2.3 Support keyboard deletion (`Delete` / `Backspace`) of selected cells.
 
-#### Phase 5: Metrics, Persistence, Gallery & Workflow Polish
-- [x] **Task 5.1: Live WBC Differential Count Engine**
-  - [x] 5.1.1 Calculate real-time 100-WBC differential percentages, counts, and clinical reference ranges.
-  - [x] 5.1.2 Render stacked visual WBC composition bar and abnormality status flags (e.g., Neutrophilia, Blasts Present).
-- [x] **Task 5.2: Cell Gallery & Review Strip**
-  - [x] 5.2.1 Build filterable thumbnail gallery grid of all detected cells.
-  - [x] 5.2.2 Implement one-click smooth fly-to navigation from gallery thumbnail to canvas.
-- [x] **Task 5.3: State Persistence & Data Exchange**
-  - [x] 5.3.1 Automatically persist all edits, filters, and custom cells to `localStorage`.
-  - [x] 5.3.2 Implement Export Annotations (JSON), Import Annotations (JSON), and Export Report (CSV).
-  - [x] 5.3.3 Implement high-res Viewport Snapshot capture (PNG) with/without overlays.
-  - [x] 5.3.4 Add "Reset to Default AI Detections" action.
-- [x] **Task 5.4: User Experience & Keyboard Cheat Sheet**
-  - [x] 5.4.1 Keyboard shortcuts modal (`?` key) with full shortcut list.
-  - [x] 5.4.2 Image adjustments (brightness, contrast, saturation) for slide inspection.
-  - [x] 5.4.3 Collapsible left & right sidebars for maximum microscope canvas area.
+#### Phase 5: AIMALABS Design System & Spatial Layout De-cluttering
+- [x] **Task 5.1: AIMALABS Brand Identity & Visual Guidelines Documentation**
+  - [x] 5.1.1 Copy official logo asset (`assets/aima-logo.png`) and format header anchor `<a class="brand" href="index.html"><img src="assets/aima-logo.png" alt="AIMALABS"/><b>AIMALABS</b></a>`.
+  - [x] 5.1.2 Author comprehensive `branding.md` documenting color variables, typography stack (`Sora`, `IBM Plex Sans`, `IBM Plex Mono`), microscopy overlays, and component design patterns.
+  - [x] 5.1.3 Integrate AIMALABS dark aesthetic (`--coral: #EC3B57` / `rgb(229,34,70)`, `--black: #131215`, `--black-2: #1B191E`, `--black-3: #0E0D10`, `--muted: #6C6770`, `--muted-d: #B4AFBA`).
+- [x] **Task 5.2: Layout De-cluttering & Resizable Sidebars**
+  - [x] 5.2.1 Eliminate floating HUD element collisions by unifying the bottom status & optical control bar.
+  - [x] 5.2.2 Implement smooth draggable column resizer handles for both Left and Right sidebars with min/max clamps.
+  - [x] 5.2.3 Ensure canvas auto-refits without clipping labels or morphometric overlays during dynamic sidebar resizing.
 
-#### Phase 6: Automated Testing & Verification
-- [x] **Task 6.1: Comprehensive End-to-End Automated Test Suite**
-  - [x] 6.1.1 Test file loading and direct `file://` / standalone execution.
-  - [x] 6.1.2 Test pan, zoom, preset magnification, and minimap viewport sync.
-  - [x] 6.1.3 Test overlay toggling, confidence filtering, and per-class visibility.
-  - [x] 6.1.4 Test cell selection, hover HUD, morphometrics, and right sidebar inspector.
-  - [x] 6.1.5 Test drawing new boxes, circles, calipers, deleting cells, and reclassifying.
-  - [x] 6.1.6 Test undo/redo operations.
-  - [x] 6.1.7 Test live differential count calculations and abnormality banners.
-  - [x] 6.1.8 Test thumbnail gallery click-to-navigate.
-  - [x] 6.1.9 Test `localStorage` persistence across reloads.
-  - [x] 6.1.10 Test JSON import/export and CSV report generation.
+#### Phase 6: Metrics, Persistence, Gallery & Workflow Polish
+- [ ] **Task 6.1: Live WBC Differential Count Engine**
+  - [ ] 6.1.1 Calculate real-time 100-WBC differential percentages, counts, and clinical reference ranges.
+  - [ ] 6.1.2 Render stacked visual WBC composition bar and abnormality status flags (e.g., Neutrophilia, Blasts Present).
+- [ ] **Task 6.2: Cell Gallery & Review Strip**
+  - [ ] 6.2.1 Build filterable thumbnail gallery grid of all detected cells.
+  - [ ] 6.2.2 Implement one-click smooth fly-to navigation from gallery thumbnail to canvas.
+- [ ] **Task 6.3: State Persistence & Data Exchange**
+  - [ ] 6.3.1 Automatically persist all edits, filters, and custom cells to `localStorage`.
+  - [ ] 6.3.2 Implement Export Annotations (JSON), Import Annotations (JSON), and Export Report (CSV).
+  - [ ] 6.3.3 Implement high-res Viewport Snapshot capture (PNG) with/without overlays.
+  - [ ] 6.3.4 Add "Reset to Default AI Detections" action.
+- [ ] **Task 6.4: User Experience & Keyboard Cheat Sheet**
+  - [ ] 6.4.1 Keyboard shortcuts modal (`?` key) with full shortcut list.
+  - [ ] 6.4.2 Image adjustments (brightness, contrast, saturation) for slide inspection.
+
+#### Phase 7: Automated Testing & Verification
+- [ ] **Task 7.1: Comprehensive End-to-End Automated Test Suite**
+  - [x] 7.1.1 Test file loading and direct `file://` / standalone execution.
+  - [x] 7.1.2 Test pan, zoom, preset magnification, and minimap viewport sync.
+  - [x] 7.1.3 Test overlay toggling, confidence filtering, and per-class visibility.
+  - [x] 7.1.4 Test cell selection, hover HUD, morphometrics, and right sidebar inspector.
+  - [x] 7.1.5 Test drawing new boxes, circles, calipers, deleting cells, and reclassifying.
+  - [x] 7.1.6 Test resizable sidebars and canvas layout responsiveness.
+  - [ ] 7.1.7 Test undo/redo operations.
+  - [ ] 7.1.8 Test live differential count calculations and abnormality banners.
+  - [ ] 7.1.9 Test thumbnail gallery click-to-navigate.
+  - [ ] 7.1.10 Test `localStorage` persistence across reloads.
+  - [ ] 7.1.11 Test JSON import/export and CSV report generation.

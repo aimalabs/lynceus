@@ -22,7 +22,6 @@
               600: '#ce1438',
               700: '#ad0d2d',
               800: '#900e29',
-              900: '#7a1027',
               950: '#440411',
             },
             surface: {
@@ -54,6 +53,35 @@
     .cursor-cell { cursor: cell !important; }
     .cursor-erase { cursor: not-allowed !important; }
     
+    /* Resizer handles */
+    .sidebar-resizer {
+      width: 5px;
+      cursor: col-resize;
+      background-color: #272527;
+      border-left: 1px solid #373437;
+      border-right: 1px solid #373437;
+      transition: background-color 0.15s ease;
+      z-index: 25;
+      position: relative;
+    }
+    .sidebar-resizer:hover, .sidebar-resizer.resizing {
+      background-color: #e52246 !important;
+    }
+    .sidebar-resizer::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 2px;
+      height: 24px;
+      background: #7a767a;
+      border-radius: 1px;
+    }
+    .sidebar-resizer:hover::after, .sidebar-resizer.resizing::after {
+      background: #ffffff;
+    }
+    
     input[type=range] {
       accent-color: #e52246;
     }
@@ -62,7 +90,7 @@
 <body class="h-full flex flex-col overflow-hidden select-none font-sans bg-[#110f12] text-white">
 
   <!-- Top Application Header -->
-  <header class="h-14 bg-[#1a181b] border-b border-[#373437] flex items-center justify-between px-4 z-20 shrink-0">
+  <header class="h-14 bg-[#1a181b] border-b border-[#373437] flex items-center justify-between px-4 z-30 shrink-0">
     <div class="flex items-center space-x-3">
       <!-- aimalabs Brand -->
       <div class="flex items-center space-x-2 text-[#e52246] font-bold tracking-wider text-base">
@@ -118,10 +146,8 @@
 
       <!-- Active Drawing Class Selector -->
       <div class="flex items-center space-x-1 bg-[#110f12] px-2.5 py-1 rounded-lg border border-[#373437] text-xs font-mono">
-        <span class="text-[#9e9a9e]">Active Class:</span>
-        <select id="draw-class-select" class="bg-[#272527] text-white font-semibold rounded px-2 py-0.5 border border-[#373437] focus:outline-none focus:border-[#e52246] cursor-pointer">
-          <!-- Rendered via JS -->
-        </select>
+        <span class="text-[#9e9a9e]">Active:</span>
+        <select id="draw-class-select" class="bg-[#272527] text-white font-semibold rounded px-2 py-0.5 border border-[#373437] focus:outline-none focus:border-[#e52246] cursor-pointer"></select>
       </div>
 
       <div class="h-4 w-px bg-[#373437]"></div>
@@ -158,10 +184,10 @@
   </header>
 
   <!-- Main Viewport Workspace -->
-  <main class="flex-1 flex relative overflow-hidden">
-    <!-- Left Sidebar: Slide & Taxonomy Summary -->
-    <aside id="left-sidebar" class="w-72 bg-[#1a181b] border-r border-[#373437] flex flex-col shrink-0 z-10 transition-all duration-200">
-      <div class="p-3 border-b border-[#373437] flex items-center justify-between">
+  <main class="flex-1 flex relative overflow-hidden" id="workspace-container">
+    <!-- Left Sidebar: Slide & Taxonomy Summary (Resizable) -->
+    <aside id="left-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-hidden" style="width: 290px; min-width: 200px; max-width: 500px;">
+      <div class="p-3 border-b border-[#373437] flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2">
           <h2 class="text-xs font-semibold uppercase tracking-wider text-[#9e9a9e]">Class Filters</h2>
           <span class="text-[11px] font-mono text-[#e52246] px-1.5 py-0.2 rounded bg-[#e52246]/10 border border-[#e52246]/30 font-bold" id="visible-count-badge">40 visible</span>
@@ -178,8 +204,11 @@
       </div>
     </aside>
 
+    <!-- Left Resizer Gutter -->
+    <div id="left-resizer" class="sidebar-resizer shrink-0" title="Drag to resize left sidebar"></div>
+
     <!-- Microscope Canvas Container -->
-    <div id="canvas-container" class="flex-1 relative bg-[#110f12] flex items-center justify-center overflow-hidden select-none">
+    <div id="canvas-container" class="flex-1 relative bg-[#110f12] flex items-center justify-center overflow-hidden select-none min-w-0">
       <canvas id="microscope-canvas" class="w-full h-full block cursor-grab"></canvas>
       
       <!-- Hover HUD Card -->
@@ -270,9 +299,12 @@
       </div>
     </div>
 
-    <!-- Right Sidebar: Cell Inspector -->
-    <aside id="right-sidebar" class="w-80 bg-[#1a181b] border-l border-[#373437] flex flex-col shrink-0 z-10 overflow-y-auto">
-      <div class="p-3 border-b border-[#373437] flex items-center justify-between">
+    <!-- Right Resizer Gutter -->
+    <div id="right-resizer" class="sidebar-resizer shrink-0" title="Drag to resize right sidebar"></div>
+
+    <!-- Right Sidebar: Cell Inspector (Resizable) -->
+    <aside id="right-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-y-auto" style="width: 320px; min-width: 240px; max-width: 560px;">
+      <div class="p-3 border-b border-[#373437] flex items-center justify-between shrink-0">
         <h2 class="text-xs font-semibold uppercase tracking-wider text-[#9e9a9e] flex items-center space-x-2">
           <span>Cell Inspector</span>
         </h2>
@@ -442,7 +474,7 @@
       image: new Image(),
       imageLoaded: false,
       view: { x: 0, y: 0, zoom: 1.0, minZoom: 0.1, maxZoom: 16.0 },
-      tool: 'select', // 'select' | 'box' | 'circle' | 'point' | 'measure' | 'erase'
+      tool: 'select',
       activeClassId: 'neutrophil',
       overlaysVisible: true,
       minConfidence: 0.70,
@@ -469,6 +501,52 @@
 
     const hoverHud = document.getElementById('hover-hud');
     const contextMenu = document.getElementById('context-menu');
+
+    // Sidebar Resizing Logic
+    const leftSidebar = document.getElementById('left-sidebar');
+    const leftResizer = document.getElementById('left-resizer');
+    const rightSidebar = document.getElementById('right-sidebar');
+    const rightResizer = document.getElementById('right-resizer');
+
+    let isResizingLeft = false;
+    let isResizingRight = false;
+
+    leftResizer.addEventListener('mousedown', (e) => {
+      isResizingLeft = true;
+      leftResizer.classList.add('resizing');
+      document.body.style.cursor = 'col-resize';
+      e.preventDefault();
+    });
+
+    rightResizer.addEventListener('mousedown', (e) => {
+      isResizingRight = true;
+      rightResizer.classList.add('resizing');
+      document.body.style.cursor = 'col-resize';
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isResizingLeft) {
+        const newWidth = Math.max(200, Math.min(500, e.clientX));
+        leftSidebar.style.width = `${newWidth}px`;
+        resizeCanvas();
+      } else if (isResizingRight) {
+        const newWidth = Math.max(240, Math.min(560, window.innerWidth - e.clientX));
+        rightSidebar.style.width = `${newWidth}px`;
+        resizeCanvas();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isResizingLeft || isResizingRight) {
+        isResizingLeft = false;
+        isResizingRight = false;
+        leftResizer.classList.remove('resizing');
+        rightResizer.classList.remove('resizing');
+        document.body.style.cursor = '';
+        resizeCanvas();
+      }
+    });
 
     function getVisibleAnnotations() {
       if (!state.overlaysVisible) return [];
@@ -520,7 +598,6 @@
         }
       });
 
-      // Update cursor
       canvas.className = 'w-full h-full block';
       if (toolName === 'select') canvas.classList.add('cursor-grab');
       else if (toolName === 'box' || toolName === 'measure') canvas.classList.add('cursor-crosshair');
@@ -820,6 +897,7 @@
 
     function resizeCanvas() {
       const container = document.getElementById('canvas-container');
+      if (!container) return;
       const dpr = window.devicePixelRatio || 1;
       canvas.width = container.clientWidth * dpr;
       canvas.height = container.clientHeight * dpr;
@@ -853,7 +931,6 @@
         const worldPos = screenToWorld(e.clientX, e.clientY);
 
         if (state.tool === 'select') {
-          // Check if clicked cell
           const hit = hitTestAnnotation(worldPos.x, worldPos.y);
           if (!hit) {
             state.isDragging = true;
@@ -867,13 +944,12 @@
           state.drawStartWorld = { ...worldPos };
           state.drawCurrentWorld = { ...worldPos };
         } else if (state.tool === 'point') {
-          // Instant cell placement (size 100x100)
           addCellAnnotation(worldPos.x - 50, worldPos.y - 50, 100, 100, 'circle');
         } else if (state.tool === 'erase') {
           const hit = hitTestAnnotation(worldPos.x, worldPos.y);
           if (hit) deleteCell(hit.id);
         }
-      } else if (e.button === 1) { // Middle click pan
+      } else if (e.button === 1) {
         state.isDragging = true;
         state.dragStart.x = e.clientX - state.view.x;
         state.dragStart.y = e.clientY - state.view.y;
@@ -1051,19 +1127,16 @@
       }
     });
 
-    // Wire Tool Buttons
     document.querySelectorAll('.tool-btn').forEach(btn => {
       btn.onclick = () => setTool(btn.getAttribute('data-tool'));
     });
 
-    // Wire Draw Class Select
     const drawSelect = document.getElementById('draw-class-select');
     drawSelect.innerHTML = CELL_TAXONOMY.map(t => `<option value="${t.id}">${t.short}</option>`).join('');
     drawSelect.onchange = (e) => {
       state.activeClassId = e.target.value;
     };
 
-    // Toolbar Event Listeners
     document.getElementById('btn-toggle-overlay').onclick = toggleOverlays;
 
     document.getElementById('conf-slider').oninput = (e) => {
@@ -1102,7 +1175,6 @@
     }
     document.getElementById('btn-toggle-reticle').onclick = toggleReticle;
 
-    // Filter Buttons
     document.getElementById('btn-filter-all').onclick = () => {
       state.taxonomy.forEach(t => state.classFilter[t.id] = true);
       renderTaxonomyList();
@@ -1119,7 +1191,6 @@
       renderMinimap();
     };
 
-    // Toggle Minimap
     document.getElementById('btn-toggle-minimap').onclick = () => {
       const container = document.getElementById('minimap-container');
       const isHidden = container.style.display === 'none';
