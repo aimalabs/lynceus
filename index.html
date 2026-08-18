@@ -395,7 +395,7 @@
 
         <span class="text-[#373437]">•</span>
 
-        <!-- Quick Actions: Reticle, Fit, Minimap -->
+        <!-- Quick Actions: Reticle & Fit -->
         <div class="flex items-center space-x-1 shrink-0">
           <button id="btn-toggle-reticle" title="Toggle Reticle (R)" class="p-0.5 rounded text-[#7a767a] hover:text-white hover:bg-[#272527] transition" data-help="Microscope Reticle|Toggle optical center crosshair.|R">
             <svg class="w-3.5 h-3.5 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -406,11 +406,7 @@
               <line x1="12" y1="22" x2="12" y2="18"></line>
             </svg>
           </button>
-          <button id="btn-zoom-reset" class="px-1 py-0.2 text-[9px] text-[#7a767a] hover:text-white bg-[#1B191E] hover:bg-[#272527] rounded border border-[#373437] transition" data-help="Fit Viewport (0)|Resets zoom to fit full smear slide in viewport.|0">Fit</button>
-          <button id="btn-toggle-minimap" title="Toggle Minimap" class="px-1 py-0.2 text-[9px] text-[#7a767a] hover:text-white bg-[#1B191E] hover:bg-[#272527] rounded border border-[#373437] transition flex items-center space-x-1" data-help="Slide Navigator|Toggle high-level slide overview minimap.|MAP">
-            <svg class="w-2.5 h-2.5 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18M9 21V9"></path></svg>
-            <span>MAP</span>
-          </button>
+          <button id="btn-zoom-reset" class="px-1.5 py-0.2 text-[9px] text-[#7a767a] hover:text-white bg-[#1B191E] hover:bg-[#272527] rounded border border-[#373437] transition" data-help="Fit Viewport (0)|Resets zoom to fit full smear slide in viewport.|0">Fit</button>
         </div>
       </div>
 
@@ -1688,11 +1684,13 @@
     if (toolTrigger && toolMenu) {
       toolTrigger.onclick = (e) => {
         e.stopPropagation();
+        hideHelpTooltip();
         toolMenu.classList.toggle('hidden');
       };
       document.querySelectorAll('.tool-btn').forEach(btn => {
         btn.onclick = (e) => {
           e.stopPropagation();
+          hideHelpTooltip();
           setTool(btn.getAttribute('data-tool'));
         };
       });
@@ -1710,22 +1708,29 @@
     const helpDesc = document.getElementById('help-tooltip-desc');
     let activeHelpTarget = null;
 
-    function positionHelpTooltip(e) {
-      if (!helpTooltip) return;
-      const pad = 12;
+    function positionHelpTooltip(target) {
+      if (!helpTooltip || !target) return;
+      const targetRect = target.getBoundingClientRect();
       const ttWidth = helpTooltip.offsetWidth || 240;
       const ttHeight = helpTooltip.offsetHeight || 75;
-      let left = e.clientX + pad;
-      let top = e.clientY + pad;
 
-      if (left + ttWidth > window.innerWidth - 8) {
-        left = e.clientX - ttWidth - pad;
-      }
+      // Center horizontally relative to target widget
+      let left = targetRect.left + (targetRect.width / 2) - (ttWidth / 2);
+      
+      // Preferred position: below the target widget
+      let top = targetRect.bottom + 8;
+
+      // If overflowing below screen, place above target widget
       if (top + ttHeight > window.innerHeight - 8) {
-        top = e.clientY - ttHeight - pad;
+        top = targetRect.top - ttHeight - 8;
       }
-      helpTooltip.style.left = `${Math.max(8, left)}px`;
-      helpTooltip.style.top = `${Math.max(8, top)}px`;
+
+      // Clamp horizontal bounds within viewport
+      left = Math.max(10, Math.min(window.innerWidth - ttWidth - 10, left));
+      top = Math.max(10, top);
+
+      helpTooltip.style.left = `${left}px`;
+      helpTooltip.style.top = `${top}px`;
     }
 
     document.addEventListener('mouseover', (e) => {
@@ -1733,30 +1738,48 @@
       if (target && target !== activeHelpTarget) {
         activeHelpTarget = target;
         const raw = target.getAttribute('data-help') || '';
+        const customColor = target.getAttribute('data-tooltip-color') || '#e52246';
         const [title, desc, key] = raw.split('|');
+
         if (helpTitleText) helpTitleText.textContent = title || 'Info';
         if (helpDesc) helpDesc.textContent = desc || '';
+
+        // Dynamic theme color for tooltip border, dot, and key tag
+        helpTooltip.style.borderColor = customColor;
+        const dotEl = helpTooltip.querySelector('.rounded-full');
+        if (dotEl) dotEl.style.backgroundColor = customColor;
+
         if (helpKey) {
           if (key) {
             helpKey.textContent = key;
             helpKey.style.display = 'inline-block';
+            helpKey.style.color = customColor;
+            helpKey.style.borderColor = customColor + '50';
+            helpKey.style.backgroundColor = customColor + '18';
           } else {
             helpKey.style.display = 'none';
           }
         }
-        positionHelpTooltip(e);
+        positionHelpTooltip(target);
         if (helpTooltip) helpTooltip.style.opacity = '1';
       }
     });
 
-    document.addEventListener('mousemove', (e) => {
-      if (activeHelpTarget) positionHelpTooltip(e);
-    });
+    function hideHelpTooltip() {
+      activeHelpTarget = null;
+      if (helpTooltip) helpTooltip.style.opacity = '0';
+    }
+
+    // Dismiss tooltip immediately on any click, mousedown, or interaction
+    window.addEventListener('click', hideHelpTooltip, true);
+    window.addEventListener('mousedown', (e) => {
+      // If clicking inside something interactive, hide help tooltip
+      hideHelpTooltip();
+    }, true);
 
     document.addEventListener('mouseout', (e) => {
       if (activeHelpTarget && !activeHelpTarget.contains(e.relatedTarget)) {
-        activeHelpTarget = null;
-        if (helpTooltip) helpTooltip.style.opacity = '0';
+        hideHelpTooltip();
       }
     });
 
@@ -1766,6 +1789,7 @@
     if (objTrigger && objMenu) {
       objTrigger.onclick = (e) => {
         e.stopPropagation();
+        hideHelpTooltip();
         objMenu.classList.toggle('hidden');
       };
       window.addEventListener('click', (e) => {
@@ -2173,12 +2197,12 @@
         const isSelected = ann.id === state.selectedCellId;
 
         return `
-          <div data-cell-id="${ann.id}" class="gal-cell-card bg-[#110f12] border ${isSelected ? 'border-[#e52246] ring-1 ring-[#e52246]' : 'border-[#373437]'} hover:border-[#5a575a] rounded-lg p-1.5 cursor-pointer transition flex flex-col space-y-1 group">
-            <div class="relative w-full aspect-square bg-black rounded overflow-hidden">
-              <canvas id="crop-thumb-${ann.id}" width="80" height="80" class="w-full h-full block"></canvas>
-              <span class="absolute top-1 left-1 px-1 py-0.2 rounded text-[8px] font-mono text-white font-bold" style="background-color: ${cls.color}">${cls.code}</span>
+          <div data-cell-id="${ann.id}" class="gal-cell-card bg-[#110f12] border ${isSelected ? 'border-[#e52246] ring-1 ring-[#e52246]' : 'border-[#272527]'} hover:border-[#5a575a] rounded-lg p-1.5 cursor-pointer transition flex flex-col space-y-1 group">
+            <div class="relative w-full h-[88px] bg-black rounded overflow-hidden flex items-center justify-center">
+              <canvas id="crop-thumb-${ann.id}" width="120" height="88" class="w-full h-full object-contain block"></canvas>
+              <span class="absolute top-1 left-1 px-1 py-0.2 rounded text-[8px] font-mono text-white font-bold shadow-sm" style="background-color: ${cls.color}">${cls.code}</span>
             </div>
-            <div class="flex items-center justify-between text-[10px] font-mono">
+            <div class="flex items-center justify-between text-[10px] font-mono px-0.5">
               <span class="text-[#9e9a9e] truncate">${ann.id}</span>
               <span class="text-[#e52246] font-bold">${Math.round(ann.confidence * 100)}%</span>
             </div>
@@ -2190,12 +2214,35 @@
         const thumbCanvas = document.getElementById(`crop-thumb-${ann.id}`);
         if (thumbCanvas) {
           const tCtx = thumbCanvas.getContext('2d');
-          const pad = 10;
+          const pad = 12;
           const srcX = Math.max(0, ann.x - pad);
           const srcY = Math.max(0, ann.y - pad);
           const srcW = Math.min(state.image.naturalWidth - srcX, ann.width + pad * 2);
           const srcH = Math.min(state.image.naturalHeight - srcY, ann.height + pad * 2);
-          tCtx.drawImage(state.image, srcX, srcY, srcW, srcH, 0, 0, 80, 80);
+          
+          thumbCanvas.width = 120;
+          thumbCanvas.height = 88;
+          tCtx.clearRect(0, 0, 120, 88);
+
+          // Draw cropped cell ROI scaled to constant container height
+          const scale = Math.min(120 / srcW, 88 / srcH);
+          const drawW = srcW * scale;
+          const drawH = srcH * scale;
+          const dx = (120 - drawW) / 2;
+          const dy = (88 - drawH) / 2;
+
+          tCtx.drawImage(state.image, srcX, srcY, srcW, srcH, dx, dy, drawW, drawH);
+
+          const cls = state.taxonomy.find(t => t.id === ann.classId) || state.taxonomy[0];
+          tCtx.strokeStyle = cls.color;
+          tCtx.lineWidth = 1.5;
+          if (ann.shape === 'circle') {
+            tCtx.beginPath();
+            tCtx.arc(120 / 2, 88 / 2, Math.min(drawW, drawH) * 0.42, 0, Math.PI * 2);
+            tCtx.stroke();
+          } else {
+            tCtx.strokeRect(dx + 2, dy + 2, drawW - 4, drawH - 4);
+          }
         }
       });
 
@@ -2393,7 +2440,11 @@
           const count = visible.filter(a => a.classId === cid).length;
           const pct = totalWBC > 0 ? (count / totalWBC) * 100 : 0;
           if (pct === 0) return '';
-          return `<div style="width: ${pct}%; background-color: ${cls.color}" title="${cls.short}: ${pct.toFixed(1)}% (${count})"></div>`;
+          const refStr = cls.range ? (cls.range[0] === cls.range[1] ? (cls.range[0] === 0 ? '0%' : `${cls.range[0]}%`) : `${cls.range[0]}-${cls.range[1]}%`) : '';
+          const status = (cid === 'blast') ? 'Critical Finding' : (pct > (cls.range?.[1] || 100) ? 'Elevated' : (pct < (cls.range?.[0] || 0) ? 'Decreased' : 'Normal'));
+          const desc = `${pct.toFixed(1)}% of WBCs (${count}/${totalWBC}) • Ref: ${refStr} (${status})`;
+
+          return `<div data-help="${cls.name}|${desc}|${cls.code}" data-tooltip-color="${cls.color}" style="width: ${pct}%; background-color: ${cls.color}" class="h-full cursor-pointer hover:brightness-125 transition-all"></div>`;
         }).join('');
       }
 

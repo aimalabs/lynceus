@@ -61,7 +61,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert(newRightWidth > initialRightWidth, 'Right sidebar should expand when dragged left');
 
     // 4. Test Key Controls Clickability & No Element Overlaps
-    const buttons = ['#btn-zoom-reset', '#btn-toggle-minimap', '#btn-toggle-reticle', '#obj-dropdown-trigger', '#tool-dropdown-trigger'];
+    const buttons = ['#btn-zoom-reset', '#btn-close-minimap', '#btn-toggle-reticle', '#obj-dropdown-trigger', '#tool-dropdown-trigger'];
     for (const selector of buttons) {
       const isClickable = await page.evaluate((sel) => {
         const el = document.querySelector(sel);

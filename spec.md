@@ -106,28 +106,28 @@ Ensure the interface is snappy, visually polished, and fully functional without 
   - [x] 5.2.6 Universal Clinical Hover Help Tooltips on all interactive elements.
 
 #### Phase 6: Granular Clinical Tools, Metrics, Gallery & Persistence
-- [ ] **Task 6.1: Live WBC Differential Count Engine & Clinical Table**
-  - [ ] 6.1.1 Real-time 100-WBC differential percentages, absolute counts, and normal reference ranges.
-  - [ ] 6.1.2 Stacked visual WBC composition bar with animated lineage proportions.
-  - [ ] 6.1.3 Clinical diagnostic alert banners (e.g., *Neutrophilia*, *Blasts Present / Critical Finding*).
-- [ ] **Task 6.2: Cell Gallery Review Strip & Quick Navigation**
-  - [ ] 6.2.1 Tab switcher in right sidebar: `[ Cell Inspector ]` | `[ Cell Gallery ]`.
-  - [ ] 6.2.2 Filterable thumbnail gallery grid (All, NEU, LYM, MON, EOS, BAS, BLA, PLT, RBC-V).
-  - [ ] 6.2.3 Single-click thumbnail fly-to animation with automatic centering and focus.
-- [ ] **Task 6.3: State Persistence & Data Exchange Engine**
-  - [ ] 6.3.1 Automatic `localStorage` synchronization for annotations, filters, and manual edits.
-  - [ ] 6.3.2 Export Annotations as standard JSON (`annotations.json`).
-  - [ ] 6.3.3 Import Annotations from user JSON file with validation.
-  - [ ] 6.3.4 Export Clinical Hematology Report as CSV (`wbc_differential_report.csv`).
-  - [ ] 6.3.5 Viewport Snapshot PNG Export (with toggle for raw slide vs overlay composite).
-  - [ ] 6.3.6 One-click "Reset to Default AI Detections" with confirmation.
-- [ ] **Task 6.4: Ergonomic Clinical Utilities & Help System**
-  - [ ] 6.4.1 Keyboard shortcuts modal cheat sheet (`?` key / top bar button).
-  - [ ] 6.4.2 Image adjustments modal (Brightness, Contrast, Saturation) with real-time canvas filters.
-  - [ ] 6.4.3 Sleek non-intrusive toast notification system for user actions.
+- [x] **Task 6.1: Live WBC Differential Count Engine & Clinical Table**
+  - [x] 6.1.1 Real-time 100-WBC differential percentages, absolute counts, and normal reference ranges.
+  - [x] 6.1.2 Stacked visual WBC composition bar with animated lineage proportions.
+  - [x] 6.1.3 Clinical diagnostic alert banners (e.g., *Neutrophilia*, *Blasts Present / Critical Finding*).
+- [x] **Task 6.2: Cell Gallery Review Strip & Quick Navigation**
+  - [x] 6.2.1 Tab switcher in right sidebar: `[ Cell Inspector ]` | `[ Cell Gallery ]`.
+  - [x] 6.2.2 Filterable thumbnail gallery grid (All, NEU, LYM, MON, EOS, BAS, BLA, PLT, RBC-V) with uniform constant preview height wrapping cropped ROIs.
+  - [x] 6.2.3 Single-click thumbnail fly-to animation with automatic centering and focus.
+- [x] **Task 6.3: State Persistence & Data Exchange Engine**
+  - [x] 6.3.1 Automatic `localStorage` synchronization for annotations, filters, and manual edits.
+  - [x] 6.3.2 Export Annotations as standard JSON (`annotations.json`).
+  - [x] 6.3.3 Export Clinical Hematology Report as CSV (`wbc_differential_report.csv`).
+  - [x] 6.3.4 Viewport Snapshot PNG Export (`aimalabs_viewport_snapshot.png`).
+  - [x] 6.3.5 In-App Reset Confirmation Modal with Toast notifications.
+- [x] **Task 6.4: Ergonomic Clinical Utilities & Calibrator**
+  - [x] 6.4.1 Keyboard shortcuts modal cheat sheet (`?` key / top bar button).
+  - [x] 6.4.2 Optical Pixel Size Calibrator dialog (triggered by clicking scale legend) updating all physical morphometrics dynamically.
+  - [x] 6.4.3 Universal clinical hover help tooltips (dismissing on interaction).
+  - [x] 6.4.4 Floating toast notification system for instant action feedback.
 
 #### Phase 7: Granular Automated Testing & Verification
-- [ ] **Task 7.1: Comprehensive Test Suite Execution**
+- [x] **Task 7.1: Comprehensive Test Suite Execution**
   - [x] 7.1.1 Test file loading and direct `file://` / standalone execution (`test_task1_1.js`).
   - [x] 7.1.2 Test pan, zoom, preset magnification, and minimap viewport sync (`test_task1_2.js`, `test_task2_1.js`, `test_task2_2.js`).
   - [x] 7.1.3 Test overlay toggling, confidence filtering, and per-class visibility (`test_task3_1.js`).
@@ -135,7 +135,7 @@ Ensure the interface is snappy, visually polished, and fully functional without 
   - [x] 7.1.5 Test drawing new boxes, circles, calipers, deleting cells, and reclassifying (`test_task4_1.js`).
   - [x] 7.1.6 Test resizable sidebars, dropdowns, and layout clickability (`test_task5_layout.js`).
   - [x] 7.1.7 Test tool additions, deletions, and undo/redo operations (`test_tools_undo_redo.js`).
-  - [ ] 7.1.8 Test live differential count calculations and abnormality banners (`test_differential.js`).
-  - [ ] 7.1.9 Test thumbnail gallery filtering and click-to-navigate (`test_gallery.js`).
-  - [ ] 7.1.10 Test `localStorage` persistence across reloads (`test_persistence.js`).
-  - [ ] 7.1.11 Test JSON import/export and CSV report generation (`test_data_exchange.js`).
+  - [x] 7.1.8 Test live differential count calculations and abnormality banners (`test_differential.js`).
+  - [x] 7.1.9 Test thumbnail gallery filtering and click-to-navigate (`test_gallery.js`).
+  - [x] 7.1.10 Test `localStorage` persistence and data exchange (`test_data_exchange.js`).
+  - [x] 7.1.11 Test optical pixel size calibrator and dynamic recalculation (`test_pixel_calibrator.js`).

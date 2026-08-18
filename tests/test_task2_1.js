@@ -50,12 +50,12 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert(Math.abs(viewAfterMinimapClick.x - initialView.x) > 10 || Math.abs(viewAfterMinimapClick.y - initialView.y) > 10, 'View should have updated from minimap navigation');
 
     // 3. Test Minimap Toggle (Collapse / Expand)
-    await page.click('#btn-toggle-minimap');
+    await page.click('#btn-close-minimap');
     const isHidden = await page.$eval('#minimap-container', el => el.style.display === 'none');
     console.log('  ✓ Minimap collapsed:', isHidden);
     assert.strictEqual(isHidden, true, 'Minimap should be hidden after collapse toggle');
 
-    await page.click('#btn-toggle-minimap');
+    await page.click('#btn-close-minimap');
     const isRestored = await page.$eval('#minimap-container', el => el.style.display === 'block');
     console.log('  ✓ Minimap restored:', isRestored);
     assert.strictEqual(isRestored, true, 'Minimap should be restored after expand toggle');
