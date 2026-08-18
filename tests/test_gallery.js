@@ -50,7 +50,31 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Gallery Card Height (Packed):', `${cardHeight}px`);
     assert(cardHeight >= 100 && cardHeight <= 135, 'Gallery card height should be tightly packed without vertical stretching');
 
-    // 5. Test Click on Thumbnail to Focus and Navigate Viewport
+    // 5. Test Real-time MON tab live synchronization when adding/modifying cells
+    await page.click('button[data-gallery-filter="monocyte"]');
+    const initialMonCount = await page.$$eval('#gallery-grid > div', els => els.length);
+    console.log('  ✓ Initial Monocyte Gallery Count:', initialMonCount);
+    assert.strictEqual(initialMonCount, 3, 'Should start with 3 Monocytes');
+
+    // Set active lineage to monocyte and add a new Monocyte bounding box
+    await page.evaluate(() => {
+      window.__CYTO_APP__.state.activeClassId = 'monocyte';
+      window.__CYTO_APP__.addCellAnnotation(700, 500, 60, 60, 'box');
+    });
+
+    const updatedMonCount = await page.$$eval('#gallery-grid > div', els => els.length);
+    const badgeText = await page.$eval('#gallery-count-badge', el => el.textContent);
+    console.log('  ✓ Gallery count immediately updated after adding MON cell:', { count: updatedMonCount, badge: badgeText });
+    assert.strictEqual(updatedMonCount, 4, 'Gallery grid should immediately show 4 Monocytes');
+    assert.strictEqual(badgeText, '4', 'Gallery badge should immediately show 4');
+
+    // Undo addition and verify instant decrement
+    await page.evaluate(() => window.__CYTO_APP__.undo());
+    const revertedMonCount = await page.$$eval('#gallery-grid > div', els => els.length);
+    console.log('  ✓ Gallery count immediately reverted after undo:', revertedMonCount);
+    assert.strictEqual(revertedMonCount, 3, 'Gallery grid should revert to 3 Monocytes on undo');
+
+    // 6. Test Click on Thumbnail to Focus and Navigate Viewport
     const viewBefore = await page.evaluate(() => ({ ...window.__CYTO_APP__.state.view }));
     await page.click('#gallery-grid > div:first-child');
 

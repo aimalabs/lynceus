@@ -1,142 +1,195 @@
-Create a complete, single-file HTML/CSS/JS interactive prototype (`index.html`) for a modern digital pathology and hematology cell-review interface (similar to a clinical web microscope viewer).
+# AIMALABS Lynceus (Λυγκεύς) — Technical Specification & Architecture Manual
 
-The goal is to provide a smooth, tactile desktop experience that mimics and improves upon a traditional optical microscope, including human-in-the-loop AI annotation editing.
-
----
-
-### Key Requirements & Features
-
-1. **Architecture & Tech Stack:**
-   - Standalone single-file HTML (use Tailwind CSS via CDN and Lucide Icons via CDN or inline SVGs).
-   - Vanilla JS or Canvas/SVG rendering for performance.
-   - Self-contained mock data (embed a high-resolution blood smear / cytological sample image via SVG/Canvas or placeholder URL, along with a preloaded list of ~30-50 detected cells).
-
-2. **Viewport & Navigation (Microscope Canvas):**
-   - **Smooth Pan & Zoom:** Mouse wheel zoom (centered at cursor), click-and-drag panning, and keyboard shortcuts (`+`, `-`, `Space + Drag`, `0` to reset).
-   - **Minimap / Slide Navigator:** A small overview map in the corner showing the current viewport rectangle over the entire slide tile.
-   - **Scale Bar & Magnification Indicator:** Show virtual magnification level (e.g., 10x, 40x, 100x Oil Immersion).
-
-3. **Cell Overlays & Visualization:**
-   - **Multi-Class Coloring:** Distinct, high-contrast color bounding boxes / centroid markers for different cell classes (e.g., *Neutrophils [Blue]*, *Lymphocytes [Green]*, *Monocytes [Purple]*, *Eosinophils [Orange]*, *Atypical/Blasts [Red]*, *Platelets [Yellow]*).
-   - **Overlay Toggle:** Master toggle (`H` hotkey) to instantaneously hide/show all AI bounding boxes and labels to inspect raw morphology.
-   - **Per-Class Filtering:** Checkbox list in the sidebar to toggle visibility for specific cell classes.
-
-4. **Inspection & Hover Tooltips:**
-   - **Hover Card:** Hovering over an annotated cell displays a floating HUD with:
-     - Predicted Class & AI Confidence (e.g., `Neutrophil - 96.4%`)
-     - Morphological measurements (Area in µm², Diameter, Circularity index)
-     - Quick action buttons (Delete, Reclassify).
-
-5. **Human-in-the-Loop Annotation & Editing Tools:**
-   - **Inspection Mode (Default):** Pan, zoom, click to inspect.
-   - **Draw / Add Cell Tool:** Ability to draw a bounding circle/box or click-to-place a cell annotation, selecting its class from a dropdown or hotkey (1-6).
-   - **Delete Tool / Quick Delete:** Click a detected cell or press `Backspace`/`Delete` on selection to remove false positives.
-   - **Reclassify:** Right-click context menu or modal on an existing cell to correct its classification.
-
-6. **Summary Metrics & State Persistence:**
-   - **Live Differential Count Sidebar:** Real-time summary table of total counts and percentages per cell category that updates immediately when cells are added, deleted, or reclassified.
-   - **State Persistence:** Automatically sync all annotations and manual edits to `localStorage` so changes persist across page reloads.
-   - **Export / Import:** "Export Annotations (JSON)" button and "Reset to Default AI Detections" button.
-
-7. **UI / Styling:**
-   - Clean, professional dark/slate laboratory theme (`#0f172a` palette).
-   - Floating top toolbar (Tool selection: Pan, Draw, Erase; Toggle Overlays; Zoom Controls; Undo/Redo).
-   - Collapsible left/right sidebars (Slide Info, Differential Count, Annotation History).
-
-Ensure the interface is snappy, visually polished, and fully functional without requiring any external backend server.
+**AIMALABS Lynceus (Λυγκεύς)** is a standalone, high-performance, single-file interactive digital pathology and hematology cell-review prototype (`index.html`). Named after the legendary mythological Argonaut with piercing optical vision, Lynceus provides a tactile, microscope-grade digital review environment with human-in-the-loop AI annotation editing, live WBC differential reporting, real-time cell gallery navigation, and optical pixel calibration.
 
 ---
 
-### Hierarchy of Tasks & Implementation Plan
+## 1. High-Level Architecture & Principles
 
-#### Phase 1: Core Foundation & Simple Case (MVP)
-- [x] **Task 1.1: Standalone Environment & Asset Integration**
-  - [x] 1.1.1 Embed high-resolution blood smear image (`smear-02.jpeg` / `smear-02.jpg`) with inline base64 fallback.
-  - [x] 1.1.2 Set up single-file HTML layout with dark laboratory theme (`#0b0f19` / `#0f172a`), Tailwind CSS, and vector icons.
-  - [x] 1.1.3 Define foundational cell taxonomy (Neutrophil, Lymphocyte, Monocyte, Eosinophil, Basophil, Blast, Platelet, RBC Variant) with distinct high-contrast color palettes.
-- [x] **Task 1.2: Base Microscope Canvas & Transforms**
-  - [x] 1.2.1 Implement hardware-accelerated 2D canvas with world-to-screen coordinate mapping.
-  - [x] 1.2.2 Implement smooth cursor-centered mouse wheel zoom ($0.1\times - 16\times$) and drag-to-pan.
-  - [x] 1.2.3 Render initial mock cell detection bounding boxes and centroid badges.
+- **Zero-Backend Standalone Operation**: The complete application is contained in a single `index.html` file that runs directly from `file://` or any static web server without requiring node servers, bundlers, or remote databases.
+- **Embedded Base64 Assets**: Slide tile image (`smear-02.jpg`, 1500×1125 px Wright-Giemsa peripheral blood smear) and brand logo (`aima-logo.png`) are embedded directly as base64 data URIs to avoid `file://` CORS restrictions and eliminate network latency.
+- **Hardware-Accelerated 2D Canvas Engine**: Rendering is driven by standard HTML5 2D Canvas with sub-pixel world-to-screen transform mathematics, batched via `requestAnimationFrame` (`scheduleRender()`) to maintain 60+ FPS during pan and zoom.
+- **AIMALABS Brand Identity**: Deep dark laboratory aesthetic specified in `branding.md`:
+  - **Coral Accent**: `--coral: #EC3B57` / `rgb(229, 34, 70)` / `#e52246`
+  - **Dark Glass Hierarchy**: `--black: #131215`, `--black-2: #1B191E`, `--black-3: #0E0D10`, border `#272527` / `#373437`
+  - **Typography Stack**: `Sora` (headings/brand), `IBM Plex Sans` (body/UI), `IBM Plex Mono` (metrics/hotkeys)
 
-#### Phase 2: Viewport Navigation, Minimap & Optical HUD
-- [x] **Task 2.1: Interactive Minimap (Slide Navigator)**
-  - [x] 2.1.1 Render complete slide overview thumbnail with color-coded cell dots.
-  - [x] 2.1.2 Draw synchronized dynamic viewport rectangle showing current field of view.
-  - [x] 2.1.3 Enable interactive click & drag on minimap to smoothly pan microscope view.
-- [x] **Task 2.2: Optical Scale & Magnification Controls**
-  - [x] 2.2.1 Render dynamic micron scale bar ($10\,\mu\text{m}, 25\,\mu\text{m}, 50\,\mu\text{m}, 100\,\mu\text{m}$) adjusting to zoom level.
-  - [x] 2.2.2 Implement discrete objective magnification buttons ($10\times, 20\times, 40\times, 60\times, 100\times\text{ Oil Immersion}$) and zoom slider.
-  - [x] 2.2.3 Display real-time FOV stage coordinates ($X, Y$ in $\mu\text{m}$) and optional center reticle.
+---
 
-#### Phase 3: Cell Visualization, Filtering & Inspection
-- [x] **Task 3.1: Layer & Visibility Controls**
-  - [x] 3.1.1 Implement Master Overlay toggle (`H` hotkey) to instantaneously hide/show all AI bounding boxes.
-  - [x] 3.1.2 Add Per-Class visibility filter checkboxes with "Solo" view toggles.
-  - [x] 3.1.3 Implement AI confidence threshold filter slider ($0\% - 100\%$).
-- [x] **Task 3.2: Floating Hover HUD & Cell Inspector**
-  - [x] 3.2.1 Build floating hover card displaying predicted class, confidence %, diameter ($\mu\text{m}$), area ($\mu\text{m}^2$), and circularity.
-  - [x] 3.2.2 Build right-sidebar Cell Inspector with cropped cell thumbnail preview, top-3 AI prediction bars, and morphometric readout.
-  - [x] 3.2.3 Add right-click context menu for instant reclassification, deletion, and FOV centering.
+## 2. Global State Schema (`state`)
 
-#### Phase 4: Human-in-the-Loop Annotation & Editing Suite
-- [x] **Task 4.1: Annotation Editing Tools**
-  - [x] 4.1.1 Select & Transform Tool (`V` / `1`): Select, move, and drag handles to resize bounding boxes.
-  - [x] 4.1.2 Draw Bounding Box Tool (`B` / `2`): Click-and-drag to create custom rectangular annotations.
-  - [x] 4.1.3 Draw Circle Tool (`C` / `3`): Click-and-drag circular cell markers.
-  - [x] 4.1.4 Quick Point / Auto-Detect Tool (`P` / `4`): Click to place standard cell annotation with active class.
-  - [x] 4.1.5 Eraser Tool (`E` / `5`): Direct click-to-delete cell tool.
-  - [x] 4.1.6 Caliper / Measurement Tool (`M` / `6`): Point-to-point micron distance measurement with clinical ruler lines.
-- [x] **Task 4.2: Classification & History Management**
-  - [x] 4.2.1 Implement quick reclassification modal and keyboard shortcuts ($1-8$).
-  - [x] 4.2.2 Implement Undo / Redo history stack (`Ctrl+Z`, `Ctrl+Y` / `Cmd+Z`, `Cmd+Shift+Z`) for all mutations.
-  - [x] 4.2.3 Support keyboard deletion (`Delete` / `Backspace`) of selected cells.
+All application state is maintained in a centralized reactive state object exposed on `window.__CYTO_APP__.state`:
 
-#### Phase 5: AIMALABS Brand Identity & Visual Layout De-cluttering
-- [x] **Task 5.1: Official Brand Identity Integration**
-  - [x] 5.1.1 Copy official logo asset (`assets/aima-logo.png`) and format header anchor `<a class="brand" href="index.html"><img src="assets/aima-logo.png" alt="AIMALABS"/><b>AIMALABS</b></a>`.
-  - [x] 5.1.2 Author comprehensive `branding.md` documenting color variables, typography stack (`Sora`, `IBM Plex Sans`, `IBM Plex Mono`), microscopy overlays, and component design patterns.
-  - [x] 5.1.3 Integrate AIMALABS dark aesthetic (`--coral: #EC3B57` / `rgb(229,34,70)`, `--black: #131215`, `--black-2: #1B191E`, `--black-3: #0E0D10`, `--muted: #6C6770`, `--muted-d: #B4AFBA`).
-- [x] **Task 5.2: Granular UI Layout De-cluttering & Resizable Sidebars**
-  - [x] 5.2.1 Unified Docked Bottom Status & Optical Control Bar (prevent overlap between scale bar, objective presets, coordinates, and reticle).
-  - [x] 5.2.2 Isolated Minimap Navigator (pinned top-right with minimize/expand toggle and zero obstruction).
-  - [x] 5.2.3 Left Sidebar Resizer (`#left-resizer` draggable gutter with min 180px / max 400px clamp).
-  - [x] 5.2.4 Right Sidebar Resizer (`#right-resizer` draggable gutter with min 200px / max 460px clamp).
-  - [x] 5.2.5 Consolidated Tool Dropdown Menu & Objective Magnification Dropdown in Header.
-  - [x] 5.2.6 Universal Clinical Hover Help Tooltips on all interactive elements.
+```typescript
+interface AppState {
+  image: HTMLImageElement;
+  imageLoaded: boolean;
+  view: {
+    x: number;          // Viewport X pan offset (screen pixels)
+    y: number;          // Viewport Y pan offset (screen pixels)
+    zoom: number;       // Virtual magnification scale (0.10x - 16.0x)
+    minZoom: number;    // 0.10
+    maxZoom: number;    // 16.0
+  };
+  tool: 'select' | 'box' | 'circle' | 'point' | 'measure' | 'erase';
+  activeClassId: string;           // Currently selected lineage for drawing (default 'neutrophil')
+  overlaysVisible: boolean;        // Master AI overlay toggle (hotkey 'H')
+  minConfidence: number;          // AI confidence threshold filter (0.50 - 0.99)
+  classFilter: Record<string, boolean>; // Per-class visibility map
+  selectedCellId: string | null;   // Active selected annotation ID (e.g. 'c-01')
+  selectedMeasurementId: string | null;
+  hoveredCellId: string | null;    // Cell under mouse cursor for floating HUD
+  showReticle: boolean;            // Optical crosshair reticle toggle (hotkey 'R')
+  isDragging: boolean;             // Canvas drag pan flag
+  isMinimapDragging: boolean;      // Minimap click-to-pan flag
+  isDrawing: boolean;              // In-progress ROI drawing flag
+  drawStartWorld: { x: number; y: number };
+  drawCurrentWorld: { x: number; y: number };
+  dragStart: { x: number; y: number };
+  micronsPerPixel: number;         // Physical scale calibration (default 0.125 µm/px)
+  measurements: CaliperMeasurement[];
+  undoStack: string[];             // JSON snapshots for Undo (Ctrl+Z / Cmd+Z)
+  redoStack: string[];             // JSON snapshots for Redo (Ctrl+Y / Cmd+Shift+Z)
+  annotations: CellAnnotation[];    // 40 initial default detected cells
+  taxonomy: TaxonomyClass[];       // 8 hematological lineages
+  galleryFilter: string;           // 'all' | 'neutrophil' | 'lymphocyte' | 'monocyte' | etc.
+}
+```
 
-#### Phase 6: Granular Clinical Tools, Metrics, Gallery & Persistence
-- [x] **Task 6.1: Live WBC Differential Count Engine & Clinical Table**
-  - [x] 6.1.1 Real-time 100-WBC differential percentages, absolute counts, and normal reference ranges.
-  - [x] 6.1.2 Stacked visual WBC composition bar with animated lineage proportions.
-  - [x] 6.1.3 Clinical diagnostic alert banners (e.g., *Neutrophilia*, *Blasts Present / Critical Finding*).
-- [x] **Task 6.2: Cell Gallery Review Strip & Quick Navigation**
-  - [x] 6.2.1 Tab switcher in right sidebar: `[ Cell Inspector ]` | `[ Cell Gallery ]`.
-  - [x] 6.2.2 Filterable thumbnail gallery grid (All, NEU, LYM, MON, EOS, BAS, BLA, PLT, RBC-V) with uniform constant preview height wrapping cropped ROIs.
-  - [x] 6.2.3 Single-click thumbnail fly-to animation with automatic centering and focus.
-- [x] **Task 6.3: State Persistence & Data Exchange Engine**
-  - [x] 6.3.1 Automatic `localStorage` synchronization for annotations, filters, and manual edits.
-  - [x] 6.3.2 Export Annotations as standard JSON (`annotations.json`).
-  - [x] 6.3.3 Export Clinical Hematology Report as CSV (`wbc_differential_report.csv`).
-  - [x] 6.3.4 Viewport Snapshot PNG Export (`aimalabs_viewport_snapshot.png`).
-  - [x] 6.3.5 In-App Reset Confirmation Modal with Toast notifications.
-- [x] **Task 6.4: Ergonomic Clinical Utilities & Calibrator**
-  - [x] 6.4.1 Keyboard shortcuts modal cheat sheet (`?` key / top bar button).
-  - [x] 6.4.2 Optical Pixel Size Calibrator dialog (triggered by clicking scale legend) updating all physical morphometrics dynamically.
-  - [x] 6.4.3 Universal clinical hover help tooltips (dismissing on interaction).
-  - [x] 6.4.4 Floating toast notification system for instant action feedback.
+### Cell Annotation Data Model (`CellAnnotation`)
+```typescript
+interface CellAnnotation {
+  id: string;                      // e.g. 'c-01'
+  classId: string;                 // 'neutrophil' | 'lymphocyte' | 'monocyte' | 'eosinophil' | 'basophil' | 'blast' | 'platelet' | 'rbc_variant'
+  label: string;                   // Clinical display name (e.g. 'Segmented Neutrophil')
+  x: number;                       // Slide world coordinates (top-left X in px)
+  y: number;                       // Slide world coordinates (top-left Y in px)
+  width: number;                   // Bounding box width in slide px
+  height: number;                  // Bounding box height in slide px
+  confidence: number;              // Model certainty (0.00 - 1.00)
+  shape: 'box' | 'circle';         // ROI geometry
+  morphology: {
+    area_um2: number;              // Calculated physical area in µm²
+    diameter_um: number;          // Calculated physical diameter in µm
+    circularity: number;          // Circularity index (0.00 - 1.00)
+    nc_ratio: number;             // Nuclear-to-Cytoplasmic ratio (0.00 - 1.00)
+  };
+  predictions: Array<{ classId: string; prob: number }>; // Multiclass probability distribution
+}
+```
 
-#### Phase 7: Granular Automated Testing & Verification
-- [x] **Task 7.1: Comprehensive Test Suite Execution**
-  - [x] 7.1.1 Test file loading and direct `file://` / standalone execution (`test_task1_1.js`).
-  - [x] 7.1.2 Test pan, zoom, preset magnification, and minimap viewport sync (`test_task1_2.js`, `test_task2_1.js`, `test_task2_2.js`).
-  - [x] 7.1.3 Test overlay toggling, confidence filtering, and per-class visibility (`test_task3_1.js`).
-  - [x] 7.1.4 Test cell selection, hover HUD, morphometrics, and right sidebar inspector (`test_task3_2.js`).
-  - [x] 7.1.5 Test drawing new boxes, circles, calipers, deleting cells, and reclassifying (`test_task4_1.js`).
-  - [x] 7.1.6 Test resizable sidebars, dropdowns, and layout clickability (`test_task5_layout.js`).
-  - [x] 7.1.7 Test tool additions, deletions, and undo/redo operations (`test_tools_undo_redo.js`).
-  - [x] 7.1.8 Test live differential count calculations and abnormality banners (`test_differential.js`).
-  - [x] 7.1.9 Test thumbnail gallery filtering and click-to-navigate (`test_gallery.js`).
-  - [x] 7.1.10 Test `localStorage` persistence and data exchange (`test_data_exchange.js`).
-  - [x] 7.1.11 Test optical pixel size calibrator and dynamic recalculation (`test_pixel_calibrator.js`).
-  - [x] 7.1.12 Test anchor-based tooltips and differential color hover (`test_tooltips_anchor_and_differential_color.js`).
+### Hematological Taxonomy (`CELL_TAXONOMY`)
+1. **Segmented Neutrophil (`neutrophil` / `NEU`)**: `#38bdf8` (Sky Blue) • Ref: `40-70%`
+2. **Lymphocyte (`lymphocyte` / `LYM`)**: `#10b981` (Emerald Green) • Ref: `20-40%`
+3. **Monocyte (`monocyte` / `MON`)**: `#a855f7` (Purple) • Ref: `2-8%`
+4. **Eosinophil (`eosinophil` / `EOS`)**: `#f97316` (Orange) • Ref: `1-4%`
+5. **Basophil (`basophil` / `BAS`)**: `#06b6d4` (Cyan) • Ref: `0-2%`
+6. **Blast / Atypical (`blast` / `BLA`)**: `#e52246` (Coral Red) • Ref: `0%` *(Critical Finding Alert)*
+7. **Platelet / Thrombocyte (`platelet` / `PLT`)**: `#eab308` (Yellow)
+8. **Erythrocyte Variant (`rbc_variant` / `RBC-V`)**: `#ec4899` (Pink)
+
+---
+
+## 3. UI Component Subsystems
+
+### 3.1 Microscope Canvas & Viewport Transform Engine
+- **Coordinate Conversion**:
+  - `screenToWorld(sx, sy)`: Transforms canvas screen coordinates to slide image pixels.
+  - `worldToScreen(wx, wy)`: Transforms slide image pixels to canvas screen coordinates.
+- **Cursor-Centered Zoom**: Zooming with mouse wheel or keyboard shortcuts scales around the exact mouse cursor point (`setZoom(newZoom, mouseX, mouseY)`).
+- **Smooth Panning**: Middle-click or left-click dragging pans the viewport.
+
+### 3.2 Slide Navigator (Minimap)
+- Pinned in the **bottom-right** corner (`#minimap-card`).
+- Renders slide thumbnail with color-coded cell dots and dynamic viewport viewing box.
+- Click-and-drag navigation allows instant fly-to panning across the slide.
+- Features a minimize/expand toggle button (`#btn-close-minimap`).
+
+### 3.3 Optical Telemetry & Magnification Badge
+- Positioned discreetly in the **bottom-left** corner (`#optical-telemetry-badge`).
+- Shows real-time calibrated scale bar (e.g. `50 µm`), stage FOV coordinates (`XY: x, y µm`), reticle toggle (`R`), and objective magnification dropdown (`10× Scan`, `20× Low`, `40× Dry`, `60× High`, `100× Oil Immersion`).
+- Clicking the scale bar triggers the **Optical Pixel Size Calibrator Dialog**.
+
+### 3.4 Top Bar Controls
+- **Branding Anchor**: `<a class="brand" href="index.html"><img src="assets/aima-logo.png" alt="AIMALABS"/><b>AIMALABS</b></a>` with `Lynceus` version badge.
+- **Annotation Tool Dropdown** (`#tool-dropdown-trigger`): Select (`V`), Bounding Box (`B`), Circle ROI (`C`), Point Centroid (`P`), Caliper (`M`), Eraser (`E`).
+- **Active Lineage Dropdown** (`#draw-class-trigger`): Custom dark dropdown displaying active cell class dot, code badge (`NEU`, `BLA`, etc.), and hotkeys (`1-8`).
+- **Master Overlay Toggle** (`#btn-toggle-overlay` / `H`): Instant toggle for AI bounding boxes.
+- **Data Exchange Menu** (`#btn-export-dropdown-trigger`): Export JSON (`annotations.json`), Export CSV WBC Differential Report (`wbc_differential_report.csv`), Viewport Snapshot PNG (`aimalabs_viewport_snapshot.png`).
+- **Reset Detections Modal Trigger** (`#btn-reset-detections`) with modal confirmation.
+- **Keyboard Shortcuts Cheat Sheet Modal Trigger** (`#btn-shortcuts` / `?`).
+
+### 3.5 Left Sidebar (Taxonomy & WBC Differential)
+- **Class Filters**: Per-class visibility checkboxes, Solo filter buttons, and All/None bulk toggles.
+- **Live WBC Differential Summary**:
+  - Absolute count of WBCs.
+  - Stacked proportion progress bar (`#wbc-stacked-bar`) with hover tooltips showing lineage name, count, percentage, and clinical reference ranges.
+  - Abnormality alert banner (`#wbc-alert-banner`) highlighting critical findings (e.g. *⚠️ 2 Blast(s) Detected (8.0%)* or *Neutrophilia*).
+- **AI Confidence Threshold Slider**: Range slider ($0.50 - 0.99$) dynamically filtering visible annotations.
+- **Resizable Gutter** (`#left-resizer`): Draggable resize handle clamped between 180px and 400px.
+
+### 3.6 Right Sidebar (Cell Inspector & Packed Gallery)
+- **Tab Switcher**:
+  - `[ Cell Inspector ]`: Shows selected cell's cropped ROI preview canvas, class label, confidence badge, morphometrics (Area, Diameter, Circularity, N:C ratio), top prediction probabilities, and quick reclassification chips ($1-8$).
+  - `[ Cell Gallery ]`: Filterable thumbnail strip (`All`, `NEU`, `LYM`, `MON`, `EOS`, `BAS`, `BLA`, `PLT`).
+- **Gallery Layout Packing**: Gallery grid uses `content-start auto-rows-max` and `h-fit` cards with constant $88\text{px}$ ROI preview heights to ensure cards are always tightly packed and never stretch vertically.
+- **One-Click Fly-to Navigation**: Clicking any gallery card instantly animates and centers the microscope viewport on that cell.
+- **Resizable Gutter** (`#right-resizer`): Draggable resize handle clamped between 200px and 460px.
+
+### 3.7 Anchor-Based Help Tooltip Engine
+- Help tooltips (`#app-help-tooltip`) are statically anchored to the hovered widget target (`data-help="Title|Description|KEY"`).
+- For items inside dropdown menus (`#tool-dropdown-menu`, `#obj-dropdown-menu`, `#draw-class-menu`), tooltips appear **on the side** (to the right/left) to prevent blocking menu options.
+- Dynamic color styling (`data-tooltip-color="cls.color"`) matches the lineage color on tooltip borders and indicator dots.
+- Tooltips dismiss immediately upon mouse click or mousedown interaction.
+
+---
+
+## 4. Reactive Update Pipeline (`refreshAppViews`)
+
+Whenever annotations are added, reclassified, deleted, resized, calibrated, or undo/redo is triggered, the centralized `refreshAppViews()` function is invoked:
+1. `updateInspector()` — Refreshes selected cell readouts and cropped canvas.
+2. `renderTaxonomyList()` — Recalculates WBC differential counts, percentages, stacked bar, and abnormality alert banners.
+3. `updateUI()` — Updates scale bar, coordinates, and visible counts.
+4. `render()` — Redraws microscope canvas overlays, active calipers, and selection rings.
+5. `renderMinimap()` — Redraws slide navigator dots and viewport frame.
+6. `renderGallery()` — Re-renders packed gallery cards and updates `#gallery-count-badge` if gallery tab is open.
+7. `autoSaveToLocalStorage()` — Persists current state to `localStorage.getItem('CYTO_REVIEWER_STATE_V1')`.
+
+---
+
+## 5. Automated Puppeteer Test Suite
+
+All features are covered by **14 automated end-to-end Puppeteer test suites** executed directly against the single-file `index.html`:
+
+```bash
+node tests/test_task1_1.js && \
+node tests/test_task1_2.js && \
+node tests/test_task2_1.js && \
+node tests/test_task2_2.js && \
+node tests/test_task3_1.js && \
+node tests/test_task3_2.js && \
+node tests/test_task4_1.js && \
+node tests/test_task5_layout.js && \
+node tests/test_tools_undo_redo.js && \
+node tests/test_pixel_calibrator.js && \
+node tests/test_differential.js && \
+node tests/test_gallery.js && \
+node tests/test_data_exchange.js && \
+node tests/test_tooltips_anchor_and_differential_color.js
+```
+
+### Test Suite Directory
+- `test_task1_1.js`: Standalone environment, base64 assets, taxonomy initialization, canvas mounting.
+- `test_task1_2.js`: Viewport pan, cursor zoom, keyboard zoom (`+`, `-`, `0`), coordinate precision transforms.
+- `test_task2_1.js`: Minimap rendering, click-to-pan, minimize/expand toggle.
+- `test_task2_2.js`: Optical scale bar, objective presets (`10x`, `40x`, `100x Oil`), reticle toggle (`R`).
+- `test_task3_1.js`: Master overlay toggle (`H`), per-class filtering, Solo filter, confidence threshold slider.
+- `test_task3_2.js`: Floating hover HUD, cell inspector crop canvas, context menu, deletion, reclassification.
+- `test_task4_1.js`: Annotation suite (Select `V`, Box `B`, Circle `C`, Point `P`, Caliper `M`, Erase `E`).
+- `test_task5_layout.js`: Brand markup, resizable sidebar gutters, unblocked discrete telemetry triggers.
+- `test_tools_undo_redo.js`: Add/delete/modify undo and redo stack integrity.
+- `test_pixel_calibrator.js`: Dynamic microns/pixel recalculation of cell areas, diameters, and caliper lengths.
+- `test_differential.js`: WBC differential count table, stacked proportion bar, blast abnormality alerts.
+- `test_gallery.js`: Packed gallery grid, lineage filter tabs, click-to-navigate fly-to, live reactivity on addition/undo.
+- `test_data_exchange.js`: LocalStorage persistence, JSON export, CSV clinical report export, Reset modal, Shortcuts modal.
+- `test_tooltips_anchor_and_differential_color.js`: Anchor positioning, side-dropdown tooltips, differential bar color matching.

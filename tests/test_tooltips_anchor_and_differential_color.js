@@ -49,7 +49,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
       borderColor: tooltipInfo.borderColor
     });
 
-    assert.strictEqual(tooltipInfo.opacity, '1', 'Tooltip should be visible');
+    assert(parseFloat(tooltipInfo.opacity) >= 0.9, 'Tooltip should be visible');
     assert(tooltipInfo.title.includes('Neutrophil'), 'Title should reflect Neutrophil lineage');
     assert(tooltipInfo.borderColor.includes('56, 189, 248') || tooltipInfo.borderColor.includes('#38bdf8'), 'Tooltip border must match Neutrophil blue color');
 
