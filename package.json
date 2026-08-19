@@ -4,7 +4,7 @@
   "description": "",
   "main": "generate.js",
   "scripts": {
-    "test": "node tests/test_task1_1.js && node tests/test_task1_2.js && node tests/test_task2_1.js && node tests/test_task2_2.js && node tests/test_task3_1.js && node tests/test_task3_2.js && node tests/test_task4_1.js && node tests/test_task5_layout.js && node tests/test_tools_undo_redo.js && node tests/test_pixel_calibrator.js && node tests/test_differential.js && node tests/test_gallery.js && node tests/test_data_exchange.js && node tests/test_tooltips_anchor_and_differential_color.js && node tests/test_sidebar_collapse.js"
+    "test": "node tests/test_task1_1.js && node tests/test_task1_2.js && node tests/test_task2_1.js && node tests/test_task2_2.js && node tests/test_task3_1.js && node tests/test_task3_2.js && node tests/test_task4_1.js && node tests/test_task5_layout.js && node tests/test_tools_undo_redo.js && node tests/test_pixel_calibrator.js && node tests/test_differential.js && node tests/test_gallery.js && node tests/test_data_exchange.js && node tests/test_tooltips_anchor_and_differential_color.js && node tests/test_sidebar_collapse.js && node tests/test_mobile_advisory.js"
   },
   "keywords": [],
   "author": "",

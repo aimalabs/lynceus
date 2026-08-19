@@ -86,25 +86,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert.strictEqual(afterReclass.classId, 'monocyte', 'Annotation classId should now be monocyte');
     assert(afterReclass.inspName.includes('Monocyte'), 'Inspector should update to Monocyte');
 
-    // 4. Test Right-Click Context Menu
-    await page.evaluate(() => {
-      const ann = window.__CYTO_APP__.state.annotations.find(a => a.id === 'c-02');
-      const screenPos = window.__CYTO_APP__.worldToScreen(ann.x + ann.width / 2, ann.y + ann.height / 2);
-      const canvas = document.getElementById('microscope-canvas');
-      const event = new MouseEvent('contextmenu', {
-        clientX: screenPos.x,
-        clientY: screenPos.y,
-        bubbles: true,
-        cancelable: true
-      });
-      canvas.dispatchEvent(event);
-    });
-
-    const isContextMenuOpen = await page.$eval('#context-menu', el => !el.classList.contains('hidden'));
-    console.log('  ✓ Context menu visible:', isContextMenuOpen);
-    assert.strictEqual(isContextMenuOpen, true, 'Context menu should open on right click');
-
-    // 5. Test Delete Cell via Keyboard (Delete selected cell c-02)
+    // 4. Test Cell Selection & Deletion via Keyboard (Delete selected cell c-01)
     const countBeforeDel = await page.evaluate(() => window.__CYTO_APP__.state.annotations.length);
     await page.keyboard.press('Delete');
     const countAfterDel = await page.evaluate(() => window.__CYTO_APP__.state.annotations.length);

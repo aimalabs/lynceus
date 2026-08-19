@@ -141,6 +141,45 @@
       vertical-align: middle;
       flex-shrink: 0;
     }
+    svg.w-2 { width: 8px !important; height: 8px !important; }
+    svg.w-2\.5 { width: 10px !important; height: 10px !important; }
+    svg.w-3 { width: 12px !important; height: 12px !important; }
+    svg.w-3\.5 { width: 14px !important; height: 14px !important; }
+    svg.w-4 { width: 16px !important; height: 16px !important; }
+    svg.w-4\.5 { width: 18px !important; height: 18px !important; }
+    svg.w-5 { width: 20px !important; height: 20px !important; }
+    svg.w-6 { width: 24px !important; height: 24px !important; }
+    svg.w-8 { width: 32px !important; height: 32px !important; }
+
+    #tool-dropdown-container svg,
+    #tool-dropdown-menu svg,
+    #active-tool-icon svg,
+    .tool-btn svg {
+      width: 14px !important;
+      height: 14px !important;
+      max-width: 14px !important;
+      max-height: 14px !important;
+      flex-shrink: 0 !important;
+    }
+    #tool-dropdown-trigger svg:last-child {
+      width: 12px !important;
+      height: 12px !important;
+    }
+    #draw-class-container svg,
+    #draw-class-menu svg {
+      width: 12px !important;
+      height: 12px !important;
+      max-width: 12px !important;
+      max-height: 12px !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* Global SVG size constraint */
+    svg {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
     svg.w-2 { width: 8px; height: 8px; }
     svg.w-2\.5 { width: 10px; height: 10px; }
     svg.w-3 { width: 12px; height: 12px; }
@@ -196,7 +235,7 @@
         <span class="text-[#5a575a]">•</span>
         <span id="slide-title" class="text-[#9e9a9e] font-mono text-[10px] group-hover:text-white transition">smear-02</span>
         <span id="notes-indicator-badge" class="ml-1 text-[9px] px-1 py-0.2 rounded bg-[#272527] text-[#9e9a9e] border border-[#373437] flex items-center gap-0.5 group-hover:border-[#e52246]/40 transition">
-          <svg width="10" height="10" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          <svg width="10" height="10" class="w-2.5 h-2.5 text-[#e52246] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
           <span id="notes-badge-text">Notes</span>
         </span>
       </button>
@@ -272,7 +311,7 @@
           <span id="draw-class-dot" class="w-2.5 h-2.5 rounded-full bg-[#38bdf8] shrink-0"></span>
           <span id="draw-class-label" class="font-semibold text-xs">Neutrophil</span>
           <span id="draw-class-code" class="text-[9px] px-1 py-0.2 rounded bg-[#272527] text-[#38bdf8] border border-[#373437] font-bold">NEU</span>
-          <svg width="12" height="12" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+          <svg width="12" height="12" class="w-3 h-3 text-[#7a767a] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
         </button>
 
         <!-- Lineage Dropdown Menu -->
@@ -949,6 +988,47 @@
     </div>
   </div>
 
+  <!-- Mobile / Small Screen Advisory Modal -->
+  <div id="mobile-advisory-modal" class="hidden fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 font-sans">
+    <div class="bg-[#1B191E] border border-[#373437] rounded-2xl shadow-2xl w-full max-w-sm p-6 text-white text-center space-y-4">
+      <!-- Icon & Branding -->
+      <div class="flex justify-center">
+        <div class="w-14 h-14 rounded-2xl bg-[#272527] border border-[#373437] flex items-center justify-center text-[#e52246] shadow-[0_0_20px_rgba(229,34,70,0.2)]">
+          <svg width="28" height="28" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="20" height="14" x="2" y="3" rx="2"></rect>
+            <line x1="8" x2="16" y1="21" y2="21"></line>
+            <line x1="12" x2="12" y1="17" y2="21"></line>
+          </svg>
+        </div>
+      </div>
+
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#272527] border border-[#373437] text-[10px] font-mono text-[#9e9a9e] mb-2">
+          <span>aimalabs</span>
+          <span class="text-[#5a575a]">•</span>
+          <span class="text-white font-light">Lynceus</span>
+        </div>
+        <h3 class="font-display font-bold text-base text-white">Desktop Experience Recommended</h3>
+        <p class="text-xs text-[#9e9a9e] mt-2 leading-relaxed">
+          Lynceus is engineered for high-precision digital hematology review, multi-channel taxonomy filtering, and annotation tools on desktop workstations.
+        </p>
+      </div>
+
+      <div class="pt-2 space-y-2 font-mono text-xs">
+        <button id="btn-copy-mobile-link" class="w-full py-2.5 px-4 bg-[#e52246] hover:bg-[#ce1438] text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-[#e52246]/20">
+          <svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+          </svg>
+          <span id="btn-copy-link-text">Copy Link for Desktop</span>
+        </button>
+        <button id="btn-dismiss-mobile-modal" class="w-full py-2 px-4 bg-[#110f12] hover:bg-[#272527] text-[#9e9a9e] hover:text-white rounded-xl border border-[#373437] transition text-[11px]">
+          Continue on Mobile Anyway
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Universal Floating Hover Help Tooltip -->
   <div id="app-help-tooltip" class="fixed pointer-events-none z-50 transition-opacity duration-100 opacity-0 bg-[#1B191E]/95 backdrop-blur-md border border-[#e52246]/50 rounded-lg p-2.5 shadow-2xl text-xs font-mono max-w-[260px]">
     <div class="flex items-center justify-between space-x-2 border-b border-[#373437] pb-1.5 mb-1.5">
@@ -1198,7 +1278,7 @@
     const minimapBgCanvas = document.createElement('canvas');
 
     const hoverHud = document.getElementById('hover-hud');
-    const contextMenu = document.getElementById('context-menu');
+    
 
     let renderScheduled = false;
     function scheduleRender() {
@@ -1556,7 +1636,7 @@
       return { x, y };
     }
 
-        const toolMeta = {
+            const toolMeta = {
       select: { label: 'Select', key: 'V', svg: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 7-3L3 3z"></path></svg>' },
       box: { label: 'Bounding Box', key: 'B', svg: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect></svg>' },
       circle: { label: 'Circle ROI', key: 'C', svg: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle></svg>' },
@@ -1937,7 +2017,7 @@
 
     canvas.addEventListener('mousedown', (e) => {
       clickStartPos = { x: e.clientX, y: e.clientY };
-      contextMenu.classList.add('hidden');
+      
 
       if (e.button === 0) {
         const worldPos = screenToWorld(e.clientX, e.clientY);
@@ -2077,58 +2157,6 @@
             selectCell(null);
           }
         }
-      }
-    });
-
-    // Right-Click Context Menu
-    canvas.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      const worldPos = screenToWorld(e.clientX, e.clientY);
-      const hit = hitTestAnnotation(worldPos.x, worldPos.y);
-      if (hit) {
-        selectCell(hit.id);
-        const cls = state.taxonomy.find(t => t.id === hit.classId) || state.taxonomy[0];
-        document.getElementById('ctx-cell-label').textContent = `${hit.id} • ${cls.short}`;
-
-        const reclassContainer = document.getElementById('ctx-reclassify-list');
-        reclassContainer.innerHTML = state.taxonomy.map(t => `
-          <button data-ctx-reclass="${t.id}" class="w-full text-left px-3 py-1 hover:bg-[#272527] text-white text-[11px] flex items-center space-x-2">
-            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${t.color}"></span>
-            <span>${t.name}</span>
-          </button>
-        `).join('');
-
-        document.querySelectorAll('[data-ctx-reclass]').forEach(btn => {
-          btn.onclick = () => {
-            reclassifyCell(hit.id, btn.getAttribute('data-ctx-reclass'));
-            contextMenu.classList.add('hidden');
-          };
-        });
-
-        document.getElementById('ctx-action-inspect').onclick = () => {
-          selectCell(hit.id);
-          contextMenu.classList.add('hidden');
-        };
-
-        document.getElementById('ctx-action-center').onclick = () => {
-          focusOnCell(hit);
-          contextMenu.classList.add('hidden');
-        };
-
-        document.getElementById('ctx-action-delete').onclick = () => {
-          deleteCell(hit.id);
-          contextMenu.classList.add('hidden');
-        };
-
-        contextMenu.style.left = `${e.clientX}px`;
-        contextMenu.style.top = `${e.clientY}px`;
-        contextMenu.classList.remove('hidden');
-      }
-    });
-
-    window.addEventListener('click', (e) => {
-      if (!contextMenu.contains(e.target)) {
-        contextMenu.classList.add('hidden');
       }
     });
 
@@ -2953,9 +2981,8 @@
 
           updateDocumentTitle();
           updateCaseHeaderPill();
-          refreshAppViews();
-          autoSaveToLocalStorage();
-          showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${state.annotations.length} cells)`);
+    
+showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${state.annotations.length} cells)`);
         } catch (err) {
           console.error("Import error:", err);
           showToast("❌ Failed to parse JSON file");
@@ -3527,12 +3554,66 @@
       };
     }
 
+
+    // Mobile / Desktop Workstation Advisory
+    function checkMobileDevice() {
+      if (sessionStorage.getItem('dismissMobileAdvisory') === 'true') return;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isSmallScreen = window.innerWidth < 1024;
+      if (isMobileUA || (isSmallScreen && ('ontouchstart' in window || navigator.maxTouchPoints > 0))) {
+        openMobileModal();
+      }
+    }
+
+    function openMobileModal() {
+      const modal = document.getElementById('mobile-advisory-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeMobileModal() {
+      const modal = document.getElementById('mobile-advisory-modal');
+      if (modal) modal.classList.add('hidden');
+      sessionStorage.setItem('dismissMobileAdvisory', 'true');
+    }
+
+    const btnDismissMobile = document.getElementById('btn-dismiss-mobile-modal');
+    if (btnDismissMobile) btnDismissMobile.onclick = closeMobileModal;
+
+    const btnCopyMobileLink = document.getElementById('btn-copy-mobile-link');
+    if (btnCopyMobileLink) {
+      btnCopyMobileLink.onclick = async () => {
+        const textSpan = document.getElementById('btn-copy-link-text');
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          if (textSpan) textSpan.textContent = 'Link Copied ✓';
+          setTimeout(() => {
+            if (textSpan) textSpan.textContent = 'Copy Link for Desktop';
+          }, 2500);
+        } catch (err) {
+          const dummy = document.createElement('input');
+          dummy.value = window.location.href;
+          document.body.appendChild(dummy);
+          dummy.select();
+          document.execCommand('copy');
+          document.body.removeChild(dummy);
+          if (textSpan) textSpan.textContent = 'Link Copied ✓';
+          setTimeout(() => {
+            if (textSpan) textSpan.textContent = 'Copy Link for Desktop';
+          }, 2500);
+        }
+      };
+    }
+
+          refreshAppViews();
+          autoSaveToLocalStorage();
+          
     // Initialize
     loadFromLocalStorage();
     resizeCanvas();
     renderTaxonomyList();
     updateDocumentTitle();
     updateCaseHeaderPill();
+    checkMobileDevice();
 
     // Global testing API
     window.__CYTO_APP__ = {
@@ -3576,7 +3657,10 @@
       screenToWorld,
       worldToScreen,
       handleMinimapClick,
-      CELL_TAXONOMY
+      CELL_TAXONOMY,
+      checkMobileDevice,
+      openMobileModal,
+      closeMobileModal
     };
   </script>
 </body>
