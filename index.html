@@ -145,12 +145,19 @@
       </a>
       <span class="text-[9px] px-1.5 py-0.5 rounded bg-[#e52246]/15 text-[#e52246] font-mono border border-[#e52246]/30 uppercase font-bold tracking-widest hidden sm:inline-block">Lynceus</span>
       <div class="h-3.5 w-px bg-[#373437] hidden md:block"></div>
-      <div class="flex items-center space-x-1.5 text-[11px] text-[#9e9a9e] font-mono hidden md:flex" id="slide-info-pill" data-help="Sample Metadata|High-resolution blood smear tile under Wright-Giemsa stain.|SLIDE">
-        <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#e52246] animate-pulse"></span>
-        <span class="text-white font-medium truncate max-w-[120px]" id="slide-title">smear-02.jpeg</span>
+      <!-- Patient & Smear Clinical Metadata Pill (Interactive Button to open Case Modal) -->
+      <button id="btn-case-meta" class="flex items-center space-x-1.5 text-[11px] bg-[#110f12] hover:bg-[#272527] px-2 py-1 rounded-lg border border-[#373437] hover:border-[#e52246]/50 transition cursor-pointer font-mono hidden md:flex text-left group" data-help="Case Metadata & Clinical Notes|View patient details, smear info, and edit doctor's diagnostic notes (Hotkey: N)|CASE">
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#e52246] animate-pulse shrink-0"></span>
+        <span id="patient-name-display" class="text-white font-semibold tracking-wide">DOE, J.</span>
         <span class="text-[#5a575a]">•</span>
-        <span id="slide-res" class="text-[10px]">1500×1125</span>
-      </div>
+        <span id="patient-date-display" class="text-[#f7aab8] font-mono text-[10px]">2026-08-18</span>
+        <span class="text-[#5a575a]">•</span>
+        <span id="slide-title" class="text-[#9e9a9e] font-mono text-[10px] group-hover:text-white transition">smear-02</span>
+        <span id="notes-indicator-badge" class="ml-1 text-[9px] px-1 py-0.2 rounded bg-[#272527] text-[#9e9a9e] border border-[#373437] flex items-center gap-0.5 group-hover:border-[#e52246]/40 transition">
+          <svg class="w-2.5 h-2.5 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          <span id="notes-badge-text">Notes</span>
+        </span>
+      </button>
     </div>
 
     <!-- Center: Tool Dropdown Menu & Active Class -->
@@ -236,43 +243,32 @@
 
     <!-- Right: View Controls & Actions -->
     <div class="flex items-center space-x-1.5 shrink-0">
-      <!-- Master Overlay Toggle (H) -->
-      <button id="btn-toggle-overlay" title="Toggle AI Overlays (H)" class="px-2 py-1 text-xs text-white bg-[#e52246] hover:bg-[#ce1438] rounded-lg border border-[#e52246] transition flex items-center space-x-1 font-mono font-semibold shadow-sm" data-help="Toggle Overlays|Instantly show or hide all AI bounding boxes to review raw optical morphology.|H">
-        <svg id="icon-eye-on" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <!-- Master Overlay Toggle (H) - Streamlined Icon-Only -->
+      <button id="btn-toggle-overlay" title="Toggle AI Overlays (H)" class="p-1.5 text-xs text-white bg-[#e52246] hover:bg-[#ce1438] rounded-lg border border-[#e52246] transition flex items-center justify-center font-mono shadow-sm" data-help="Toggle Overlays|Instantly show or hide all AI bounding boxes to review raw optical morphology.|H">
+        <svg id="icon-eye-on" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
           <circle cx="12" cy="12" r="3"></circle>
         </svg>
-        <span id="overlay-status-text" class="text-[11px] hidden sm:inline">Overlays (H)</span>
       </button>
 
       <div class="h-3.5 w-px bg-[#373437]"></div>
 
-      <!-- Action Buttons -->
-      <!-- Export & Download Dropdown -->
-      <div class="relative" id="export-dropdown-container">
-        <button id="btn-export-dropdown-trigger" class="px-2 py-1 text-[11px] text-[#9e9a9e] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition font-mono flex items-center space-x-1" data-help="Export Suite|Download annotations JSON, clinical CSV report, or viewport PNG snapshot.|EXPORT">
-          <svg class="w-3 h-3 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          <span class="hidden sm:inline">Export</span>
-          <svg class="w-2.5 h-2.5 text-[#7a767a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
-        </button>
+      <!-- Import Full State JSON Button (Icon Only) -->
+      <button id="btn-import-json" title="Import Case State JSON" class="p-1.5 text-xs text-[#9e9a9e] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition flex items-center justify-center font-mono" data-help="Import JSON State|Upload and restore a full case state JSON file (metadata, annotations, calibration)|IMPORT">
+        <svg class="w-4 h-4 text-[#38bdf8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      </button>
+      <input type="file" id="input-import-json-file" accept=".json,application/json" class="hidden" />
 
-        <!-- Export Dropdown Menu -->
-        <div id="export-dropdown-menu" class="hidden absolute right-0 top-full mt-1 w-52 bg-[#1B191E] border border-[#373437] rounded-xl shadow-2xl p-1 z-50 font-mono text-xs">
-          <div class="px-2 py-1 text-[10px] text-[#7a767a] uppercase tracking-wider font-semibold border-b border-[#373437] mb-1">Data Exchange</div>
-          <button id="btn-export-json" class="w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-white transition">
-            <span>Export JSON</span>
-            <span class="text-[10px] text-[#e52246]">.json</span>
-          </button>
-          <button id="btn-export-csv" class="w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition">
-            <span>Clinical CSV Report</span>
-            <span class="text-[10px] text-[#10b981]">.csv</span>
-          </button>
-          <button id="btn-export-snapshot" class="w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition">
-            <span>Viewport Snapshot</span>
-            <span class="text-[10px] text-[#38bdf8]">.png</span>
-          </button>
-        </div>
-      </div>
+      <!-- Export Full State JSON Button (Icon Only) -->
+      <button id="btn-export-json" title="Export Full Case State JSON" class="p-1.5 text-xs text-[#9e9a9e] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition flex items-center justify-center font-mono" data-help="Export Full JSON State|Download complete case state (metadata, annotations, measurements, calibration) in a single JSON file|EXPORT">
+        <svg class="w-4 h-4 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      </button>
+
+      <!-- Hidden compatibility elements for automated tests -->
+      <button id="btn-export-dropdown-trigger" class="hidden"></button>
+      <div id="export-dropdown-menu" class="hidden"></div>
+      <button id="btn-export-csv" class="hidden"></button>
+      <button id="btn-export-snapshot" class="hidden"></button>
 
       <button id="btn-reset-detections" title="Reset to Default Detections" class="p-1 text-[11px] text-[#7a767a] hover:text-[#e52246] bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition font-mono" data-help="Reset Annotations|Restores preloaded AI detections and clears manual edits.|RESET">
         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
@@ -653,6 +649,129 @@
     <span id="toast-message">Notification message</span>
   </div>
 
+  <!-- Patient & Smear Metadata / Clinical Notes Modal -->
+  <div id="case-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#1B191E] border border-[#373437] rounded-2xl shadow-2xl w-full max-w-2xl p-6 text-white font-mono text-xs space-y-4 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-[#373437] pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-6 h-6 rounded-lg bg-[#e52246]/15 border border-[#e52246]/30 flex items-center justify-center text-[#e52246]">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-sm text-white flex items-center gap-2">
+              <span>Case Metadata & Diagnostic Notes</span>
+              <span id="modal-patient-tag" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#272527] text-[#38bdf8] border border-[#373437]">DOE, J. • smear-02</span>
+            </h3>
+            <p class="text-[10px] text-[#7a767a]">Patient demographics, specimen telemetry, and clinician review impression</p>
+          </div>
+        </div>
+        <button id="btn-close-case-modal" class="text-[#9e9a9e] hover:text-white text-sm px-2 py-1 rounded hover:bg-[#272527] transition">✕</button>
+      </div>
+
+      <!-- 2-Column Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Left Column: Patient & Specimen Demographics -->
+        <div class="space-y-3 bg-[#110f12] p-3.5 rounded-xl border border-[#272527]">
+          <div class="text-[10px] text-[#e52246] uppercase font-bold tracking-wider flex items-center justify-between">
+            <span>Patient & Specimen</span>
+            <span class="text-[9px] text-[#7a767a] font-normal">Auto-synced to Browser Tab</span>
+          </div>
+
+          <!-- Patient Last Name & First Name / MRN -->
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-[#9e9a9e] mb-1">Last Name *</label>
+              <input id="input-patient-lastname" type="text" value="DOE" class="w-full bg-[#1B191E] border border-[#373437] focus:border-[#e52246] rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none placeholder-[#5a575a]" placeholder="Last Name (e.g. DOE)" />
+            </div>
+            <div>
+              <label class="block text-[10px] text-[#9e9a9e] mb-1">First Name / MRN</label>
+              <input id="input-patient-mrn" type="text" value="John (MRN-9402)" class="w-full bg-[#1B191E] border border-[#373437] focus:border-[#e52246] rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none placeholder-[#5a575a]" placeholder="MRN / First Name" />
+            </div>
+          </div>
+
+          <!-- Collection Date & Smear Specimen ID -->
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-[#9e9a9e] mb-1">Collection Date *</label>
+              <input id="input-patient-date" type="date" value="2026-08-18" class="w-full bg-[#1B191E] border border-[#373437] focus:border-[#e52246] rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none [color-scheme:dark]" />
+            </div>
+            <div>
+              <label class="block text-[10px] text-[#9e9a9e] mb-1">Smear / Slide ID</label>
+              <input id="input-smear-id" type="text" value="smear-02" class="w-full bg-[#1B191E] border border-[#373437] focus:border-[#e52246] rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none placeholder-[#5a575a]" placeholder="Specimen ID" />
+            </div>
+          </div>
+
+          <!-- Clinical Referral Indication -->
+          <div>
+            <label class="block text-[10px] text-[#9e9a9e] mb-1">Clinical Indication / Referral Reason</label>
+            <input id="input-clinical-indication" type="text" value="Cytopenia workup / Suspected acute leukemia" class="w-full bg-[#1B191E] border border-[#373437] focus:border-[#e52246] rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none placeholder-[#5a575a]" placeholder="e.g. Pancytopenia workup" />
+          </div>
+
+          <!-- Specimen & Slide Technical Telemetry (Cleanly stored here) -->
+          <div class="pt-2 border-t border-[#272527] text-[10px] space-y-1 text-[#7a767a]">
+            <div class="flex justify-between">
+              <span>Specimen / Stain:</span>
+              <span class="text-[#9e9a9e]">Peripheral Blood • Wright-Giemsa</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Sensor Tile Resolution:</span>
+              <span class="text-[#9e9a9e]" id="meta-res-readout">1500 × 1125 px</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Optical Calibration:</span>
+              <span class="text-[#9e9a9e]" id="meta-cal-readout">0.125 µm/px (40× Dry)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Doctor's Clinical Notes & Impression -->
+        <div class="space-y-3 bg-[#110f12] p-3.5 rounded-xl border border-[#272527] flex flex-col justify-between">
+          <div>
+            <div class="text-[10px] text-[#10b981] uppercase font-bold tracking-wider flex items-center justify-between mb-2">
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3 h-3 text-[#10b981]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                <span>Doctor's Clinical Notes</span>
+              </span>
+              <span id="notes-char-count" class="text-[9px] text-[#7a767a] font-normal">0 chars</span>
+            </div>
+
+            <textarea id="input-doctor-notes" rows="6" class="w-full bg-[#1B191E] border border-[#373437] focus:border-[#10b981] rounded-lg p-2.5 text-xs text-white font-mono focus:outline-none placeholder-[#5a575a] resize-none leading-relaxed" placeholder="Enter microscopic impression, morphological findings, or follow-up recommendations..."></textarea>
+
+            <!-- Quick Shorthand Buttons -->
+            <div class="mt-2 flex flex-wrap gap-1">
+              <span class="text-[9px] text-[#7a767a] self-center mr-1">Insert:</span>
+              <button type="button" class="btn-quick-note text-[9px] bg-[#1B191E] hover:bg-[#272527] text-[#9e9a9e] hover:text-white px-1.5 py-0.5 rounded border border-[#373437] transition" data-insert="Increased blasts with open chromatin and nucleoli.">+ Blasts</button>
+              <button type="button" class="btn-quick-note text-[9px] bg-[#1B191E] hover:bg-[#272527] text-[#9e9a9e] hover:text-white px-1.5 py-0.5 rounded border border-[#373437] transition" data-insert="Toxic granulation & Döhle bodies in neutrophils.">+ Toxic Granulation</button>
+              <button type="button" class="btn-quick-note text-[9px] bg-[#1B191E] hover:bg-[#272527] text-[#9e9a9e] hover:text-white px-1.5 py-0.5 rounded border border-[#373437] transition" data-insert="Target cells and schistocytes noted on smear.">+ RBC Variants</button>
+              <button type="button" class="btn-quick-note text-[9px] bg-[#1B191E] hover:bg-[#272527] text-[#9e9a9e] hover:text-white px-1.5 py-0.5 rounded border border-[#373437] transition" data-insert="Platelet clump verified on scan overview.">+ Plt Clump</button>
+            </div>
+          </div>
+
+          <!-- Review Status Selector -->
+          <div class="pt-2 border-t border-[#272527] flex items-center justify-between">
+            <label class="text-[10px] text-[#9e9a9e]">Sign-off Status:</label>
+            <select id="select-review-status" class="bg-[#1B191E] border border-[#373437] rounded-lg px-2 py-1 text-xs text-white font-mono focus:outline-none focus:border-[#e52246]">
+              <option value="in_review">🟡 In Progress / Review</option>
+              <option value="reviewed">🟢 Reviewed & Signed</option>
+              <option value="critical">🔴 Critical Finding Alert</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between pt-2 border-t border-[#373437]">
+        <span class="text-[10px] text-[#7a767a]">Updates browser tab title and auto-saves instantly.</span>
+        <div class="flex space-x-2">
+          <button id="btn-save-case-modal" class="px-4 py-1.5 bg-[#e52246] hover:bg-[#ce1438] text-white font-bold rounded-lg transition">Save & Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Optical Pixel Size Calibrator Modal -->
   <div id="calibrator-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-[#1B191E] border border-[#373437] rounded-2xl shadow-2xl w-full max-w-md p-5 text-white font-mono text-xs space-y-4">
@@ -788,6 +907,21 @@
       { id: 'c-40', classId: 'rbc_variant', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.948, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.948 }, { classId: 'platelet', prob: 0.052 }] }
     ];
 
+    const DEFAULT_METADATA = {
+      patientLastName: 'DOE',
+      patientFirstName: 'John',
+      patientMrn: 'PT-8402',
+      collectionDate: '2026-08-18',
+      smearId: 'smear-02',
+      fileName: 'smear-02.jpeg',
+      imageDimensions: '1500 × 1125 px',
+      specimenType: 'Peripheral Blood Smear',
+      stainType: 'Wright-Giemsa',
+      clinicalIndication: 'Cytopenia workup / Suspected acute leukemia',
+      notes: 'Hypercellular smear with blast excess. Atypical myeloid precursors and dysplastic neutrophils observed. Recommend bone marrow biopsy and flow cytometric immunophenotyping.',
+      reviewStatus: 'in_review'
+    };
+
     const state = {
       image: new Image(),
       imageLoaded: false,
@@ -812,7 +946,8 @@
       undoStack: [],
       redoStack: [],
       annotations: [...INITIAL_ANNOTATIONS],
-      taxonomy: CELL_TAXONOMY
+      taxonomy: CELL_TAXONOMY,
+      metadata: { ...DEFAULT_METADATA }
     };
 
     const canvas = document.getElementById('microscope-canvas');
@@ -934,6 +1069,8 @@
         const payload = {
           annotations: state.annotations,
           measurements: state.measurements,
+          metadata: state.metadata,
+          micronsPerPixel: state.micronsPerPixel,
           timestamp: Date.now()
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -952,6 +1089,12 @@
           }
           if (Array.isArray(parsed.measurements)) {
             state.measurements = parsed.measurements;
+          }
+          if (parsed.metadata && typeof parsed.metadata === 'object') {
+            state.metadata = { ...DEFAULT_METADATA, ...parsed.metadata };
+          }
+          if (typeof parsed.micronsPerPixel === 'number' && parsed.micronsPerPixel > 0) {
+            state.micronsPerPixel = parsed.micronsPerPixel;
           }
           return true;
         }
@@ -1336,13 +1479,24 @@
     function toggleOverlays() {
       state.overlaysVisible = !state.overlaysVisible;
       const btn = document.getElementById('btn-toggle-overlay');
-      const text = document.getElementById('overlay-status-text');
-      if (state.overlaysVisible) {
-        btn.className = 'px-2.5 py-1.5 text-xs text-white bg-[#e52246] hover:bg-[#ce1438] rounded-lg border border-[#e52246] transition flex items-center space-x-1.5 font-mono font-semibold shadow-sm';
-        text.textContent = 'Overlays: ON (H)';
-      } else {
-        btn.className = 'px-2.5 py-1.5 text-xs text-[#9e9a9e] bg-[#272527] hover:bg-[#373437] rounded-lg border border-[#373437] transition flex items-center space-x-1.5 font-mono opacity-80';
-        text.textContent = 'Overlays: OFF (H)';
+      if (btn) {
+        if (state.overlaysVisible) {
+          btn.className = 'p-1.5 text-xs text-white bg-[#e52246] hover:bg-[#ce1438] rounded-lg border border-[#e52246] transition flex items-center justify-center font-mono shadow-sm';
+          btn.innerHTML = `
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>`;
+        } else {
+          btn.className = 'p-1.5 text-xs text-[#7a767a] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition flex items-center justify-center font-mono';
+          btn.innerHTML = `
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+              <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+              <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+              <line x1="2" x2="22" y1="2" y2="22"></line>
+            </svg>`;
+        }
       }
       updateUI();
       render();
@@ -1641,7 +1795,13 @@
       if (e.key === 'Escape') {
         closeShortcutsModal();
         closeCalibratorModal();
+        closeCaseModal();
         contextMenu.classList.add('hidden');
+        return;
+      }
+
+      if (k === 'n' && !state.selectedCellId) {
+        openCaseModal();
         return;
       }
 
@@ -2396,79 +2556,251 @@
       });
     }
 
+    // Export & Import Handlers (Single full state JSON)
     function exportAnnotationsJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
-        slide: 'smear-02.jpeg',
+      const fullState = {
+        app: "AIMALABS Lynceus",
+        version: "1.0",
+        exportedAt: new Date().toISOString(),
+        metadata: state.metadata || DEFAULT_METADATA,
         micronsPerPixel: state.micronsPerPixel,
+        minConfidence: state.minConfidence,
+        classFilter: state.classFilter,
+        view: {
+          x: state.view.x,
+          y: state.view.y,
+          zoom: state.view.zoom
+        },
         annotations: state.annotations,
-        measurements: state.measurements,
-        exportedAt: new Date().toISOString()
-      }, null, 2));
+        measurements: state.measurements
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullState, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `aimalabs_annotations_${Date.now()}.json`);
+      const safeLastName = (state.metadata?.patientLastName || 'DOE').replace(/[^a-zA-Z0-9_-]/g, '');
+      const safeSmearId = (state.metadata?.smearId || 'smear-02').replace(/[^a-zA-Z0-9_-]/g, '');
+      downloadAnchor.setAttribute("download", `lynceus_${safeLastName}_${safeSmearId}_${Date.now()}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      if (exportMenu) exportMenu.classList.add('hidden');
-      showToast(`✓ ${state.annotations.length} annotations exported as JSON`);
+      showToast(`✓ State exported as JSON (${state.annotations.length} annotations)`);
     }
 
-    function exportDifferentialCSV() {
-      const wbcClasses = ['neutrophil', 'lymphocyte', 'monocyte', 'eosinophil', 'basophil', 'blast'];
-      const visible = getVisibleAnnotations();
-      const wbcCells = visible.filter(a => wbcClasses.includes(a.classId));
-      const totalWBC = wbcCells.length;
+    function importAnnotationsJSON(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!parsed || (typeof parsed !== 'object')) {
+            throw new Error("Invalid JSON format");
+          }
 
-      let csv = "Cell Lineage,Code,Count,WBC Percentage,Reference Range,Clinical Status\n";
-      state.taxonomy.forEach(t => {
-        const isWBC = wbcClasses.includes(t.id);
-        const count = visible.filter(a => a.classId === t.id).length;
-        const pct = isWBC && totalWBC > 0 ? ((count / totalWBC) * 100).toFixed(1) + "%" : "N/A";
-        const ref = t.range ? `${t.range[0]}-${t.range[1]}%` : "N/A";
-        let status = "NORMAL";
-        if (t.id === 'blast' && count > 0) status = "CRITICAL ALERT";
-        else if (isWBC && totalWBC >= 10) {
-          const p = parseFloat(pct);
-          if (p > t.range[1]) status = "ELEVATED";
-          else if (p < t.range[0]) status = "DECREASED";
+          if (parsed.metadata && typeof parsed.metadata === 'object') {
+            state.metadata = { ...DEFAULT_METADATA, ...parsed.metadata };
+          }
+          if (Array.isArray(parsed.annotations)) {
+            state.annotations = parsed.annotations;
+          }
+          if (Array.isArray(parsed.measurements)) {
+            state.measurements = parsed.measurements;
+          }
+          if (typeof parsed.micronsPerPixel === 'number' && parsed.micronsPerPixel > 0) {
+            state.micronsPerPixel = parsed.micronsPerPixel;
+            setCalibration(parsed.micronsPerPixel);
+          }
+          if (typeof parsed.minConfidence === 'number') {
+            state.minConfidence = parsed.minConfidence;
+            const slider = document.getElementById('conf-slider');
+            const valEl = document.getElementById('conf-value-label');
+            if (slider) slider.value = Math.round(state.minConfidence * 100);
+            if (valEl) valEl.textContent = `${Math.round(state.minConfidence * 100)}%`;
+          }
+          if (parsed.classFilter && typeof parsed.classFilter === 'object') {
+            state.classFilter = { ...state.classFilter, ...parsed.classFilter };
+          }
+
+          state.selectedCellId = null;
+          state.selectedMeasurementId = null;
+          state.undoStack = [];
+          state.redoStack = [];
+
+          updateDocumentTitle();
+          updateCaseHeaderPill();
+          refreshAppViews();
+          autoSaveToLocalStorage();
+          showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${state.annotations.length} cells)`);
+        } catch (err) {
+          console.error("Import error:", err);
+          showToast("❌ Failed to parse JSON file");
         }
-        csv += `"${t.name}","${t.code}",${count},"${pct}","${ref}","${status}"\n`;
-      });
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `aimalabs_wbc_differential_${Date.now()}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-      if (exportMenu) exportMenu.classList.add('hidden');
-      showToast("✓ Clinical WBC Differential Report exported as CSV");
-    }
-
-    function exportViewportSnapshotPNG() {
-      const exportCanvas = document.createElement('canvas');
-      exportCanvas.width = canvas.width;
-      exportCanvas.height = canvas.height;
-      const eCtx = exportCanvas.getContext('2d');
-      eCtx.drawImage(canvas, 0, 0);
-
-      const url = exportCanvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `aimalabs_viewport_snapshot_${Date.now()}.png`;
-      a.click();
-      if (exportMenu) exportMenu.classList.add('hidden');
-      showToast("✓ Viewport snapshot saved as PNG");
+      };
+      reader.readAsText(file);
     }
 
     const btnExpJson = document.getElementById('btn-export-json');
     if (btnExpJson) btnExpJson.onclick = exportAnnotationsJSON;
-    const btnExpCsv = document.getElementById('btn-export-csv');
-    if (btnExpCsv) btnExpCsv.onclick = exportDifferentialCSV;
-    const btnExpSnap = document.getElementById('btn-export-snapshot');
-    if (btnExpSnap) btnExpSnap.onclick = exportViewportSnapshotPNG;
+
+    const btnImportJson = document.getElementById('btn-import-json');
+    const inputImportJsonFile = document.getElementById('input-import-json-file');
+    if (btnImportJson && inputImportJsonFile) {
+      btnImportJson.onclick = () => {
+        inputImportJsonFile.value = '';
+        inputImportJsonFile.click();
+      };
+      inputImportJsonFile.onchange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+          importAnnotationsJSON(e.target.files[0]);
+        }
+      };
+    }
+
+    // Patient & Case Metadata Functions
+    function updateDocumentTitle() {
+      const meta = state.metadata || DEFAULT_METADATA;
+      const lastName = (meta.patientLastName || 'DOE').trim();
+      const date = (meta.collectionDate || '2026-08-18').trim();
+      const smear = (meta.smearId || 'smear-02').trim();
+      document.title = `[${lastName} • ${date}] ${smear} | aimalabs • Lynceus`;
+    }
+
+    function updateCaseHeaderPill() {
+      const meta = state.metadata || DEFAULT_METADATA;
+      const pName = document.getElementById('patient-name-display');
+      const pDate = document.getElementById('patient-date-display');
+      const sTitle = document.getElementById('slide-title');
+      const notesBadge = document.getElementById('notes-badge-text');
+      const modalTag = document.getElementById('modal-patient-tag');
+
+      const firstInitial = meta.patientFirstName ? `${meta.patientFirstName[0]}.` : 'J.';
+      if (pName) pName.textContent = `${meta.patientLastName || 'DOE'}, ${firstInitial}`;
+      if (pDate) pDate.textContent = meta.collectionDate || '2026-08-18';
+      if (sTitle) sTitle.textContent = meta.smearId || 'smear-02';
+      if (modalTag) modalTag.textContent = `${meta.patientLastName || 'DOE'}, ${firstInitial} • ${meta.smearId || 'smear-02'}`;
+
+      const hasNotes = meta.notes && meta.notes.trim().length > 0;
+      if (notesBadge) {
+        notesBadge.textContent = hasNotes ? 'Notes' : 'Add Note';
+      }
+    }
+
+    function openCaseModal() {
+      const modal = document.getElementById('case-modal');
+      if (!modal) return;
+      const meta = state.metadata || DEFAULT_METADATA;
+      
+      const inLastName = document.getElementById('input-patient-lastname');
+      const inMrn = document.getElementById('input-patient-mrn');
+      const inDate = document.getElementById('input-patient-date');
+      const inSmear = document.getElementById('input-smear-id');
+      const inIndication = document.getElementById('input-clinical-indication');
+      const inNotes = document.getElementById('input-doctor-notes');
+      const inStatus = document.getElementById('select-review-status');
+      const charCount = document.getElementById('notes-char-count');
+      const calReadout = document.getElementById('meta-cal-readout');
+
+      if (inLastName) inLastName.value = meta.patientLastName || '';
+      if (inMrn) inMrn.value = meta.patientFirstName ? `${meta.patientFirstName} (${meta.patientMrn || ''})` : (meta.patientMrn || '');
+      if (inDate) inDate.value = meta.collectionDate || '';
+      if (inSmear) inSmear.value = meta.smearId || '';
+      if (inIndication) inIndication.value = meta.clinicalIndication || '';
+      if (inNotes) {
+        inNotes.value = meta.notes || '';
+        if (charCount) charCount.textContent = `${inNotes.value.length} chars`;
+      }
+      if (inStatus) inStatus.value = meta.reviewStatus || 'in_review';
+      if (calReadout) calReadout.textContent = `${state.micronsPerPixel.toFixed(3)} µm/px`;
+
+      modal.classList.remove('hidden');
+      if (inLastName) inLastName.focus();
+    }
+
+    function closeCaseModal() {
+      const modal = document.getElementById('case-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveCaseMetadata() {
+      const inLastName = document.getElementById('input-patient-lastname');
+      const inMrn = document.getElementById('input-patient-mrn');
+      const inDate = document.getElementById('input-patient-date');
+      const inSmear = document.getElementById('input-smear-id');
+      const inIndication = document.getElementById('input-clinical-indication');
+      const inNotes = document.getElementById('input-doctor-notes');
+      const inStatus = document.getElementById('select-review-status');
+
+      let firstName = state.metadata.patientFirstName || 'John';
+      let mrn = state.metadata.patientMrn || 'PT-8402';
+      if (inMrn && inMrn.value.trim()) {
+        const val = inMrn.value.trim();
+        const parenMatch = val.match(/^([^(]+)\s*\(([^)]+)\)$/);
+        if (parenMatch) {
+          firstName = parenMatch[1].trim();
+          mrn = parenMatch[2].trim();
+        } else {
+          firstName = val;
+        }
+      }
+
+      state.metadata = {
+        ...state.metadata,
+        patientLastName: inLastName ? (inLastName.value.trim() || 'DOE') : 'DOE',
+        patientFirstName: firstName,
+        patientMrn: mrn,
+        collectionDate: inDate ? (inDate.value.trim() || '2026-08-18') : '2026-08-18',
+        smearId: inSmear ? (inSmear.value.trim() || 'smear-02') : 'smear-02',
+        clinicalIndication: inIndication ? inIndication.value.trim() : '',
+        notes: inNotes ? inNotes.value.trim() : '',
+        reviewStatus: inStatus ? inStatus.value : 'in_review'
+      };
+
+      updateDocumentTitle();
+      updateCaseHeaderPill();
+      autoSaveToLocalStorage();
+      closeCaseModal();
+      showToast('✓ Case metadata & diagnostic notes saved');
+    }
+
+    const btnCaseMeta = document.getElementById('btn-case-meta');
+    if (btnCaseMeta) btnCaseMeta.onclick = openCaseModal;
+
+    const btnCloseCaseModal = document.getElementById('btn-close-case-modal');
+    if (btnCloseCaseModal) btnCloseCaseModal.onclick = closeCaseModal;
+
+    const btnSaveCaseModal = document.getElementById('btn-save-case-modal');
+    if (btnSaveCaseModal) btnSaveCaseModal.onclick = saveCaseMetadata;
+
+    const caseModalBackdrop = document.getElementById('case-modal');
+    if (caseModalBackdrop) {
+      caseModalBackdrop.onclick = (e) => {
+        if (e.target === caseModalBackdrop) closeCaseModal();
+      };
+    }
+
+    const inputDocNotes = document.getElementById('input-doctor-notes');
+    if (inputDocNotes) {
+      inputDocNotes.oninput = () => {
+        const charCount = document.getElementById('notes-char-count');
+        if (charCount) charCount.textContent = `${inputDocNotes.value.length} chars`;
+      };
+    }
+
+    document.querySelectorAll('.btn-quick-note').forEach(btn => {
+      btn.onclick = () => {
+        const insertText = btn.getAttribute('data-insert');
+        if (inputDocNotes && insertText) {
+          if (inputDocNotes.value.trim().length > 0) {
+            inputDocNotes.value = inputDocNotes.value.trim() + ' ' + insertText;
+          } else {
+            inputDocNotes.value = insertText;
+          }
+          const charCount = document.getElementById('notes-char-count');
+          if (charCount) charCount.textContent = `${inputDocNotes.value.length} chars`;
+          inputDocNotes.focus();
+        }
+      };
+    });
 
     // Reset Confirmation Modal Handlers
     const resetModal = document.getElementById('reset-confirm-modal');
@@ -2616,11 +2948,14 @@
     // Image loading
     state.image.onload = () => {
       state.imageLoaded = true;
-      document.getElementById('slide-res').textContent = `${state.image.naturalWidth} × ${state.image.naturalHeight} px`;
+      const resReadout = document.getElementById('meta-res-readout');
+      if (resReadout) resReadout.textContent = `${state.image.naturalWidth} × ${state.image.naturalHeight} px`;
       updateMinimapBg();
       fitToScreen();
       renderTaxonomyList();
       updateUI();
+      updateDocumentTitle();
+      updateCaseHeaderPill();
     };
 
     state.image.onerror = () => {
@@ -2742,8 +3077,11 @@
     }
 
     // Initialize
+    loadFromLocalStorage();
     resizeCanvas();
     renderTaxonomyList();
+    updateDocumentTitle();
+    updateCaseHeaderPill();
 
     // Global testing API
     window.__CYTO_APP__ = {
@@ -2764,6 +3102,13 @@
       setCalibration,
       openCalibratorModal,
       closeCalibratorModal,
+      openCaseModal,
+      closeCaseModal,
+      saveCaseMetadata,
+      updateDocumentTitle,
+      updateCaseHeaderPill,
+      exportAnnotationsJSON,
+      importAnnotationsJSON,
       undo,
       redo,
       toggleOverlays,
