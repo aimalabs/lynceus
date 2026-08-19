@@ -127,6 +127,10 @@
     .sidebar-resizer:hover::after, .sidebar-resizer.resizing::after {
       background: #ffffff;
     }
+
+    .sidebar-animated {
+      transition: width 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.22s ease !important;
+    }
     
     input[type=range] {
       accent-color: #e52246;
@@ -278,8 +282,8 @@
 
   <!-- Main Viewport Workspace -->
   <main class="flex-1 flex relative overflow-hidden" id="workspace-container">
-    <!-- Left Sidebar: Slide & Taxonomy Summary (Resizable) -->
-    <aside id="left-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-hidden" style="width: 240px; min-width: 180px; max-width: 400px;">
+    <!-- Left Sidebar: Slide & Taxonomy Summary (Resizable & Collapsible) -->
+    <aside id="left-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-hidden" style="width: 240px; max-width: 480px;">
       <!-- Filter Header -->
       <div class="p-2.5 border-b border-[#373437] flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2">
@@ -323,7 +327,12 @@
     </aside>
 
     <!-- Left Resizer Gutter -->
-    <div id="left-resizer" class="sidebar-resizer shrink-0" title="Drag to resize left sidebar" data-help="Resize Sidebar|Drag horizontally to adjust panel width.|DRAG"></div>
+    <div id="left-resizer" class="sidebar-resizer shrink-0" title="Drag to resize or collapse left sidebar" data-help="Resize / Collapse Sidebar|Drag to resize panel. Dragging to the edge collapses sidebar.|DRAG"></div>
+
+    <!-- Expand Left Sidebar Handle (Visible when collapsed) -->
+    <button id="btn-expand-left" class="hidden absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-[#1a181b]/95 hover:bg-[#272527] border-y border-r border-[#373437] hover:border-[#e52246]/60 rounded-r-lg p-1.5 text-[#9e9a9e] hover:text-white shadow-2xl transition cursor-pointer group" title="Expand Filters (Taxonomy & WBC Differential)" data-help="Expand Filters|Restore left sidebar panel.|EXPAND">
+      <svg class="w-3.5 h-3.5 text-[#e52246] group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+    </button>
 
     <!-- Microscope Canvas Container -->
     <div id="canvas-container" class="flex-1 relative bg-[#110f12] flex items-center justify-center overflow-hidden select-none min-w-0">
@@ -436,11 +445,16 @@
       </div>
     </div>
 
-    <!-- Right Resizer Gutter -->
-    <div id="right-resizer" class="sidebar-resizer shrink-0" title="Drag to resize right sidebar"></div>
+    <!-- Expand Right Sidebar Handle (Visible when collapsed) -->
+    <button id="btn-expand-right" class="hidden absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-[#1a181b]/95 hover:bg-[#272527] border-y border-l border-[#373437] hover:border-[#e52246]/60 rounded-l-lg p-1.5 text-[#9e9a9e] hover:text-white shadow-2xl transition cursor-pointer group" title="Expand Inspector & Gallery" data-help="Expand Inspector|Restore right sidebar panel.|EXPAND">
+      <svg class="w-3.5 h-3.5 text-[#e52246] group-hover:-translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg>
+    </button>
 
-    <!-- Right Sidebar: Cell Inspector & Gallery (Resizable) -->
-    <aside id="right-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-hidden" style="width: 280px; min-width: 220px; max-width: 480px;">
+    <!-- Right Resizer Gutter -->
+    <div id="right-resizer" class="sidebar-resizer shrink-0" title="Drag to resize or collapse right sidebar"></div>
+
+    <!-- Right Sidebar: Cell Inspector & Gallery (Resizable & Collapsible) -->
+    <aside id="right-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-hidden" style="width: 280px; max-width: 540px;">
       <!-- Tab Header -->
       <div class="p-2 border-b border-[#373437] flex items-center justify-between shrink-0 bg-[#141316]">
         <div class="flex items-center space-x-1 bg-[#1B191E] p-0.5 rounded-lg border border-[#373437] text-[11px] font-mono">
@@ -973,17 +987,104 @@
       }
     }
 
-    // Sidebar Resizing Logic
+    // Sidebar Resizing & Collapse/Expand Logic
     const leftSidebar = document.getElementById('left-sidebar');
     const leftResizer = document.getElementById('left-resizer');
     const rightSidebar = document.getElementById('right-sidebar');
     const rightResizer = document.getElementById('right-resizer');
+    const btnExpandLeft = document.getElementById('btn-expand-left');
+    const btnExpandRight = document.getElementById('btn-expand-right');
 
     let isResizingLeft = false;
     let isResizingRight = false;
+    let savedLeftWidth = 240;
+    let savedRightWidth = 280;
+    let lastDragLeftWidth = 240;
+    let lastDragRightWidth = 280;
+
+    const MIN_LEFT_VISIBLE = 180;
+    const MAX_LEFT = 480;
+    const COLLAPSE_LEFT_THRESHOLD = 90;
+
+    const MIN_RIGHT_VISIBLE = 220;
+    const MAX_RIGHT = 540;
+    const COLLAPSE_RIGHT_THRESHOLD = 110;
+
+    function animateCanvasResize(duration = 320) {
+      const startTime = performance.now();
+      function step(now) {
+        resizeCanvas();
+        if (now - startTime < duration) {
+          requestAnimationFrame(step);
+        } else {
+          resizeCanvas();
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    function collapseLeftSidebar() {
+      leftSidebar.classList.add('sidebar-animated');
+      leftSidebar.style.width = '0px';
+      leftSidebar.style.opacity = '0';
+      leftSidebar.style.pointerEvents = 'none';
+      if (leftResizer) leftResizer.classList.add('hidden');
+      if (btnExpandLeft) btnExpandLeft.classList.remove('hidden');
+      animateCanvasResize(320);
+      setTimeout(() => {
+        leftSidebar.classList.remove('sidebar-animated');
+      }, 340);
+    }
+
+    function expandLeftSidebar(targetWidth) {
+      const width = targetWidth || savedLeftWidth || 240;
+      savedLeftWidth = Math.max(MIN_LEFT_VISIBLE, width);
+      leftSidebar.classList.add('sidebar-animated');
+      leftSidebar.style.pointerEvents = 'auto';
+      leftSidebar.style.opacity = '1';
+      leftSidebar.style.width = `${savedLeftWidth}px`;
+      if (leftResizer) leftResizer.classList.remove('hidden');
+      if (btnExpandLeft) btnExpandLeft.classList.add('hidden');
+      animateCanvasResize(320);
+      setTimeout(() => {
+        leftSidebar.classList.remove('sidebar-animated');
+      }, 340);
+    }
+
+    function collapseRightSidebar() {
+      rightSidebar.classList.add('sidebar-animated');
+      rightSidebar.style.width = '0px';
+      rightSidebar.style.opacity = '0';
+      rightSidebar.style.pointerEvents = 'none';
+      if (rightResizer) rightResizer.classList.add('hidden');
+      if (btnExpandRight) btnExpandRight.classList.remove('hidden');
+      animateCanvasResize(320);
+      setTimeout(() => {
+        rightSidebar.classList.remove('sidebar-animated');
+      }, 340);
+    }
+
+    function expandRightSidebar(targetWidth) {
+      const width = targetWidth || savedRightWidth || 280;
+      savedRightWidth = Math.max(MIN_RIGHT_VISIBLE, width);
+      rightSidebar.classList.add('sidebar-animated');
+      rightSidebar.style.pointerEvents = 'auto';
+      rightSidebar.style.opacity = '1';
+      rightSidebar.style.width = `${savedRightWidth}px`;
+      if (rightResizer) rightResizer.classList.remove('hidden');
+      if (btnExpandRight) btnExpandRight.classList.add('hidden');
+      animateCanvasResize(320);
+      setTimeout(() => {
+        rightSidebar.classList.remove('sidebar-animated');
+      }, 340);
+    }
+
+    if (btnExpandLeft) btnExpandLeft.onclick = () => expandLeftSidebar();
+    if (btnExpandRight) btnExpandRight.onclick = () => expandRightSidebar();
 
     leftResizer.addEventListener('mousedown', (e) => {
       isResizingLeft = true;
+      leftSidebar.classList.remove('sidebar-animated');
       leftResizer.classList.add('resizing');
       document.body.style.cursor = 'col-resize';
       e.preventDefault();
@@ -991,6 +1092,7 @@
 
     rightResizer.addEventListener('mousedown', (e) => {
       isResizingRight = true;
+      rightSidebar.classList.remove('sidebar-animated');
       rightResizer.classList.add('resizing');
       document.body.style.cursor = 'col-resize';
       e.preventDefault();
@@ -998,24 +1100,58 @@
 
     window.addEventListener('mousemove', (e) => {
       if (isResizingLeft) {
-        const newWidth = Math.max(200, Math.min(500, e.clientX));
-        leftSidebar.style.width = `${newWidth}px`;
+        lastDragLeftWidth = e.clientX;
+        if (e.clientX <= COLLAPSE_LEFT_THRESHOLD) {
+          leftSidebar.style.width = '0px';
+          leftSidebar.style.opacity = '0.2';
+        } else if (e.clientX < MIN_LEFT_VISIBLE) {
+          leftSidebar.style.width = `${MIN_LEFT_VISIBLE}px`;
+          leftSidebar.style.opacity = '1';
+        } else {
+          const newWidth = Math.min(MAX_LEFT, e.clientX);
+          leftSidebar.style.width = `${newWidth}px`;
+          leftSidebar.style.opacity = '1';
+          savedLeftWidth = newWidth;
+        }
         resizeCanvas();
       } else if (isResizingRight) {
-        const newWidth = Math.max(240, Math.min(560, window.innerWidth - e.clientX));
-        rightSidebar.style.width = `${newWidth}px`;
+        const distFromRight = window.innerWidth - e.clientX;
+        lastDragRightWidth = distFromRight;
+        if (distFromRight <= COLLAPSE_RIGHT_THRESHOLD) {
+          rightSidebar.style.width = '0px';
+          rightSidebar.style.opacity = '0.2';
+        } else if (distFromRight < MIN_RIGHT_VISIBLE) {
+          rightSidebar.style.width = `${MIN_RIGHT_VISIBLE}px`;
+          rightSidebar.style.opacity = '1';
+        } else {
+          const newWidth = Math.min(MAX_RIGHT, distFromRight);
+          rightSidebar.style.width = `${newWidth}px`;
+          rightSidebar.style.opacity = '1';
+          savedRightWidth = newWidth;
+        }
         resizeCanvas();
       }
     });
 
     window.addEventListener('mouseup', () => {
-      if (isResizingLeft || isResizingRight) {
+      if (isResizingLeft) {
         isResizingLeft = false;
-        isResizingRight = false;
         leftResizer.classList.remove('resizing');
+        document.body.style.cursor = '';
+        if (lastDragLeftWidth <= COLLAPSE_LEFT_THRESHOLD) {
+          collapseLeftSidebar();
+        } else {
+          expandLeftSidebar(Math.max(MIN_LEFT_VISIBLE, Math.min(MAX_LEFT, lastDragLeftWidth)));
+        }
+      } else if (isResizingRight) {
+        isResizingRight = false;
         rightResizer.classList.remove('resizing');
         document.body.style.cursor = '';
-        resizeCanvas();
+        if (lastDragRightWidth <= COLLAPSE_RIGHT_THRESHOLD) {
+          collapseRightSidebar();
+        } else {
+          expandRightSidebar(Math.max(MIN_RIGHT_VISIBLE, Math.min(MAX_RIGHT, lastDragRightWidth)));
+        }
       }
     });
 
@@ -3128,6 +3264,10 @@
       updateCaseHeaderPill,
       exportAnnotationsJSON,
       importAnnotationsJSON,
+      collapseLeftSidebar,
+      expandLeftSidebar,
+      collapseRightSidebar,
+      expandRightSidebar,
       undo,
       redo,
       toggleOverlays,
