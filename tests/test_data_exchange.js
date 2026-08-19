@@ -94,19 +94,41 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Document Title after State Import:', importedTitle);
     assert(importedTitle.includes('KOWALSKI'), 'Imported patient last name must be reflected in document title');
 
-    // 6. Test In-App Reset Confirmation Modal
+    // 6. Test In-App Reset / Inference Model Selection Modal
     await page.click('#btn-reset-detections');
     const isResetModalVisible = await page.$eval('#reset-confirm-modal', el => !el.classList.contains('hidden'));
     console.log('  ✓ In-App Reset Modal Opened:', isResetModalVisible);
     assert.strictEqual(isResetModalVisible, true, 'Reset confirmation modal must open');
 
+    // Test Fast Model Selection: Telesphorus (2s)
+    await page.click('#card-model-fast');
     await page.click('#btn-confirm-reset');
-    const isResetModalClosed = await page.$eval('#reset-confirm-modal', el => el.classList.contains('hidden'));
-    assert.strictEqual(isResetModalClosed, true, 'Reset modal should close upon confirmation');
 
-    const resetCount = await page.evaluate(() => window.__CYTO_APP__.state.annotations.length);
-    console.log('  ✓ Annotations after Confirm Reset:', resetCount);
-    assert.strictEqual(resetCount, 40, 'Reset should restore exact 40 default annotations');
+    // Check loading state active
+    const isLoadingVisible = await page.$eval('#reset-loading-view', el => !el.classList.contains('hidden'));
+    console.log('  ✓ Telesphorus (2.0s Rapid Scan) Loading State Activated:', isLoadingVisible);
+    assert.strictEqual(isLoadingVisible, true, 'Loading bar and step telemetry should become visible');
+
+    // Wait for 2s reset inference to finish
+    await page.waitForFunction(() => document.getElementById('reset-confirm-modal').classList.contains('hidden'), { timeout: 6000 });
+    const fastResetCount = await page.evaluate(() => window.__CYTO_APP__.state.annotations.length);
+    console.log('  ✓ Annotations after Telesphorus (2s) Reset:', fastResetCount);
+    assert.strictEqual(fastResetCount, 32, 'Telesphorus should restore 32 rapid survey detections');
+
+    // Test Pro Model Selection: Asclepius (5s)
+    await page.click('#btn-reset-detections');
+    await page.click('#card-model-pro');
+    await page.click('#btn-confirm-reset');
+
+    const isProLoadingVisible = await page.$eval('#reset-loading-view', el => !el.classList.contains('hidden'));
+    console.log('  ✓ Asclepius (5.0s Deep Analysis) Loading State Activated:', isProLoadingVisible);
+    assert.strictEqual(isProLoadingVisible, true, 'Asclepius loading state should be active');
+
+    // Wait for 5s reset inference to finish
+    await page.waitForFunction(() => document.getElementById('reset-confirm-modal').classList.contains('hidden'), { timeout: 8000 });
+    const proResetCount = await page.evaluate(() => window.__CYTO_APP__.state.annotations.length);
+    console.log('  ✓ Annotations after Asclepius (5s) Reset:', proResetCount);
+    assert.strictEqual(proResetCount, 46, 'Asclepius should restore 46 diagnostic detections');
 
     // 7. Test Keyboard Shortcuts Modal (?)
     await page.keyboard.type('?');

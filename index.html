@@ -135,6 +135,44 @@
     input[type=range] {
       accent-color: #e52246;
     }
+    /* Global SVG size constraint */
+    svg {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    svg.w-2 { width: 8px; height: 8px; }
+    svg.w-2\.5 { width: 10px; height: 10px; }
+    svg.w-3 { width: 12px; height: 12px; }
+    svg.w-3\.5 { width: 14px; height: 14px; }
+    svg.w-4 { width: 16px; height: 16px; }
+    svg.w-5 { width: 20px; height: 20px; }
+    svg.w-6 { width: 24px; height: 24px; }
+    svg.w-8 { width: 32px; height: 32px; }
+
+    #tool-dropdown-container svg,
+    #tool-dropdown-menu svg,
+    #active-tool-icon svg,
+    .tool-btn svg {
+      width: 14px !important;
+      height: 14px !important;
+      max-width: 14px !important;
+      max-height: 14px !important;
+      flex-shrink: 0 !important;
+    }
+    #tool-dropdown-trigger svg:last-child {
+      width: 12px !important;
+      height: 12px !important;
+    }
+    #draw-class-container svg,
+    #draw-class-menu svg {
+      width: 12px !important;
+      height: 12px !important;
+      max-width: 12px !important;
+      max-height: 12px !important;
+      flex-shrink: 0 !important;
+    }
+
   </style>
 </head>
 <body class="h-full flex flex-col overflow-hidden select-none font-sans bg-[#110f12] text-white">
@@ -150,7 +188,7 @@
       </a>
       <div class="h-3.5 w-px bg-[#373437] hidden md:block"></div>
       <!-- Patient & Smear Clinical Metadata Pill (Interactive Button to open Case Modal) -->
-      <button id="btn-case-meta" class="flex items-center space-x-1.5 text-[11px] bg-[#110f12] hover:bg-[#272527] px-2 py-1 rounded-lg border border-[#373437] hover:border-[#e52246]/50 transition cursor-pointer font-mono hidden md:flex text-left group" data-help="Case Metadata & Clinical Notes|View patient details, smear info, and edit doctor's diagnostic notes (Hotkey: N)|CASE">
+      <button id="btn-case-meta" class="flex items-center space-x-1.5 text-[11px] bg-[#110f12] hover:bg-[#272527] px-2 py-1 rounded-lg border border-[#373437] hover:border-[#e52246]/50 transition cursor-pointer font-mono hidden md:flex text-left group shrink-0" data-help="Case Metadata & Clinical Notes|View patient details, smear info, and edit doctor's diagnostic notes (Hotkey: N)|CASE">
         <span id="patient-status-dot" class="inline-block w-2 h-2 rounded-full bg-[#f59e0b] shadow-[0_0_6px_rgba(245,158,11,0.5)] shrink-0 transition-colors duration-200"></span>
         <span id="patient-name-display" class="text-white font-semibold tracking-wide">DOE, J.</span>
         <span class="text-[#5a575a]">•</span>
@@ -158,23 +196,26 @@
         <span class="text-[#5a575a]">•</span>
         <span id="slide-title" class="text-[#9e9a9e] font-mono text-[10px] group-hover:text-white transition">smear-02</span>
         <span id="notes-indicator-badge" class="ml-1 text-[9px] px-1 py-0.2 rounded bg-[#272527] text-[#9e9a9e] border border-[#373437] flex items-center gap-0.5 group-hover:border-[#e52246]/40 transition">
-          <svg class="w-2.5 h-2.5 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          <svg width="10" height="10" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
           <span id="notes-badge-text">Notes</span>
         </span>
       </button>
-    </div>
 
-    <!-- Center: Tool Dropdown Menu & Active Class -->
-    <div class="flex items-center space-x-2 shrink-0">
-      <!-- Tool Dropdown Trigger -->
-      <div class="relative" id="tool-dropdown-container">
-        <button id="tool-dropdown-trigger" class="flex items-center space-x-1.5 bg-[#110f12] hover:bg-[#272527] px-2.5 py-1 rounded-lg border border-[#373437] text-xs font-mono text-white transition focus:outline-none focus:border-[#e52246]" data-help="Annotation Tool Menu|Choose active annotation tool or use hotkeys (V, B, C, P, M, E)|TOOL">
-          <span id="active-tool-icon" class="text-[#e52246]">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 7-3L3 3z"></path></svg>
-          </span>
-          <span id="active-tool-label" class="font-semibold text-xs">Select</span>
-          <span id="active-tool-key" class="text-[9px] px-1 py-0.2 rounded bg-[#272527] text-[#9e9a9e] border border-[#373437]">V</span>
-          <svg class="w-3 h-3 text-[#7a767a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+      <div class="h-3.5 w-px bg-[#373437] hidden md:block"></div>
+
+      <!-- Tool Dropdown Trigger (Constant Fixed Width & Aligned Left) -->
+      <div class="relative shrink-0" id="tool-dropdown-container">
+        <button id="tool-dropdown-trigger" class="w-[146px] flex items-center justify-between bg-[#110f12] hover:bg-[#272527] px-2 py-1 rounded-lg border border-[#373437] text-xs font-mono text-white transition focus:outline-none focus:border-[#e52246] shrink-0" data-help="Annotation Tool Menu|Choose active annotation tool or use hotkeys (V, B, C, P, M, E)|TOOL">
+          <div class="flex items-center space-x-1.5 min-w-0 pr-1">
+            <span id="active-tool-icon" class="text-[#e52246] shrink-0">
+              <svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 7-3L3 3z"></path></svg>
+            </span>
+            <span id="active-tool-label" class="font-semibold text-xs truncate">Select</span>
+          </div>
+          <div class="flex items-center space-x-1 shrink-0">
+            <span id="active-tool-key" class="text-[9px] px-1 py-0.2 rounded bg-[#272527] text-[#9e9a9e] border border-[#373437]">V</span>
+            <svg width="12" height="12" class="w-3 h-3 text-[#7a767a] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
         </button>
 
         <!-- Tool Dropdown Menu -->
@@ -182,42 +223,42 @@
           <div class="px-2 py-1 text-[10px] text-[#7a767a] uppercase tracking-wider font-semibold border-b border-[#373437] mb-1">Annotation Tools</div>
           <button data-tool="select" class="tool-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-white transition" data-help="Select & Transform|Click cells to inspect morphology, drag handles to resize or reposition annotations.|V / 1">
             <span class="flex items-center space-x-2">
-              <svg class="w-3.5 h-3.5 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 7-3L3 3z"></path></svg>
+              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#e52246] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 7-3L3 3z"></path></svg>
               <span>Select & Inspect</span>
             </span>
             <span class="text-[10px] text-[#9e9a9e] bg-[#110f12] px-1 rounded">V</span>
           </button>
           <button data-tool="box" class="tool-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Draw Bounding Box|Click and drag over a cell to create a rectangular region of interest.|B / 2">
             <span class="flex items-center space-x-2">
-              <svg class="w-3.5 h-3.5 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect></svg>
+              <svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect></svg>
               <span>Bounding Box</span>
             </span>
             <span class="text-[10px] text-[#9e9a9e] bg-[#110f12] px-1 rounded">B</span>
           </button>
           <button data-tool="circle" class="tool-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Draw Circular ROI|Click and drag to annotate spherical cell boundaries.|C / 3">
             <span class="flex items-center space-x-2">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle></svg>
+              <svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle></svg>
               <span>Circle ROI</span>
             </span>
             <span class="text-[10px] text-[#9e9a9e] bg-[#110f12] px-1 rounded">C</span>
           </button>
           <button data-tool="point" class="tool-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Quick Point Centroid|Single-click directly on a cell centroid to place an annotation.|P / 4">
             <span class="flex items-center space-x-2">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
+              <svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
               <span>Point Centroid</span>
             </span>
             <span class="text-[10px] text-[#9e9a9e] bg-[#110f12] px-1 rounded">P</span>
           </button>
           <button data-tool="measure" class="tool-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Optical Caliper Ruler|Click and drag two points to measure real-world distance in µm.|M / 5">
             <span class="flex items-center space-x-2">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path></svg>
+              <svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path></svg>
               <span>Caliper (µm)</span>
             </span>
             <span class="text-[10px] text-[#9e9a9e] bg-[#110f12] px-1 rounded">M</span>
           </button>
           <button data-tool="erase" class="tool-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-[#e52246] transition" data-help="Eraser Tool|Click on any cell annotation to permanently remove it.|E / 6">
             <span class="flex items-center space-x-2">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"></path><path d="M22 21H7"></path></svg>
+              <svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"></path><path d="M22 21H7"></path></svg>
               <span>Eraser</span>
             </span>
             <span class="text-[10px] text-[#9e9a9e] bg-[#110f12] px-1 rounded">E</span>
@@ -225,13 +266,13 @@
         </div>
       </div>
 
-      <!-- Active Drawing Class Custom Dropdown -->
-      <div class="relative" id="draw-class-container">
+      <!-- Active Drawing Class Custom Dropdown (Visible only for annotation drawing tools) -->
+      <div class="hidden relative shrink-0" id="draw-class-container">
         <button id="draw-class-trigger" class="flex items-center space-x-1.5 bg-[#110f12] hover:bg-[#272527] px-2.5 py-1 rounded-lg border border-[#373437] text-xs font-mono text-white transition focus:outline-none focus:border-[#e52246]" data-help="Active Lineage Menu|Assigns the chosen cell class when drawing new annotations (1-8)|LINEAGE">
           <span id="draw-class-dot" class="w-2.5 h-2.5 rounded-full bg-[#38bdf8] shrink-0"></span>
           <span id="draw-class-label" class="font-semibold text-xs">Neutrophil</span>
           <span id="draw-class-code" class="text-[9px] px-1 py-0.2 rounded bg-[#272527] text-[#38bdf8] border border-[#373437] font-bold">NEU</span>
-          <svg class="w-3 h-3 text-[#7a767a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+          <svg width="12" height="12" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
         </button>
 
         <!-- Lineage Dropdown Menu -->
@@ -259,13 +300,13 @@
 
       <!-- Import Full State JSON Button (Icon Only) -->
       <button id="btn-import-json" title="Import Case State JSON" class="p-1.5 text-xs text-[#9e9a9e] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition flex items-center justify-center font-mono" data-help="Import JSON State|Upload and restore a full case state JSON file (metadata, annotations, calibration)|IMPORT">
-        <svg class="w-4 h-4 text-[#38bdf8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
       </button>
       <input type="file" id="input-import-json-file" accept=".json,application/json" class="hidden" />
 
       <!-- Export Full State JSON Button (Icon Only) -->
       <button id="btn-export-json" title="Export Full Case State JSON" class="p-1.5 text-xs text-[#9e9a9e] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition flex items-center justify-center font-mono" data-help="Export Full JSON State|Download complete case state (metadata, annotations, measurements, calibration) in a single JSON file|EXPORT">
-        <svg class="w-4 h-4 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
       </button>
 
       <!-- Hidden compatibility elements for automated tests -->
@@ -274,8 +315,13 @@
       <button id="btn-export-csv" class="hidden"></button>
       <button id="btn-export-snapshot" class="hidden"></button>
 
-      <button id="btn-reset-detections" title="Reset to Default Detections" class="p-1 text-[11px] text-[#7a767a] hover:text-[#e52246] bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition font-mono" data-help="Reset Annotations|Restores preloaded AI detections and clears manual edits.|RESET">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+      <!-- Re-run AI Inference / Model Reset Button (Deep Orange Glowing Icon) -->
+      <button id="btn-reset-detections" title="Re-Run AI Inference / Reset Models" class="p-1.5 text-xs text-[#f97316] hover:text-amber-300 bg-[#141112] hover:bg-[#261713] rounded-lg border border-[#373437] hover:border-[#f97316]/60 shadow-[0_0_10px_rgba(249,115,22,0.2)] hover:shadow-[0_0_16px_rgba(249,115,22,0.5)] transition flex items-center justify-center font-mono group" data-help="Re-Run AI Inference|Run AI vision models (CytoNet-Flash or CytoNet-Pro) and reset cell detections.|AI RUN">
+        <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path>
+          <path d="M19 4v4"></path>
+          <path d="M21 6h-4"></path>
+        </svg>
       </button>
     </div>
   </header>
@@ -288,7 +334,7 @@
       <div class="p-2.5 border-b border-[#373437] flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2">
           <h2 class="text-xs font-semibold uppercase tracking-wider text-[#9e9a9e]">Class Filters</h2>
-          <span class="text-[10px] font-mono text-[#e52246] px-1.5 py-0.2 rounded bg-[#e52246]/10 border border-[#e52246]/30 font-bold" id="visible-count-badge">40 visible</span>
+          <span class="text-[11px] font-mono text-[#7a767a]" id="visible-count-badge">40 visible</span>
         </div>
         <div class="flex items-center space-x-1 text-[10px] font-mono">
           <button id="btn-filter-all" class="text-[#9e9a9e] hover:text-white px-1" data-help="Show All|Make all cell classes visible.|ALL">All</button>
@@ -331,7 +377,7 @@
 
     <!-- Expand Left Sidebar Handle (Visible when collapsed) -->
     <button id="btn-expand-left" class="hidden absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-[#1a181b]/95 hover:bg-[#272527] border-y border-r border-[#373437] hover:border-[#e52246]/60 rounded-r-lg p-1.5 text-[#9e9a9e] hover:text-white shadow-2xl transition cursor-pointer group" title="Expand Filters (Taxonomy & WBC Differential)" data-help="Expand Filters|Restore left sidebar panel.|EXPAND">
-      <svg class="w-3.5 h-3.5 text-[#e52246] group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+      <svg width="14" height="14" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
     </button>
 
     <!-- Microscope Canvas Container -->
@@ -376,7 +422,7 @@
           <button id="obj-dropdown-trigger" class="flex items-center space-x-1 text-[10px] text-white hover:text-[#e52246] hover:bg-[#272527] px-1.5 py-0.5 rounded transition font-semibold" data-help="Objective Magnification|Switch virtual objective lenses (10x, 20x, 40x, 60x, 100x Oil).|MAG">
             <span id="active-obj-label" class="text-[#e52246]">40× Dry</span>
             <span id="zoom-display" class="text-[#7a767a] font-normal text-[9px]">(1.0×)</span>
-            <svg class="w-2.5 h-2.5 text-[#7a767a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"></path></svg>
+            <svg width="10" height="10" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"></path></svg>
           </button>
 
           <!-- Objective Menu items (Pops up ABOVE bottom bar) -->
@@ -415,17 +461,8 @@
 
         <span class="text-[#373437]">•</span>
 
-        <!-- Quick Actions: Reticle & Fit -->
+        <!-- Quick Actions: Fit -->
         <div class="flex items-center space-x-1 shrink-0">
-          <button id="btn-toggle-reticle" title="Toggle Reticle (R)" class="p-0.5 rounded text-[#7a767a] hover:text-white hover:bg-[#272527] transition" data-help="Microscope Reticle|Toggle optical center crosshair.|R">
-            <svg class="w-3.5 h-3.5 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="22" y1="12" x2="18" y2="12"></line>
-              <line x1="6" y1="12" x2="2" y2="12"></line>
-              <line x1="12" y1="6" x2="12" y2="2"></line>
-              <line x1="12" y1="22" x2="12" y2="18"></line>
-            </svg>
-          </button>
           <button id="btn-zoom-reset" class="px-1.5 py-0.2 text-[9px] text-[#7a767a] hover:text-white bg-[#1B191E] hover:bg-[#272527] rounded border border-[#373437] transition" data-help="Fit Viewport (0)|Resets zoom to fit full smear slide in viewport.|0">Fit</button>
         </div>
       </div>
@@ -447,7 +484,7 @@
 
     <!-- Expand Right Sidebar Handle (Visible when collapsed) -->
     <button id="btn-expand-right" class="hidden absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-[#1a181b]/95 hover:bg-[#272527] border-y border-l border-[#373437] hover:border-[#e52246]/60 rounded-l-lg p-1.5 text-[#9e9a9e] hover:text-white shadow-2xl transition cursor-pointer group" title="Expand Inspector & Gallery" data-help="Expand Inspector|Restore right sidebar panel.|EXPAND">
-      <svg class="w-3.5 h-3.5 text-[#e52246] group-hover:-translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg>
+      <svg width="14" height="14" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg>
     </button>
 
     <!-- Right Resizer Gutter -->
@@ -456,24 +493,24 @@
     <!-- Right Sidebar: Cell Inspector & Gallery (Resizable & Collapsible) -->
     <aside id="right-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-hidden" style="width: 280px; max-width: 540px;">
       <!-- Tab Header -->
-      <div class="p-2 border-b border-[#373437] flex items-center justify-between shrink-0 bg-[#141316]">
-        <div class="flex items-center space-x-1 bg-[#1B191E] p-0.5 rounded-lg border border-[#373437] text-[11px] font-mono">
-          <button id="tab-btn-inspector" class="px-2 py-0.5 rounded bg-[#e52246] text-white font-bold transition flex items-center space-x-1" data-help="Cell Inspector|View high-resolution morphology, AI distributions, and morphometrics.|INSPECT">
+      <div class="p-2 border-b border-[#373437] flex items-center justify-between shrink-0 bg-[#141316] gap-3">
+        <div class="h-7 flex items-center space-x-1 bg-[#1B191E] p-0.5 rounded-lg border border-[#373437] text-[11px] font-mono shrink-0">
+          <button id="tab-btn-inspector" class="h-full px-2.5 rounded-md bg-[#e52246] text-white font-bold transition flex items-center space-x-1" data-help="Cell Inspector|View high-resolution morphology, AI distributions, and morphometrics.|INSPECT">
             <span>Inspector</span>
           </button>
-          <button id="tab-btn-gallery" class="px-2 py-0.5 rounded text-[#9e9a9e] hover:text-white transition flex items-center space-x-1" data-help="Cell Gallery|Browse and filter thumbnail review grid of all detected cells.|GALLERY">
+          <button id="tab-btn-gallery" class="h-full px-2.5 rounded-md text-[#9e9a9e] hover:text-white transition flex items-center space-x-1" data-help="Cell Gallery|Browse and filter thumbnail review grid of all detected cells.|GALLERY">
             <span>Gallery</span>
             <span id="gallery-count-badge" class="text-[9px] px-1 py-0.2 rounded bg-[#272527] text-[#B4AFBA]">40</span>
           </button>
         </div>
-        <span id="inspector-status-badge" class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#272527] text-[#9e9a9e]">No cell selected</span>
+        <span id="inspector-status-badge" class="text-[11px] font-mono text-[#7a767a] shrink-0">no cell</span>
       </div>
 
       <!-- Inspector Panel Content -->
       <div id="inspector-tab-content" class="flex-1 overflow-y-auto p-3 space-y-3">
         <!-- Empty Placeholder -->
         <div id="inspector-empty" class="text-center py-12 text-[#7a767a] space-y-2">
-          <svg class="w-8 h-8 mx-auto text-[#5a575a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <svg width="32" height="32" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.3-4.3"></path>
           </svg>
@@ -617,10 +654,6 @@
           <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">H</kbd>
         </div>
         <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
-          <span class="text-[#9e9a9e]">Toggle Reticle</span>
-          <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">R</kbd>
-        </div>
-        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
           <span class="text-[#9e9a9e]">Fit to Screen</span>
           <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">0</kbd>
         </div>
@@ -640,20 +673,98 @@
     </div>
   </div>
 
-  <!-- In-App Reset Confirmation Modal -->
-  <div id="reset-confirm-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-[#1B191E] border border-[#373437] rounded-2xl shadow-2xl w-full max-w-sm p-5 text-white font-mono text-xs space-y-4">
-      <div class="flex items-center space-x-2 border-b border-[#373437] pb-3">
-        <div class="w-4 h-4 rounded-full bg-[#e52246]/20 text-[#e52246] flex items-center justify-center font-bold">!</div>
-        <h3 class="font-display font-bold text-sm text-white">Reset Annotations?</h3>
+  <!-- Re-run Inference / Model Reset Selection Modal -->
+  <div id="reset-confirm-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#1B191E] border border-[#373437] rounded-2xl shadow-2xl w-full max-w-lg p-6 text-white font-mono text-xs space-y-4">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-[#373437] pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-6 h-6 rounded-lg bg-[#f97316]/15 border border-[#f97316]/30 flex items-center justify-center text-[#f97316] shadow-[0_0_10px_rgba(249,115,22,0.25)]">
+            <svg width="14" height="14" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path><path d="M19 4v4"></path><path d="M21 6h-4"></path></svg>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-sm text-white">Reset & Re-Run Model Inference</h3>
+            <p class="text-[10px] text-[#7a767a]">Select AI model architecture to regenerate whole-smear cell detections</p>
+          </div>
+        </div>
+        <button id="btn-cancel-reset-x" class="text-[#9e9a9e] hover:text-white text-sm px-2 py-1 rounded hover:bg-[#272527] transition">✕</button>
       </div>
-      <p class="text-[#B4AFBA] text-[11px] leading-relaxed">
-        This will restore the 40 original AI detections and discard all custom boxes, points, and caliper measurements.
-      </p>
-      <div class="flex items-center justify-end space-x-2 pt-2">
-        <button id="btn-cancel-reset" class="px-3 py-1.5 rounded-lg bg-[#272527] hover:bg-[#373437] text-white text-xs font-semibold transition">Cancel</button>
-        <button id="btn-confirm-reset" class="px-4 py-1.5 rounded-lg bg-[#e52246] hover:bg-[#ce1438] text-white text-xs font-semibold transition">Confirm Reset</button>
+
+      <!-- Warning Banner -->
+      <div class="p-3 rounded-xl bg-[#e52246]/10 border border-[#e52246]/30 flex items-start space-x-2.5">
+        <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <div class="space-y-0.5">
+          <span class="font-bold text-[#e52246] text-[11px] uppercase tracking-wider">Warning: Modifications Will Be Lost</span>
+          <p class="text-[10px] text-[#B4AFBA] leading-relaxed">
+            All manual annotations, box/point drawings, reclassifications, and caliper measurements will be permanently cleared and replaced with the selected model's annotations.
+          </p>
+        </div>
       </div>
+
+      <!-- Model Selection State (Visible when not loading) -->
+      <div id="reset-model-selection" class="space-y-3">
+        <label class="text-[10px] uppercase font-bold text-[#9e9a9e] tracking-wider block">Choose AI Model Architecture</label>
+        
+        <div class="grid grid-cols-1 gap-2.5">
+          <!-- Fast Model Card (Telesphorus) -->
+          <div id="card-model-fast" class="model-select-card cursor-pointer p-3.5 rounded-xl border border-[#373437] hover:border-[#38bdf8]/60 bg-[#141316] hover:bg-[#1f1d22] transition space-y-1 group">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-xs">Telesphorus</span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded font-bold bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">⚡ RAPID SCAN • 2.0s</span>
+            </div>
+            <p class="text-[10px] text-[#7a767a]">Rapid screening analysis for automated leukocyte and platelet counts.</p>
+            <div class="text-[9px] text-[#9e9a9e] flex items-center space-x-3 pt-0.5 font-mono">
+              <span>Scope: <b class="text-white">Rapid Survey</b></span>
+              <span>Latency: <b class="text-white">~2.0s</b></span>
+            </div>
+          </div>
+
+          <!-- Pro Model Card (Asclepius) -->
+          <div id="card-model-pro" class="model-select-card cursor-pointer p-3.5 rounded-xl border-2 border-[#e52246] bg-[#1a1317] transition space-y-1 group shadow-lg shadow-[#e52246]/15">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-xs">Asclepius</span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded font-bold bg-[#e52246]/20 text-[#e52246] border border-[#e52246]/40">🔬 DEEP ANALYSIS • 5.0s</span>
+            </div>
+            <p class="text-[10px] text-[#B4AFBA]">Comprehensive diagnostic evaluation with nuclear morphology and atypical cell analysis.</p>
+            <div class="text-[9px] text-[#9e9a9e] flex items-center space-x-3 pt-0.5 font-mono">
+              <span>Scope: <b class="text-white">Diagnostic Evaluation</b></span>
+              <span>Latency: <b class="text-white">~5.0s</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-2 pt-3 border-t border-[#373437]">
+          <button id="btn-cancel-reset" class="px-3 py-1.5 rounded-lg bg-[#272527] hover:bg-[#373437] text-white text-xs font-semibold transition">Cancel</button>
+          <button id="btn-confirm-reset" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-[#e52246] to-[#f97316] hover:from-[#ce1438] hover:to-[#ea580c] text-white text-xs font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-[#f97316]/20">
+            <svg width="14" height="14" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path></svg>
+            <span>Run Inference & Reset</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Inference Loading View (Visible during active reset/inference) -->
+      <div id="reset-loading-view" class="hidden space-y-4 py-2">
+        <div class="text-center space-y-1">
+          <div class="inline-flex items-center space-x-2 text-xs font-bold text-white" id="reset-loading-model-name">
+            <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="#e52246" stroke-width="3"></path></svg>
+            <span>Running CytoNet-Pro Inference Pipeline...</span>
+          </div>
+          <p class="text-[10px] text-[#9e9a9e]" id="reset-loading-step-text">Tiling 40x FOV and running multi-scale feature extractor...</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="space-y-1">
+          <div class="w-full bg-[#272527] h-2.5 rounded-full overflow-hidden border border-[#373437]">
+            <div id="reset-progress-bar" class="bg-gradient-to-r from-[#e52246] via-[#f97316] to-[#e52246] h-full transition-all duration-75 ease-out rounded-full" style="width: 0%;"></div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] font-mono text-[#7a767a]">
+            <span id="reset-progress-percent">0%</span>
+            <span id="reset-progress-time">0.0s elapsed</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -671,7 +782,7 @@
       <div class="flex items-center justify-between border-b border-[#373437] pb-3">
         <div class="flex items-center space-x-2.5">
           <div class="w-6 h-6 rounded-lg bg-[#e52246]/15 border border-[#e52246]/30 flex items-center justify-center text-[#e52246]">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <svg width="14" height="14" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           </div>
           <div>
             <h3 class="font-display font-bold text-sm text-white flex items-center gap-2">
@@ -746,7 +857,7 @@
           <div>
             <div class="text-[10px] text-[#10b981] uppercase font-bold tracking-wider flex items-center justify-between mb-2">
               <span class="flex items-center gap-1.5">
-                <svg class="w-3 h-3 text-[#10b981]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                <svg width="12" height="12" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                 <span>Doctor's Clinical Notes</span>
               </span>
               <span id="notes-char-count" class="text-[9px] text-[#7a767a] font-normal">0 chars</span>
@@ -921,6 +1032,122 @@
       { id: 'c-40', classId: 'rbc_variant', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.948, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.948 }, { classId: 'platelet', prob: 0.052 }] }
     ];
 
+    // Telesphorus (Fast Model - 32 Cells)
+    const MODEL_FLASH_ANNOTATIONS = [
+      // Neutrophils (8)
+      { id: 'fl-01', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 280, y: 190, width: 108, height: 104, confidence: 0.964, shape: 'box', morphology: { area_um2: 151.2, diameter_um: 13.9, circularity: 0.87, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophil', prob: 0.964 }, { classId: 'monocyte', prob: 0.024 }, { classId: 'eosinophil', prob: 0.012 }] },
+      { id: 'fl-02', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 670, y: 240, width: 114, height: 108, confidence: 0.956, shape: 'box', morphology: { area_um2: 160.1, diameter_um: 14.3, circularity: 0.85, nc_ratio: 0.46 }, predictions: [{ classId: 'neutrophil', prob: 0.956 }, { classId: 'monocyte', prob: 0.030 }, { classId: 'eosinophil', prob: 0.014 }] },
+      { id: 'fl-03', classId: 'neutrophil', label: 'Band Neutrophil', x: 1040, y: 160, width: 102, height: 102, confidence: 0.938, shape: 'box', morphology: { area_um2: 142.5, diameter_um: 13.5, circularity: 0.81, nc_ratio: 0.49 }, predictions: [{ classId: 'neutrophil', prob: 0.938 }, { classId: 'monocyte', prob: 0.045 }, { classId: 'lymphocyte', prob: 0.017 }] },
+      { id: 'fl-04', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1210, y: 390, width: 116, height: 110, confidence: 0.972, shape: 'box', morphology: { area_um2: 165.4, diameter_um: 14.5, circularity: 0.86, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophil', prob: 0.972 }, { classId: 'eosinophil', prob: 0.018 }, { classId: 'monocyte', prob: 0.010 }] },
+      { id: 'fl-05', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 420, y: 480, width: 110, height: 106, confidence: 0.951, shape: 'box', morphology: { area_um2: 153.8, diameter_um: 14.0, circularity: 0.84, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophil', prob: 0.951 }, { classId: 'monocyte', prob: 0.035 }, { classId: 'eosinophil', prob: 0.014 }] },
+      { id: 'fl-06', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 810, y: 530, width: 114, height: 112, confidence: 0.975, shape: 'box', morphology: { area_um2: 162.8, diameter_um: 14.4, circularity: 0.88, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophil', prob: 0.975 }, { classId: 'eosinophil', prob: 0.015 }, { classId: 'monocyte', prob: 0.010 }] },
+      { id: 'fl-07', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1320, y: 710, width: 112, height: 106, confidence: 0.962, shape: 'box', morphology: { area_um2: 156.2, diameter_um: 14.1, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophil', prob: 0.962 }, { classId: 'monocyte', prob: 0.026 }, { classId: 'eosinophil', prob: 0.012 }] },
+      { id: 'fl-08', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 590, y: 820, width: 112, height: 108, confidence: 0.968, shape: 'box', morphology: { area_um2: 159.0, diameter_um: 14.2, circularity: 0.87, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophil', prob: 0.968 }, { classId: 'eosinophil', prob: 0.020 }, { classId: 'monocyte', prob: 0.012 }] },
+
+      // Lymphocytes (5)
+      { id: 'fl-09', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 490, y: 150, width: 76, height: 74, confidence: 0.974, shape: 'box', morphology: { area_um2: 66.2, diameter_um: 9.2, circularity: 0.92, nc_ratio: 0.83 }, predictions: [{ classId: 'lymphocyte', prob: 0.974 }, { classId: 'blast', prob: 0.018 }, { classId: 'monocyte', prob: 0.008 }] },
+      { id: 'fl-10', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 890, y: 210, width: 78, height: 76, confidence: 0.961, shape: 'box', morphology: { area_um2: 69.4, diameter_um: 9.4, circularity: 0.91, nc_ratio: 0.85 }, predictions: [{ classId: 'lymphocyte', prob: 0.961 }, { classId: 'blast', prob: 0.028 }, { classId: 'monocyte', prob: 0.011 }] },
+      { id: 'fl-11', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 1350, y: 220, width: 74, height: 72, confidence: 0.969, shape: 'box', morphology: { area_um2: 65.1, diameter_um: 9.1, circularity: 0.93, nc_ratio: 0.81 }, predictions: [{ classId: 'lymphocyte', prob: 0.969 }, { classId: 'blast', prob: 0.021 }, { classId: 'monocyte', prob: 0.010 }] },
+      { id: 'fl-12', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 710, y: 680, width: 74, height: 74, confidence: 0.981, shape: 'box', morphology: { area_um2: 65.8, diameter_um: 9.1, circularity: 0.94, nc_ratio: 0.86 }, predictions: [{ classId: 'lymphocyte', prob: 0.981 }, { classId: 'blast', prob: 0.012 }, { classId: 'monocyte', prob: 0.007 }] },
+      { id: 'fl-13', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 420, y: 920, width: 75, height: 74, confidence: 0.973, shape: 'box', morphology: { area_um2: 68.0, diameter_um: 9.3, circularity: 0.92, nc_ratio: 0.84 }, predictions: [{ classId: 'lymphocyte', prob: 0.973 }, { classId: 'blast', prob: 0.018 }, { classId: 'monocyte', prob: 0.009 }] },
+
+      // Monocytes (2)
+      { id: 'fl-14', classId: 'monocyte', label: 'Monocyte', x: 130, y: 340, width: 138, height: 132, confidence: 0.948, shape: 'box', morphology: { area_um2: 236.0, diameter_um: 17.3, circularity: 0.77, nc_ratio: 0.53 }, predictions: [{ classId: 'monocyte', prob: 0.948 }, { classId: 'neutrophil', prob: 0.036 }, { classId: 'blast', prob: 0.016 }] },
+      { id: 'fl-15', classId: 'monocyte', label: 'Monocyte', x: 980, y: 440, width: 135, height: 130, confidence: 0.939, shape: 'box', morphology: { area_um2: 231.0, diameter_um: 17.1, circularity: 0.78, nc_ratio: 0.55 }, predictions: [{ classId: 'monocyte', prob: 0.939 }, { classId: 'neutrophil', prob: 0.042 }, { classId: 'blast', prob: 0.019 }] },
+
+      // Eosinophils (2)
+      { id: 'fl-16', classId: 'eosinophil', label: 'Eosinophil', x: 520, y: 320, width: 114, height: 112, confidence: 0.971, shape: 'box', morphology: { area_um2: 162.0, diameter_um: 14.4, circularity: 0.83, nc_ratio: 0.41 }, predictions: [{ classId: 'eosinophil', prob: 0.971 }, { classId: 'neutrophil', prob: 0.021 }, { classId: 'monocyte', prob: 0.008 }] },
+      { id: 'fl-17', classId: 'eosinophil', label: 'Eosinophil', x: 1220, y: 900, width: 112, height: 110, confidence: 0.963, shape: 'box', morphology: { area_um2: 158.5, diameter_um: 14.2, circularity: 0.84, nc_ratio: 0.40 }, predictions: [{ classId: 'eosinophil', prob: 0.963 }, { classId: 'neutrophil', prob: 0.026 }, { classId: 'monocyte', prob: 0.011 }] },
+
+      // Basophil (1)
+      { id: 'fl-18', classId: 'basophil', label: 'Basophil', x: 380, y: 690, width: 104, height: 102, confidence: 0.952, shape: 'box', morphology: { area_um2: 135.2, diameter_um: 13.1, circularity: 0.82, nc_ratio: 0.47 }, predictions: [{ classId: 'basophil', prob: 0.952 }, { classId: 'eosinophil', prob: 0.032 }, { classId: 'neutrophil', prob: 0.016 }] },
+
+      // Atypical / Blast (1)
+      { id: 'fl-19', classId: 'blast', label: 'Atypical / Blast Cell', x: 860, y: 370, width: 144, height: 140, confidence: 0.918, shape: 'box', morphology: { area_um2: 268.0, diameter_um: 18.5, circularity: 0.87, nc_ratio: 0.89 }, predictions: [{ classId: 'blast', prob: 0.918 }, { classId: 'monocyte', prob: 0.054 }, { classId: 'lymphocyte', prob: 0.028 }] },
+
+      // Platelets (9)
+      { id: 'fl-20', classId: 'platelet', label: 'Platelet', x: 230, y: 130, width: 26, height: 24, confidence: 0.972, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.972 }, { classId: 'rbc_variant', prob: 0.028 }] },
+      { id: 'fl-21', classId: 'platelet', label: 'Platelet', x: 800, y: 140, width: 25, height: 25, confidence: 0.979, shape: 'circle', morphology: { area_um2: 6.8, diameter_um: 2.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.979 }, { classId: 'rbc_variant', prob: 0.021 }] },
+      { id: 'fl-22', classId: 'platelet', label: 'Platelet', x: 1140, y: 260, width: 28, height: 26, confidence: 0.975, shape: 'circle', morphology: { area_um2: 7.6, diameter_um: 3.1, circularity: 0.92, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.975 }, { classId: 'rbc_variant', prob: 0.025 }] },
+      { id: 'fl-23', classId: 'platelet', label: 'Platelet', x: 340, y: 400, width: 24, height: 24, confidence: 0.968, shape: 'circle', morphology: { area_um2: 6.5, diameter_um: 2.9, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.968 }, { classId: 'rbc_variant', prob: 0.032 }] },
+      { id: 'fl-24', classId: 'platelet', label: 'Platelet', x: 640, y: 440, width: 34, height: 32, confidence: 0.935, shape: 'box', morphology: { area_um2: 14.1, diameter_um: 4.2, circularity: 0.85, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.935 }, { classId: 'rbc_variant', prob: 0.065 }] },
+      { id: 'fl-25', classId: 'platelet', label: 'Platelet', x: 1090, y: 550, width: 26, height: 26, confidence: 0.976, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.976 }, { classId: 'rbc_variant', prob: 0.024 }] },
+      { id: 'fl-26', classId: 'platelet', label: 'Platelet', x: 530, y: 640, width: 25, height: 24, confidence: 0.971, shape: 'circle', morphology: { area_um2: 6.9, diameter_um: 3.0, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.971 }, { classId: 'rbc_variant', prob: 0.029 }] },
+      { id: 'fl-27', classId: 'platelet', label: 'Platelet', x: 920, y: 760, width: 26, height: 25, confidence: 0.978, shape: 'circle', morphology: { area_um2: 7.1, diameter_um: 3.0, circularity: 0.93, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.978 }, { classId: 'rbc_variant', prob: 0.022 }] },
+      { id: 'fl-28', classId: 'platelet', label: 'Platelet', x: 1370, y: 840, width: 24, height: 24, confidence: 0.962, shape: 'circle', morphology: { area_um2: 6.4, diameter_um: 2.8, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.962 }, { classId: 'rbc_variant', prob: 0.038 }] },
+
+      // Erythrocyte variants (4)
+      { id: 'fl-29', classId: 'rbc_variant', label: 'Target Cell', x: 450, y: 260, width: 56, height: 56, confidence: 0.928, shape: 'circle', morphology: { area_um2: 38.5, diameter_um: 7.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.928 }, { classId: 'platelet', prob: 0.072 }] },
+      { id: 'fl-30', classId: 'rbc_variant', label: 'Schistocyte', x: 940, y: 130, width: 46, height: 38, confidence: 0.884, shape: 'box', morphology: { area_um2: 27.2, diameter_um: 5.9, circularity: 0.76, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.884 }, { classId: 'platelet', prob: 0.116 }] },
+      { id: 'fl-31', classId: 'rbc_variant', label: 'Tear Drop Cell', x: 1100, y: 730, width: 58, height: 44, confidence: 0.915, shape: 'box', morphology: { area_um2: 34.6, diameter_um: 6.6, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.915 }, { classId: 'platelet', prob: 0.085 }] },
+      { id: 'fl-32', classId: 'rbc_variant', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.941, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.941 }, { classId: 'platelet', prob: 0.059 }] }
+    ];
+
+    // Asclepius (Pro Model - 46 Cells)
+    const MODEL_PRO_ANNOTATIONS = [
+      // Neutrophils (12)
+      { id: 'pr-01', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 280, y: 190, width: 110, height: 105, confidence: 0.992, shape: 'box', morphology: { area_um2: 154.2, diameter_um: 14.0, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophil', prob: 0.992 }, { classId: 'monocyte', prob: 0.005 }, { classId: 'eosinophil', prob: 0.003 }] },
+      { id: 'pr-02', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 670, y: 240, width: 115, height: 110, confidence: 0.989, shape: 'box', morphology: { area_um2: 162.5, diameter_um: 14.4, circularity: 0.86, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophil', prob: 0.989 }, { classId: 'monocyte', prob: 0.008 }, { classId: 'eosinophil', prob: 0.003 }] },
+      { id: 'pr-03', classId: 'neutrophil', label: 'Band Neutrophil', x: 1040, y: 160, width: 105, height: 105, confidence: 0.971, shape: 'box', morphology: { area_um2: 145.8, diameter_um: 13.6, circularity: 0.82, nc_ratio: 0.48 }, predictions: [{ classId: 'neutrophil', prob: 0.971 }, { classId: 'monocyte', prob: 0.021 }, { classId: 'lymphocyte', prob: 0.008 }] },
+      { id: 'pr-04', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1210, y: 390, width: 118, height: 112, confidence: 0.995, shape: 'box', morphology: { area_um2: 168.0, diameter_um: 14.6, circularity: 0.87, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophil', prob: 0.995 }, { classId: 'eosinophil', prob: 0.003 }, { classId: 'monocyte', prob: 0.002 }] },
+      { id: 'pr-05', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 420, y: 480, width: 112, height: 108, confidence: 0.984, shape: 'box', morphology: { area_um2: 156.4, diameter_um: 14.1, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophil', prob: 0.984 }, { classId: 'monocyte', prob: 0.011 }, { classId: 'eosinophil', prob: 0.005 }] },
+      { id: 'pr-06', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 810, y: 530, width: 116, height: 114, confidence: 0.996, shape: 'box', morphology: { area_um2: 165.2, diameter_um: 14.5, circularity: 0.89, nc_ratio: 0.40 }, predictions: [{ classId: 'neutrophil', prob: 0.996 }, { classId: 'eosinophil', prob: 0.003 }, { classId: 'monocyte', prob: 0.001 }] },
+      { id: 'pr-07', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1320, y: 710, width: 114, height: 108, confidence: 0.988, shape: 'box', morphology: { area_um2: 158.9, diameter_um: 14.2, circularity: 0.86, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophil', prob: 0.988 }, { classId: 'monocyte', prob: 0.008 }, { classId: 'eosinophil', prob: 0.004 }] },
+      { id: 'pr-08', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 190, y: 760, width: 110, height: 105, confidence: 0.985, shape: 'box', morphology: { area_um2: 152.0, diameter_um: 13.9, circularity: 0.85, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophil', prob: 0.985 }, { classId: 'monocyte', prob: 0.010 }, { classId: 'eosinophil', prob: 0.005 }] },
+      { id: 'pr-09', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 590, y: 820, width: 115, height: 110, confidence: 0.991, shape: 'box', morphology: { area_um2: 161.8, diameter_um: 14.3, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophil', prob: 0.991 }, { classId: 'eosinophil', prob: 0.005 }, { classId: 'monocyte', prob: 0.004 }] },
+      { id: 'pr-10', classId: 'neutrophil', label: 'Band Neutrophil', x: 990, y: 880, width: 108, height: 104, confidence: 0.967, shape: 'box', morphology: { area_um2: 149.3, diameter_um: 13.8, circularity: 0.81, nc_ratio: 0.49 }, predictions: [{ classId: 'neutrophil', prob: 0.967 }, { classId: 'monocyte', prob: 0.024 }, { classId: 'lymphocyte', prob: 0.009 }] },
+      { id: 'pr-11', classId: 'neutrophil', label: 'Hypersegmented Neutrophil', x: 310, y: 320, width: 112, height: 110, confidence: 0.978, shape: 'box', morphology: { area_um2: 159.4, diameter_um: 14.2, circularity: 0.83, nc_ratio: 0.38 }, predictions: [{ classId: 'neutrophil', prob: 0.978 }, { classId: 'monocyte', prob: 0.016 }, { classId: 'eosinophil', prob: 0.006 }] },
+      { id: 'pr-12', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1060, y: 310, width: 114, height: 108, confidence: 0.986, shape: 'box', morphology: { area_um2: 157.0, diameter_um: 14.1, circularity: 0.87, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophil', prob: 0.986 }, { classId: 'eosinophil', prob: 0.009 }, { classId: 'monocyte', prob: 0.005 }] },
+
+      // Lymphocytes (8)
+      { id: 'pr-13', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 490, y: 150, width: 78, height: 76, confidence: 0.994, shape: 'box', morphology: { area_um2: 68.4, diameter_um: 9.3, circularity: 0.93, nc_ratio: 0.82 }, predictions: [{ classId: 'lymphocyte', prob: 0.994 }, { classId: 'blast', prob: 0.004 }, { classId: 'monocyte', prob: 0.002 }] },
+      { id: 'pr-14', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 890, y: 210, width: 80, height: 78, confidence: 0.988, shape: 'box', morphology: { area_um2: 71.2, diameter_um: 9.5, circularity: 0.92, nc_ratio: 0.84 }, predictions: [{ classId: 'lymphocyte', prob: 0.988 }, { classId: 'blast', prob: 0.008 }, { classId: 'monocyte', prob: 0.004 }] },
+      { id: 'pr-15', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 1350, y: 220, width: 76, height: 74, confidence: 0.991, shape: 'box', morphology: { area_um2: 66.8, diameter_um: 9.2, circularity: 0.94, nc_ratio: 0.80 }, predictions: [{ classId: 'lymphocyte', prob: 0.991 }, { classId: 'blast', prob: 0.006 }, { classId: 'monocyte', prob: 0.003 }] },
+      { id: 'pr-16', classId: 'lymphocyte', label: 'Large Granular Lymphocyte', x: 260, y: 520, width: 88, height: 84, confidence: 0.962, shape: 'box', morphology: { area_um2: 86.5, diameter_um: 10.5, circularity: 0.89, nc_ratio: 0.72 }, predictions: [{ classId: 'lymphocyte', prob: 0.962 }, { classId: 'monocyte', prob: 0.025 }, { classId: 'blast', prob: 0.013 }] },
+      { id: 'pr-17', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 710, y: 680, width: 75, height: 75, confidence: 0.996, shape: 'box', morphology: { area_um2: 67.1, diameter_um: 9.2, circularity: 0.95, nc_ratio: 0.85 }, predictions: [{ classId: 'lymphocyte', prob: 0.996 }, { classId: 'blast', prob: 0.002 }, { classId: 'monocyte', prob: 0.002 }] },
+      { id: 'pr-18', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 1180, y: 620, width: 82, height: 79, confidence: 0.989, shape: 'box', morphology: { area_um2: 73.8, diameter_um: 9.7, circularity: 0.91, nc_ratio: 0.81 }, predictions: [{ classId: 'lymphocyte', prob: 0.989 }, { classId: 'blast', prob: 0.007 }, { classId: 'monocyte', prob: 0.004 }] },
+      { id: 'pr-19', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 420, y: 920, width: 77, height: 76, confidence: 0.993, shape: 'box', morphology: { area_um2: 69.5, diameter_um: 9.4, circularity: 0.93, nc_ratio: 0.83 }, predictions: [{ classId: 'lymphocyte', prob: 0.993 }, { classId: 'blast', prob: 0.004 }, { classId: 'monocyte', prob: 0.003 }] },
+      { id: 'pr-20', classId: 'lymphocyte', label: 'Reactive Lymphocyte', x: 740, y: 410, width: 84, height: 80, confidence: 0.972, shape: 'box', morphology: { area_um2: 82.0, diameter_um: 10.2, circularity: 0.88, nc_ratio: 0.74 }, predictions: [{ classId: 'lymphocyte', prob: 0.972 }, { classId: 'monocyte', prob: 0.018 }, { classId: 'blast', prob: 0.010 }] },
+
+      // Monocytes (4)
+      { id: 'pr-21', classId: 'monocyte', label: 'Monocyte', x: 130, y: 340, width: 142, height: 136, confidence: 0.981, shape: 'box', morphology: { area_um2: 242.0, diameter_um: 17.5, circularity: 0.78, nc_ratio: 0.52 }, predictions: [{ classId: 'monocyte', prob: 0.981 }, { classId: 'neutrophil', prob: 0.012 }, { classId: 'blast', prob: 0.007 }] },
+      { id: 'pr-22', classId: 'monocyte', label: 'Monocyte', x: 980, y: 440, width: 138, height: 132, confidence: 0.974, shape: 'box', morphology: { area_um2: 235.4, diameter_um: 17.3, circularity: 0.79, nc_ratio: 0.54 }, predictions: [{ classId: 'monocyte', prob: 0.974 }, { classId: 'neutrophil', prob: 0.018 }, { classId: 'blast', prob: 0.008 }] },
+      { id: 'pr-23', classId: 'monocyte', label: 'Monocyte', x: 780, y: 920, width: 145, height: 138, confidence: 0.987, shape: 'box', morphology: { area_um2: 248.6, diameter_um: 17.8, circularity: 0.77, nc_ratio: 0.51 }, predictions: [{ classId: 'monocyte', prob: 0.987 }, { classId: 'neutrophil', prob: 0.009 }, { classId: 'blast', prob: 0.004 }] },
+      { id: 'pr-24', classId: 'monocyte', label: 'Monocyte', x: 500, y: 560, width: 140, height: 134, confidence: 0.979, shape: 'box', morphology: { area_um2: 238.2, diameter_um: 17.4, circularity: 0.78, nc_ratio: 0.53 }, predictions: [{ classId: 'monocyte', prob: 0.979 }, { classId: 'neutrophil', prob: 0.014 }, { classId: 'blast', prob: 0.007 }] },
+
+      // Eosinophils (3)
+      { id: 'pr-25', classId: 'eosinophil', label: 'Eosinophil', x: 520, y: 320, width: 116, height: 114, confidence: 0.992, shape: 'box', morphology: { area_um2: 165.0, diameter_um: 14.5, circularity: 0.84, nc_ratio: 0.40 }, predictions: [{ classId: 'eosinophil', prob: 0.992 }, { classId: 'neutrophil', prob: 0.006 }, { classId: 'monocyte', prob: 0.002 }] },
+      { id: 'pr-26', classId: 'eosinophil', label: 'Eosinophil', x: 1220, y: 900, width: 114, height: 112, confidence: 0.986, shape: 'box', morphology: { area_um2: 161.2, diameter_um: 14.3, circularity: 0.85, nc_ratio: 0.39 }, predictions: [{ classId: 'eosinophil', prob: 0.986 }, { classId: 'neutrophil', prob: 0.010 }, { classId: 'monocyte', prob: 0.004 }] },
+      { id: 'pr-27', classId: 'eosinophil', label: 'Eosinophil', x: 880, y: 780, width: 115, height: 112, confidence: 0.989, shape: 'box', morphology: { area_um2: 163.5, diameter_um: 14.4, circularity: 0.85, nc_ratio: 0.39 }, predictions: [{ classId: 'eosinophil', prob: 0.989 }, { classId: 'neutrophil', prob: 0.008 }, { classId: 'monocyte', prob: 0.003 }] },
+
+      // Basophils (2)
+      { id: 'pr-28', classId: 'basophil', label: 'Basophil', x: 380, y: 690, width: 106, height: 104, confidence: 0.982, shape: 'box', morphology: { area_um2: 138.5, diameter_um: 13.3, circularity: 0.83, nc_ratio: 0.46 }, predictions: [{ classId: 'basophil', prob: 0.982 }, { classId: 'eosinophil', prob: 0.012 }, { classId: 'neutrophil', prob: 0.006 }] },
+      { id: 'pr-29', classId: 'basophil', label: 'Basophil', x: 1080, y: 790, width: 108, height: 105, confidence: 0.975, shape: 'box', morphology: { area_um2: 140.2, diameter_um: 13.4, circularity: 0.82, nc_ratio: 0.45 }, predictions: [{ classId: 'basophil', prob: 0.975 }, { classId: 'eosinophil', prob: 0.016 }, { classId: 'neutrophil', prob: 0.009 }] },
+
+      // Atypical / Blasts (3)
+      { id: 'pr-30', classId: 'blast', label: 'Atypical / Myeloid Blast', x: 860, y: 370, width: 148, height: 144, confidence: 0.968, shape: 'box', morphology: { area_um2: 274.0, diameter_um: 18.7, circularity: 0.88, nc_ratio: 0.88 }, predictions: [{ classId: 'blast', prob: 0.968 }, { classId: 'monocyte', prob: 0.021 }, { classId: 'lymphocyte', prob: 0.011 }] },
+      { id: 'pr-31', classId: 'blast', label: 'Atypical Monocytoid Blast', x: 160, y: 940, width: 144, height: 140, confidence: 0.954, shape: 'box', morphology: { area_um2: 265.0, diameter_um: 18.4, circularity: 0.86, nc_ratio: 0.86 }, predictions: [{ classId: 'blast', prob: 0.954 }, { classId: 'monocyte', prob: 0.032 }, { classId: 'lymphocyte', prob: 0.014 }] },
+      { id: 'pr-32', classId: 'blast', label: 'Leukemic Blast Precursor', x: 620, y: 520, width: 146, height: 142, confidence: 0.961, shape: 'box', morphology: { area_um2: 270.5, diameter_um: 18.6, circularity: 0.87, nc_ratio: 0.87 }, predictions: [{ classId: 'blast', prob: 0.961 }, { classId: 'monocyte', prob: 0.025 }, { classId: 'lymphocyte', prob: 0.014 }] },
+
+      // Platelets (10)
+      { id: 'pr-33', classId: 'platelet', label: 'Platelet', x: 230, y: 130, width: 26, height: 24, confidence: 0.988, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.988 }, { classId: 'rbc_variant', prob: 0.012 }] },
+      { id: 'pr-34', classId: 'platelet', label: 'Platelet Clump', x: 620, y: 120, width: 42, height: 38, confidence: 0.976, shape: 'box', morphology: { area_um2: 17.5, diameter_um: 4.7, circularity: 0.82, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.976 }, { classId: 'rbc_variant', prob: 0.024 }] },
+      { id: 'pr-35', classId: 'platelet', label: 'Platelet', x: 800, y: 140, width: 25, height: 25, confidence: 0.991, shape: 'circle', morphology: { area_um2: 6.8, diameter_um: 2.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.991 }, { classId: 'rbc_variant', prob: 0.009 }] },
+      { id: 'pr-36', classId: 'platelet', label: 'Platelet', x: 1140, y: 260, width: 28, height: 26, confidence: 0.989, shape: 'circle', morphology: { area_um2: 7.6, diameter_um: 3.1, circularity: 0.92, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.989 }, { classId: 'rbc_variant', prob: 0.011 }] },
+      { id: 'pr-37', classId: 'platelet', label: 'Platelet', x: 340, y: 400, width: 24, height: 24, confidence: 0.985, shape: 'circle', morphology: { area_um2: 6.5, diameter_um: 2.9, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.985 }, { classId: 'rbc_variant', prob: 0.015 }] },
+      { id: 'pr-38', classId: 'platelet', label: 'Giant Platelet', x: 640, y: 440, width: 36, height: 34, confidence: 0.962, shape: 'box', morphology: { area_um2: 14.8, diameter_um: 4.3, circularity: 0.86, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.962 }, { classId: 'rbc_variant', prob: 0.038 }] },
+      { id: 'pr-39', classId: 'platelet', label: 'Platelet', x: 1090, y: 550, width: 26, height: 26, confidence: 0.990, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.990 }, { classId: 'rbc_variant', prob: 0.010 }] },
+      { id: 'pr-40', classId: 'platelet', label: 'Platelet Clump', x: 1410, y: 560, width: 44, height: 40, confidence: 0.971, shape: 'box', morphology: { area_um2: 18.2, diameter_um: 4.8, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.971 }, { classId: 'rbc_variant', prob: 0.029 }] },
+      { id: 'pr-41', classId: 'platelet', label: 'Platelet', x: 530, y: 640, width: 25, height: 24, confidence: 0.987, shape: 'circle', morphology: { area_um2: 6.9, diameter_um: 3.0, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.987 }, { classId: 'rbc_variant', prob: 0.013 }] },
+      { id: 'pr-42', classId: 'platelet', label: 'Platelet', x: 920, y: 760, width: 26, height: 25, confidence: 0.992, shape: 'circle', morphology: { area_um2: 7.1, diameter_um: 3.0, circularity: 0.93, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.992 }, { classId: 'rbc_variant', prob: 0.008 }] },
+
+      // Erythrocyte variants (4)
+      { id: 'pr-43', classId: 'rbc_variant', label: 'Target Cell', x: 450, y: 260, width: 56, height: 56, confidence: 0.958, shape: 'circle', morphology: { area_um2: 38.5, diameter_um: 7.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.958 }, { classId: 'platelet', prob: 0.042 }] },
+      { id: 'pr-44', classId: 'rbc_variant', label: 'Schistocyte', x: 940, y: 130, width: 46, height: 38, confidence: 0.925, shape: 'box', morphology: { area_um2: 27.2, diameter_um: 5.9, circularity: 0.76, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.925 }, { classId: 'platelet', prob: 0.075 }] },
+      { id: 'pr-45', classId: 'rbc_variant', label: 'Tear Drop Cell', x: 1100, y: 730, width: 58, height: 44, confidence: 0.946, shape: 'box', morphology: { area_um2: 34.6, diameter_um: 6.6, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.946 }, { classId: 'platelet', prob: 0.054 }] },
+      { id: 'pr-46', classId: 'rbc_variant', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.968, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.968 }, { classId: 'platelet', prob: 0.032 }] }
+    ];
+
     const DEFAULT_METADATA = {
       patientLastName: 'DOE',
       patientFirstName: 'John',
@@ -947,7 +1174,6 @@
       classFilter: CELL_TAXONOMY.reduce((acc, t) => { acc[t.id] = true; return acc; }, {}),
       selectedCellId: null,
       hoveredCellId: null,
-      showReticle: false,
       isDragging: false,
       isMinimapDragging: false,
       isDrawing: false,
@@ -1330,13 +1556,13 @@
       return { x, y };
     }
 
-    const toolMeta = {
-      select: { label: 'Select', key: 'V', svg: '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 7-3L3 3z"></path></svg>' },
-      box: { label: 'Bounding Box', key: 'B', svg: '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect></svg>' },
-      circle: { label: 'Circle ROI', key: 'C', svg: '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle></svg>' },
-      point: { label: 'Point', key: 'P', svg: '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>' },
-      measure: { label: 'Caliper (µm)', key: 'M', svg: '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path></svg>' },
-      erase: { label: 'Eraser', key: 'E', svg: '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"></path><path d="M22 21H7"></path></svg>' }
+        const toolMeta = {
+      select: { label: 'Select', key: 'V', svg: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 7-3L3 3z"></path></svg>' },
+      box: { label: 'Bounding Box', key: 'B', svg: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect></svg>' },
+      circle: { label: 'Circle ROI', key: 'C', svg: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle></svg>' },
+      point: { label: 'Point', key: 'P', svg: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>' },
+      measure: { label: 'Caliper (µm)', key: 'M', svg: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path></svg>' },
+      erase: { label: 'Eraser', key: 'E', svg: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"></path><path d="M22 21H7"></path></svg>' }
     };
 
     function setTool(toolName) {
@@ -1360,6 +1586,16 @@
 
       const menu = document.getElementById('tool-dropdown-menu');
       if (menu) menu.classList.add('hidden');
+
+      const drawClassContainer = document.getElementById('draw-class-container');
+      const isDrawingTool = ['box', 'circle', 'point'].includes(toolName);
+      if (drawClassContainer) {
+        if (isDrawingTool) {
+          drawClassContainer.classList.remove('hidden');
+        } else {
+          drawClassContainer.classList.add('hidden');
+        }
+      }
 
       canvas.className = 'w-full h-full block';
       if (toolName === 'select') canvas.classList.add('cursor-grab');
@@ -1462,8 +1698,8 @@
       if (!state.selectedCellId) {
         emptyEl.classList.remove('hidden');
         activeEl.classList.add('hidden');
-        badge.textContent = 'No cell selected';
-        badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-[#272527] text-[#9e9a9e]';
+        badge.textContent = 'no cell';
+        badge.className = 'text-[11px] font-mono text-[#7a767a] shrink-0';
         return;
       }
 
@@ -1479,8 +1715,8 @@
       emptyEl.classList.add('hidden');
       activeEl.classList.remove('hidden');
 
-      badge.textContent = `Cell ID: ${ann.id}`;
-      badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-[#e52246]/15 text-[#e52246] border border-[#e52246]/40 font-bold';
+      badge.textContent = ann.id;
+      badge.className = 'text-[11px] font-mono text-[#e52246] font-bold shrink-0';
 
       document.getElementById('insp-class-name').textContent = ann.label || cls.name;
       document.getElementById('insp-conf').textContent = `${(ann.confidence * 100).toFixed(1)}%`;
@@ -1619,14 +1855,14 @@
         if (state.overlaysVisible) {
           btn.className = 'p-1.5 text-xs text-white bg-[#e52246] hover:bg-[#ce1438] rounded-lg border border-[#e52246] transition flex items-center justify-center font-mono shadow-sm';
           btn.innerHTML = `
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>`;
         } else {
           btn.className = 'p-1.5 text-xs text-[#7a767a] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition flex items-center justify-center font-mono';
           btn.innerHTML = `
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
               <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
               <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
@@ -2226,18 +2462,6 @@
       zoomSlider.oninput = (e) => setZoom(parseFloat(e.target.value));
     }
 
-    function toggleReticle() {
-      state.showReticle = !state.showReticle;
-      const btn = document.getElementById('btn-toggle-reticle');
-      if (state.showReticle) {
-        btn.classList.add('bg-[#e52246]/20', 'border-[#e52246]');
-      } else {
-        btn.classList.remove('bg-[#e52246]/20', 'border-[#e52246]');
-      }
-      render();
-    }
-    document.getElementById('btn-toggle-reticle').onclick = toggleReticle;
-
     document.getElementById('btn-filter-all').onclick = () => {
       state.taxonomy.forEach(t => state.classFilter[t.id] = true);
       renderTaxonomyList();
@@ -2349,37 +2573,6 @@
       minimapCtx.fillStyle = 'rgba(229, 34, 70, 0.2)';
       minimapCtx.fillRect(vpX, vpY, vpW, vpH);
       minimapCtx.strokeRect(vpX, vpY, vpW, vpH);
-    }
-
-    function drawReticle(w, h) {
-      const cx = w / 2;
-      const cy = h / 2;
-      ctx.save();
-      ctx.strokeStyle = 'rgba(229, 34, 70, 0.4)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
-
-      ctx.beginPath();
-      ctx.moveTo(0, cy);
-      ctx.lineTo(w, cy);
-      ctx.moveTo(cx, 0);
-      ctx.lineTo(cx, h);
-      ctx.stroke();
-
-      ctx.setLineDash([]);
-      ctx.strokeStyle = 'rgba(229, 34, 70, 0.3)';
-      [40, 80, 140].forEach(r => {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.stroke();
-      });
-
-      ctx.strokeStyle = '#e52246';
-      ctx.beginPath();
-      ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.restore();
     }
 
     function render() {
@@ -2541,10 +2734,6 @@
       }
 
       ctx.restore();
-
-      if (state.showReticle) {
-        drawReticle(w, h);
-      }
     }
 
     function switchRightTab(tabName) {
@@ -2554,14 +2743,14 @@
       const galContent = document.getElementById('gallery-tab-content');
 
       if (tabName === 'gallery') {
-        if (inspTabBtn) inspTabBtn.className = 'px-2 py-0.5 rounded text-[#9e9a9e] hover:text-white transition flex items-center space-x-1';
-        if (galTabBtn) galTabBtn.className = 'px-2 py-0.5 rounded bg-[#e52246] text-white font-bold transition flex items-center space-x-1';
+        if (inspTabBtn) inspTabBtn.className = 'h-full px-2.5 rounded-md text-[#9e9a9e] hover:text-white transition flex items-center space-x-1';
+        if (galTabBtn) galTabBtn.className = 'h-full px-2.5 rounded-md bg-[#e52246] text-white font-bold transition flex items-center space-x-1';
         if (inspContent) inspContent.classList.add('hidden');
         if (galContent) galContent.classList.remove('hidden');
         renderGallery();
       } else {
-        if (inspTabBtn) inspTabBtn.className = 'px-2 py-0.5 rounded bg-[#e52246] text-white font-bold transition flex items-center space-x-1';
-        if (galTabBtn) galTabBtn.className = 'px-2 py-0.5 rounded text-[#9e9a9e] hover:text-white transition flex items-center space-x-1';
+        if (inspTabBtn) inspTabBtn.className = 'h-full px-2.5 rounded-md bg-[#e52246] text-white font-bold transition flex items-center space-x-1';
+        if (galTabBtn) galTabBtn.className = 'h-full px-2.5 rounded-md text-[#9e9a9e] hover:text-white transition flex items-center space-x-1';
         if (inspContent) inspContent.classList.remove('hidden');
         if (galContent) galContent.classList.add('hidden');
       }
@@ -2957,44 +3146,151 @@
       };
     });
 
-    // Reset Confirmation Modal Handlers
+    // Reset & AI Inference Model Selection Handlers
     const resetModal = document.getElementById('reset-confirm-modal');
     const btnResetDet = document.getElementById('btn-reset-detections');
     const btnCancelReset = document.getElementById('btn-cancel-reset');
+    const btnCancelResetX = document.getElementById('btn-cancel-reset-x');
     const btnConfirmReset = document.getElementById('btn-confirm-reset');
+    const cardModelFast = document.getElementById('card-model-fast');
+    const cardModelPro = document.getElementById('card-model-pro');
+    const resetModelSelection = document.getElementById('reset-model-selection');
+    const resetLoadingView = document.getElementById('reset-loading-view');
+    const resetLoadingModelName = document.getElementById('reset-loading-model-name');
+    const resetLoadingStepText = document.getElementById('reset-loading-step-text');
+    const resetProgressBar = document.getElementById('reset-progress-bar');
+    const resetProgressPercent = document.getElementById('reset-progress-percent');
+    const resetProgressTime = document.getElementById('reset-progress-time');
 
-    if (btnResetDet && resetModal) {
-      btnResetDet.onclick = () => {
-        resetModal.classList.remove('hidden');
-      };
+    let isResettingInference = false;
+    let selectedInferenceModel = 'pro';
+
+    function selectModelCard(modelType) {
+      selectedInferenceModel = modelType;
+      if (modelType === 'fast') {
+        if (cardModelFast) {
+          cardModelFast.className = 'model-select-card cursor-pointer p-3.5 rounded-xl border-2 border-[#38bdf8] bg-[#0c1f2e] transition space-y-1 group shadow-lg shadow-[#38bdf8]/15';
+        }
+        if (cardModelPro) {
+          cardModelPro.className = 'model-select-card cursor-pointer p-3.5 rounded-xl border border-[#373437] hover:border-[#e52246]/60 bg-[#141316] hover:bg-[#1f1d22] transition space-y-1 group';
+        }
+      } else {
+        if (cardModelPro) {
+          cardModelPro.className = 'model-select-card cursor-pointer p-3.5 rounded-xl border-2 border-[#e52246] bg-[#1a1317] transition space-y-1 group shadow-lg shadow-[#e52246]/15';
+        }
+        if (cardModelFast) {
+          cardModelFast.className = 'model-select-card cursor-pointer p-3.5 rounded-xl border border-[#373437] hover:border-[#38bdf8]/60 bg-[#141316] hover:bg-[#1f1d22] transition space-y-1 group';
+        }
+      }
     }
-    if (btnCancelReset && resetModal) {
-      btnCancelReset.onclick = () => {
-        resetModal.classList.add('hidden');
-      };
+
+    if (cardModelFast) cardModelFast.onclick = () => selectModelCard('fast');
+    if (cardModelPro) cardModelPro.onclick = () => selectModelCard('pro');
+
+    function openResetModal() {
+      if (isResettingInference) return;
+      if (resetModelSelection) resetModelSelection.classList.remove('hidden');
+      if (resetLoadingView) resetLoadingView.classList.add('hidden');
+      if (resetProgressBar) resetProgressBar.style.width = '0%';
+      if (resetProgressPercent) resetProgressPercent.textContent = '0%';
+      if (resetProgressTime) resetProgressTime.textContent = '0.0s elapsed';
+      selectModelCard(selectedInferenceModel || 'pro');
+      if (resetModal) resetModal.classList.remove('hidden');
     }
+
+    function closeResetModal() {
+      if (isResettingInference) return;
+      if (resetModal) resetModal.classList.add('hidden');
+    }
+
+    if (btnResetDet) btnResetDet.onclick = openResetModal;
+    if (btnCancelReset) btnCancelReset.onclick = closeResetModal;
+    if (btnCancelResetX) btnCancelResetX.onclick = closeResetModal;
     if (resetModal) {
       resetModal.onclick = (e) => {
-        if (e.target === resetModal) resetModal.classList.add('hidden');
+        if (e.target === resetModal) closeResetModal();
       };
     }
+
+    async function runModelInference(modelType = 'pro', overrideDuration = null) {
+      if (isResettingInference) return;
+      isResettingInference = true;
+
+      const isFast = modelType === 'fast';
+      const duration = overrideDuration !== null ? overrideDuration : (isFast ? 2000 : 5000);
+      const modelTitle = isFast ? 'Telesphorus' : 'Asclepius';
+      const targetAnnotations = isFast ? MODEL_FLASH_ANNOTATIONS : MODEL_PRO_ANNOTATIONS;
+
+      if (resetModelSelection) resetModelSelection.classList.add('hidden');
+      if (resetLoadingView) resetLoadingView.classList.remove('hidden');
+      if (resetLoadingModelName) {
+        resetLoadingModelName.innerHTML = `
+          <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="#e52246" stroke-width="3"></path></svg>
+          <span>Running ${modelTitle} Analysis Pipeline...</span>
+        `;
+      }
+
+      const steps = isFast ? [
+        { threshold: 0, text: 'Scanning digital smear fields...' },
+        { threshold: 0.30, text: 'Identifying cell boundaries...' },
+        { threshold: 0.65, text: 'Classifying cell lineages...' },
+        { threshold: 0.90, text: 'Finalizing differential count...' }
+      ] : [
+        { threshold: 0, text: 'Scanning high-resolution smear fields...' },
+        { threshold: 0.25, text: 'Evaluating nuclear and cytoplasmic contours...' },
+        { threshold: 0.50, text: 'Profiling atypical cells and precursors...' },
+        { threshold: 0.75, text: 'Assessing chromatin density and lineage markers...' },
+        { threshold: 0.90, text: 'Synthesizing clinical differential report...' }
+      ];
+
+      const startTime = performance.now();
+
+      await new Promise(resolve => {
+        function updateProgress(now) {
+          const elapsed = now - startTime;
+          const ratio = Math.min(1, elapsed / duration);
+          const percent = Math.floor(ratio * 100);
+
+          if (resetProgressBar) resetProgressBar.style.width = `${percent}%`;
+          if (resetProgressPercent) resetProgressPercent.textContent = `${percent}%`;
+          if (resetProgressTime) resetProgressTime.textContent = `${(elapsed / 1000).toFixed(1)}s / ${(duration / 1000).toFixed(1)}s`;
+
+          for (let i = steps.length - 1; i >= 0; i--) {
+            if (ratio >= steps[i].threshold) {
+              if (resetLoadingStepText) resetLoadingStepText.textContent = steps[i].text;
+              break;
+            }
+          }
+
+          if (ratio < 1) {
+            requestAnimationFrame(updateProgress);
+          } else {
+            resolve();
+          }
+        }
+        requestAnimationFrame(updateProgress);
+      });
+
+      // Apply newly inferred annotations
+      pushHistory(`Reset to ${modelTitle}`);
+      state.annotations = JSON.parse(JSON.stringify(targetAnnotations));
+      state.measurements = [];
+      state.selectedCellId = null;
+      state.selectedMeasurementId = null;
+
+      refreshAppViews();
+
+      isResettingInference = false;
+      if (resetModal) resetModal.classList.add('hidden');
+      if (resetModelSelection) resetModelSelection.classList.remove('hidden');
+      if (resetLoadingView) resetLoadingView.classList.add('hidden');
+
+      showToast(`✓ Inferences restored using ${modelTitle} (${state.annotations.length} cells detected)`);
+    }
+
     if (btnConfirmReset) {
       btnConfirmReset.onclick = () => {
-        pushHistory('Reset Detections');
-        state.annotations = JSON.parse(JSON.stringify(INITIAL_ANNOTATIONS));
-        state.measurements = [];
-        state.selectedCellId = null;
-        state.selectedMeasurementId = null;
-        updateInspector();
-        renderTaxonomyList();
-        updateUI();
-        render();
-        renderMinimap();
-        if (document.getElementById('gallery-tab-content') && !document.getElementById('gallery-tab-content').classList.contains('hidden')) {
-          renderGallery();
-        }
-        if (resetModal) resetModal.classList.add('hidden');
-        showToast("✓ Annotations reset to 40 default AI detections");
+        runModelInference(selectedInferenceModel || 'pro');
       };
     }
 
@@ -3053,32 +3349,31 @@
         const refStr = cls.range ? (cls.range[0] === cls.range[1] ? (cls.range[0] === 0 ? '0%' : `${cls.range[0]}%`) : `${cls.range[0]}-${cls.range[1]}%`) : null;
         
         return `
-          <div class="px-2 py-1.5 rounded hover:bg-[#1f1d21] flex flex-col space-y-0.5 group border-b border-white/[0.04] transition-colors">
+          <div data-class="${cls.id}" class="taxonomy-row cursor-pointer select-none pl-2.5 pr-2 py-1.5 my-0.5 rounded-r border-l-[3.5px] ${isChecked ? 'bg-[#181619]/90 hover:bg-[#232024]' : 'bg-[#141215]/50 hover:bg-[#1c1a1e] opacity-60'} flex flex-col space-y-0.5 group border-y-0 border-r-0 border-b border-b-white/[0.03] transition-all" style="border-left-color: ${isChecked ? cls.color : '#3e3a3e'}">
             <div class="flex items-center justify-between">
-              <label class="flex items-center space-x-2 cursor-pointer flex-1 min-w-0 pr-1">
-                <input type="checkbox" data-class="${cls.id}" ${isChecked ? 'checked' : ''} class="class-filter-checkbox rounded bg-[#272527] border-[#373437] text-[#e52246] focus:ring-0 cursor-pointer w-3 h-3">
-                <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${cls.color}"></span>
-                <span class="text-xs font-medium text-white truncate ${isChecked ? '' : 'text-[#7a767a] line-through'}">${cls.short}</span>
-              </label>
+              <div class="flex items-center space-x-1.5 flex-1 min-w-0 pr-1">
+                <span class="text-xs font-medium truncate transition-colors ${isChecked ? 'text-white' : 'text-[#7a767a] line-through'}">${cls.short}</span>
+              </div>
               <div class="flex items-center space-x-1 shrink-0">
                 <button data-solo="${cls.id}" class="btn-solo text-[9px] font-mono text-[#7a767a] hover:text-white opacity-0 group-hover:opacity-100 transition px-1 py-0.2 rounded hover:bg-[#272527]">Solo</button>
-                <span class="text-[11px] font-mono text-white font-medium w-5 text-right">${count}</span>
+                <span class="text-[11px] font-mono ${isChecked ? 'text-white font-medium' : 'text-[#6a666a]'} w-5 text-right">${count}</span>
               </div>
             </div>
             ${wbcPct !== null || refStr ? `
-              <div class="flex items-center justify-between text-[10px] font-mono text-[#7a767a] pl-5">
-                <span>${wbcPct !== null ? `<span class="text-[#B4AFBA]">${wbcPct}%</span>` : '<span class="text-[#5a575a]">Non-WBC</span>'}</span>
-                ${refStr ? `<span class="text-[#5a575a]">Ref: ${refStr}</span>` : ''}
+              <div class="flex items-center justify-between text-[10px] font-mono ${isChecked ? 'text-[#7a767a]' : 'text-[#555255]'} pl-0.5">
+                <span>${wbcPct !== null ? `<span class="${isChecked ? 'text-[#B4AFBA]' : 'text-[#666366]'}">${wbcPct}%</span>` : '<span class="text-[#4a474a]">Non-WBC</span>'}</span>
+                ${refStr ? `<span class="${isChecked ? 'text-[#6a666a]' : 'text-[#444144]'}">Ref: ${refStr}</span>` : ''}
               </div>
             ` : ''}
           </div>
         `;
       }).join('');
 
-      document.querySelectorAll('.class-filter-checkbox').forEach(cb => {
-        cb.onchange = (e) => {
-          const classId = e.target.getAttribute('data-class');
-          state.classFilter[classId] = e.target.checked;
+      document.querySelectorAll('.taxonomy-row').forEach(row => {
+        row.onclick = (e) => {
+          if (e.target.closest('.btn-solo')) return;
+          const classId = row.getAttribute('data-class');
+          state.classFilter[classId] = !(state.classFilter[classId] !== false);
           renderTaxonomyList();
           updateUI();
           render();
@@ -3088,7 +3383,8 @@
 
       document.querySelectorAll('.btn-solo').forEach(btn => {
         btn.onclick = (e) => {
-          const soloId = e.target.getAttribute('data-solo');
+          e.stopPropagation();
+          const soloId = btn.getAttribute('data-solo');
           state.taxonomy.forEach(t => {
             state.classFilter[t.id] = (t.id === soloId);
           });
@@ -3264,6 +3560,11 @@
       updateCaseHeaderPill,
       exportAnnotationsJSON,
       importAnnotationsJSON,
+      openResetModal,
+      closeResetModal,
+      runModelInference,
+      MODEL_FLASH_ANNOTATIONS,
+      MODEL_PRO_ANNOTATIONS,
       collapseLeftSidebar,
       expandLeftSidebar,
       collapseRightSidebar,
@@ -3271,7 +3572,6 @@
       undo,
       redo,
       toggleOverlays,
-      toggleReticle,
       getVisibleAnnotations,
       screenToWorld,
       worldToScreen,

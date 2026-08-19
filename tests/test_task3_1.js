@@ -38,8 +38,8 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Visible Annotations after hotkey H (ON):', visibleAfterH);
     assert.strictEqual(visibleAfterH, initialVisible, 'Overlays should restore to original count');
 
-    // 2. Test Per-Class Filter (Unchecking Neutrophils)
-    await page.click('input[data-class="neutrophil"]');
+    // 2. Test Per-Class Filter (Deselecting Neutrophils)
+    await page.click('[data-class="neutrophil"]');
     const visibleAfterUncheck = await page.evaluate(() => window.__CYTO_APP__.getVisibleAnnotations().length);
     console.log('  ✓ Visible after unchecking Neutrophils:', visibleAfterUncheck);
     assert(visibleAfterUncheck < initialVisible, 'Visible count should decrease when Neutrophils unchecked');

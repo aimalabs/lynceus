@@ -47,19 +47,11 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ After clicking 10x Overview:', { zoom: zoom10 });
     assert.strictEqual(zoom10, 0.1, 'Zoom should be 0.1 for 10x');
 
-    // 4. Test Reticle Toggle Button & Hotkey (R)
-    const initialReticle = await page.evaluate(() => window.__CYTO_APP__.state.showReticle);
-    assert.strictEqual(initialReticle, false, 'Reticle should initially be disabled');
-
-    await page.click('#btn-toggle-reticle');
-    const reticleAfterClick = await page.evaluate(() => window.__CYTO_APP__.state.showReticle);
-    console.log('  ✓ Reticle state after button click:', reticleAfterClick);
-    assert.strictEqual(reticleAfterClick, true, 'Reticle should be enabled');
-
-    await page.keyboard.press('KeyR');
-    const reticleAfterKey = await page.evaluate(() => window.__CYTO_APP__.state.showReticle);
-    console.log('  ✓ Reticle state after hotkey R:', reticleAfterKey);
-    assert.strictEqual(reticleAfterKey, false, 'Reticle should toggle back to disabled');
+    // 4. Test Viewport Fit Action
+    await page.click('#btn-zoom-reset');
+    const fitZoom = await page.evaluate(() => window.__CYTO_APP__.state.view.zoom);
+    console.log('  ✓ Zoom after Fit action:', fitZoom);
+    assert(fitZoom > 0, 'Fit zoom should be positive');
 
     console.log('🎉 Task 2.2 Test PASSED successfully!\n');
   } finally {
