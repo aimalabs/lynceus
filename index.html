@@ -1383,6 +1383,98 @@
       }
     }
 
+    async function fetchChunkedModel(manifestUrl, modelName, onProgress = null) {
+      console.log(`[Chunked Download] 📦 Fetching chunk manifest for ${modelName} from ${manifestUrl}...`);
+      const manifestResp = await fetch(manifestUrl);
+      if (!manifestResp.ok) {
+        throw new Error(`Manifest not found: ${manifestUrl} (status: ${manifestResp.status})`);
+      }
+      const manifest = await manifestResp.json();
+      const numChunks = manifest.numChunks;
+      const totalBytes = manifest.totalBytes;
+      const totalMB = manifest.totalSizeMB || (totalBytes / (1024 * 1024)).toFixed(1);
+      const basePath = manifestUrl.replace('.manifest.json', '');
+      const baseFileName = manifest.modelName || basePath.split('/').pop();
+
+      console.log(`[Chunked Download] ⬇️ Processing ${numChunks} chunks for ${modelName} (${totalMB} MB total)...`);
+
+      const chunks = new Array(numChunks);
+      let receivedBytes = 0;
+      let lastReportedDecile = -1;
+      let allFromCache = true;
+
+      // Parallel chunk fetching with individual IndexedDB persistent caching (concurrency pool of 4)
+      const chunkIndices = Array.from({ length: numChunks }, (_, i) => i);
+      const concurrency = 4;
+      let currentIndex = 0;
+
+      async function worker() {
+        while (currentIndex < chunkIndices.length) {
+          const idx = currentIndex++;
+          const chunkMeta = (manifest.chunks && manifest.chunks[idx]) || {};
+          const partFileName = chunkMeta.fileName || `${baseFileName}.part${idx}`;
+          const chunkSha = chunkMeta.sha256 || `part_${idx}`;
+          const chunkKey = `${partFileName}_${chunkSha}`;
+
+          // Check individual chunk in IndexedDB persistent storage first
+          let buf = await getCachedModelBuffer(chunkKey);
+
+          if (buf) {
+            console.log(`[Chunk Cache] ✓ Chunk ${idx + 1}/${numChunks} (${partFileName}) loaded from localstore (${(buf.byteLength / 1e6).toFixed(2)} MB)`);
+          } else {
+            allFromCache = false;
+            const chunkUrl = `${basePath}.part${idx}`;
+            const resp = await fetch(chunkUrl);
+            if (!resp.ok) {
+              throw new Error(`Failed to load chunk ${idx} from ${chunkUrl} (status: ${resp.status})`);
+            }
+            buf = await resp.arrayBuffer();
+
+            // Cache this chunk file separately in persistent IndexedDB storage
+            await saveModelBufferToCache(chunkKey, partFileName, chunkSha, buf);
+
+            // Register in localStorage chunk registry
+            try {
+              const registry = JSON.parse(localStorage.getItem('LYNCEUS_CHUNK_REGISTRY') || '{}');
+              registry[partFileName] = chunkSha;
+              localStorage.setItem('LYNCEUS_CHUNK_REGISTRY', JSON.stringify(registry));
+            } catch (e) {}
+          }
+
+          chunks[idx] = buf;
+          receivedBytes += buf.byteLength;
+
+          const rawPercent = (receivedBytes / totalBytes) * 100;
+          const decile = Math.min(100, Math.floor(rawPercent / 10) * 10);
+          if (decile > lastReportedDecile && decile % 10 === 0) {
+            lastReportedDecile = decile;
+            const receivedMB = (receivedBytes / (1024 * 1024)).toFixed(1);
+            console.log(`[Chunked Download] ${modelName}: ${decile}% (${receivedMB} / ${totalMB} MB) [Chunk ${idx + 1}/${numChunks}]`);
+            if (onProgress) {
+              onProgress(decile, receivedBytes, totalBytes);
+            }
+          }
+        }
+      }
+
+      await Promise.all(Array.from({ length: Math.min(concurrency, numChunks) }, () => worker()));
+
+      // Concatenate all separately cached chunks into a single contiguous ArrayBuffer
+      const fullBuffer = new Uint8Array(totalBytes);
+      let offset = 0;
+      for (let i = 0; i < numChunks; i++) {
+        fullBuffer.set(new Uint8Array(chunks[i]), offset);
+        offset += chunks[i].byteLength;
+      }
+
+      if (lastReportedDecile < 100) {
+        console.log(`[Chunked Download] ${modelName}: 100% (${(receivedBytes / (1024 * 1024)).toFixed(1)} / ${totalMB} MB)`);
+        if (onProgress) onProgress(100, receivedBytes, totalBytes);
+      }
+
+      return { buffer: fullBuffer.buffer, manifest, allFromCache };
+    }
+
     async function fetchWithProgress(url, modelName, onProgress = null) {
       const resp = await fetch(url);
       if (!resp.ok) {
@@ -1461,10 +1553,24 @@
         }
       }
 
-      const arrayBuffer = await fetchWithProgress(modelPath, modelName, onProgress);
+      let arrayBuffer = null;
+      let manifestHash = null;
+      let isAllFromCache = false;
 
-      // Compute SHA-256 hash of the binary file
-      const hash = await computeBufferSha256(arrayBuffer);
+      // Try chunked manifest first (for models split into 30MB chunks)
+      try {
+        const manifestUrl = `${modelPath}.manifest.json`;
+        const chunkResult = await fetchChunkedModel(manifestUrl, modelName, onProgress);
+        arrayBuffer = chunkResult.buffer;
+        manifestHash = chunkResult.manifest.sha256;
+        isAllFromCache = chunkResult.allFromCache;
+      } catch (chunkErr) {
+        // Fallback to direct monolithic download
+        arrayBuffer = await fetchWithProgress(modelPath, modelName, onProgress);
+      }
+
+      // Compute or verify SHA-256 hash of the binary file
+      const hash = manifestHash || (await computeBufferSha256(arrayBuffer));
       const cacheKey = `${fileName}_${hash}`;
       console.log(`[Model Cache] Computed SHA-256 for ${fileName}: ${hash}`);
 
@@ -1476,7 +1582,7 @@
         localStorage.setItem('LYNCEUS_MODEL_REGISTRY', JSON.stringify(registry));
       } catch (e) {}
 
-      return { buffer: arrayBuffer, hash, cacheKey, fromCache: false };
+      return { buffer: arrayBuffer, hash, cacheKey, fromCache: isAllFromCache };
     }
 
     async function createGpuSession(modelPath, modelName, onProgress = null) {

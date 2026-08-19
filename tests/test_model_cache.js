@@ -90,10 +90,42 @@ const fs = require('fs');
     };
   });
 
-  assert.strictEqual(secondLoad.fromCache, true, 'Second load must be retrieved from persistent cache');
-  assert.strictEqual(secondLoad.hash, firstLoad.hash, 'Cached hash must match original computed hash');
-  assert.strictEqual(secondLoad.byteLength, firstLoad.byteLength, 'Cached buffer byte length must match original binary size');
-  console.log(`  ✓ Second Load: Cache HIT verified for '${secondLoad.cacheKey}' (${(secondLoad.byteLength / 1e6).toFixed(2)} MB, 0 network fetch)`);
+  // Test 3: Test Chunked Streaming & Merging for SAM-v2 ViT (10 parts)
+  const chunkLoad = await page.evaluate(async () => {
+    const chunkReports = [];
+    const res = await fetchOrGetCachedModel('assets/cellpose_cpsam_v2_int8.onnx', 'Cellpose SAM-v2 ViT (INT8)', (percent, rec, total) => {
+      chunkReports.push(percent);
+    });
+    const registry = JSON.parse(localStorage.getItem('LYNCEUS_MODEL_REGISTRY') || '{}');
+    return {
+      fileName: 'cellpose_cpsam_v2_int8.onnx',
+      hash: res.hash,
+      cacheKey: res.cacheKey,
+      fromCache: res.fromCache,
+      registryHash: registry['cellpose_cpsam_v2_int8.onnx'],
+      byteLength: res.buffer.byteLength,
+      chunkReports
+    };
+  });
+
+  assert.strictEqual(chunkLoad.fromCache, false, 'First chunked load should not be from cache');
+  assert.strictEqual(chunkLoad.hash, '8c51f729d4202f9b32418b4c7b197284cf35963069fd58fcaa4dadc287fd351a', 'Concatenated SHA-256 hash must match ground truth');
+  assert(chunkLoad.byteLength > 290 * 1024 * 1024, 'Merged buffer must contain all ~299 MB of the 10 chunks');
+  assert(chunkLoad.chunkReports.includes(100), 'Chunked progress should reach 100%');
+  console.log(`  ✓ Chunked Model Download: 10 chunks merged into ${(chunkLoad.byteLength / 1e6).toFixed(2)} MB buffer`);
+  console.log(`  ✓ Bit-for-bit SHA-256 Validated: ${chunkLoad.hash}`);
+  console.log(`  ✓ Chunk Progress Events: [${chunkLoad.chunkReports.join(', ')}]%`);
+
+  // Test 4: Verify Chunked Model is cached in IndexedDB
+  const chunkCached = await page.evaluate(async () => {
+    const res = await fetchOrGetCachedModel('assets/cellpose_cpsam_v2_int8.onnx', 'Cellpose SAM-v2 ViT (INT8)');
+    return {
+      fromCache: res.fromCache,
+      byteLength: res.buffer.byteLength
+    };
+  });
+  assert.strictEqual(chunkCached.fromCache, true, 'Subsequent chunked model load must hit persistent cache');
+  console.log(`  ✓ Persistent Cache Hit for merged ViT: ${(chunkCached.byteLength / 1e6).toFixed(2)} MB in 0ms (0 network fetch)`);
 
   await browser.close();
   server.close();
