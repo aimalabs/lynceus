@@ -799,7 +799,7 @@
       <div id="reset-loading-view" class="hidden space-y-4 py-2">
         <div class="text-center space-y-1">
           <div class="inline-flex items-center space-x-2 text-xs font-bold text-white" id="reset-loading-model-name">
-            <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="#e52246" stroke-width="3"></path></svg>
+            <svg width="16" height="16" class="animate-spin shrink-0 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"></path></svg>
             <span>Running CytoNet-Pro Inference Pipeline...</span>
           </div>
           <p class="text-[10px] text-[#9e9a9e]" id="reset-loading-step-text">Tiling 40x FOV and running multi-scale feature extractor...</p>
@@ -814,6 +814,14 @@
             <span id="reset-progress-percent">0%</span>
             <span id="reset-progress-time">0.0s elapsed</span>
           </div>
+        </div>
+
+        <!-- Stop / Cancel Inference Button -->
+        <div class="flex justify-center pt-2">
+          <button id="btn-stop-inference" type="button" class="px-4 py-1.5 rounded-lg bg-[#272527] hover:bg-[#e52246]/20 border border-[#373437] hover:border-[#e52246]/50 text-[#9e9a9e] hover:text-[#e52246] text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer shadow-md">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
+            <span>Stop Analysis</span>
+          </button>
         </div>
       </div>
 
@@ -2141,20 +2149,26 @@
       return new ort.Tensor('float32', batchData, [B, 3, targetSize, targetSize]);
     }
 
-    async function classifySegmentedBatch(clfSession, sourceImage, cells, maxCells = 32) {
+    async function classifySegmentedBatch(clfSession, sourceImage, cells, maxCells = null, shouldAbort = null) {
       const startTime = performance.now();
       if (!cells || cells.length === 0) return [];
 
-      // For rapid survey in Flash Mode, select top prominent cell candidates
-      const sortedCells = [...cells].sort((a, b) => (b.morphology?.area_um2 || 0) - (a.morphology?.area_um2 || 0));
-      const targetCells = sortedCells.slice(0, maxCells);
+      // Sort and optionally limit, or classify all segmented cells
+      const targetCells = (maxCells && maxCells > 0)
+        ? [...cells].sort((a, b) => (b.morphology?.area_um2 || 0) - (a.morphology?.area_um2 || 0)).slice(0, maxCells)
+        : cells;
       const total = targetCells.length;
       const results = [];
-      const CHUNK_SIZE = 8;
+      const CHUNK_SIZE = 16;
 
       console.log(`[Stage 2 Swin-T] Classifying ${total} cells in chunks of ${CHUNK_SIZE} on WebGPU...`);
 
       for (let offset = 0; offset < total; offset += CHUNK_SIZE) {
+        if (shouldAbort && shouldAbort()) {
+          console.warn('[Stage 2 Swin-T] ⏹️ Classification halted mid-batch by abort request.');
+          break;
+        }
+
         const chunk = targetCells.slice(offset, offset + CHUNK_SIZE);
         const B = chunk.length;
         const batchTensor = prepareBatchSquarePadTensor(sourceImage, chunk, 224);
@@ -4398,6 +4412,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
     async function runModelInference(modelType = 'pro', overrideDuration = null) {
       if (isResettingInference) return;
       isResettingInference = true;
+      let isAborted = false;
 
       const isFast = modelType === 'fast';
       const duration = overrideDuration !== null ? overrideDuration : (isFast ? 1500 : 5000);
@@ -4407,9 +4422,20 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       if (resetLoadingView) resetLoadingView.classList.remove('hidden');
       if (resetLoadingModelName) {
         resetLoadingModelName.innerHTML = `
-          <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="#e52246" stroke-width="3"></path></svg>
+          <svg width="16" height="16" class="animate-spin shrink-0 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"></path></svg>
           <span>Running ${modelTitle} Analysis Pipeline...</span>
         `;
+      }
+
+      const btnStopInference = document.getElementById('btn-stop-inference');
+      const onStopClicked = () => {
+        isAborted = true;
+        console.warn(`[Lynceus Pipeline] ⏹️ Inference manually stopped by clinician.`);
+        if (resetLoadingStepText) resetLoadingStepText.textContent = 'Stopping analysis pipeline...';
+        showToast('⏹️ Analysis stopped by user');
+      };
+      if (btnStopInference) {
+        btnStopInference.onclick = onStopClicked;
       }
 
       const startTime = performance.now();
@@ -4505,6 +4531,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
             await new Promise(r => setTimeout(r, 30));
 
             // STEP 3: Await pre-warmed classifier session (zero-wait stall!)
+            if (isAborted) throw new Error('Analysis stopped by user.');
             const clfSession = await classifierWarmupPromise;
 
             // STEP 4: Stage 2 Batched Forward Pass
@@ -4514,7 +4541,8 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
               morphology: a.morphology
             }));
 
-            const classified = await classifySegmentedBatch(clfSession, state.image, cellsToClassify);
+            const classified = await classifySegmentedBatch(clfSession, state.image, cellsToClassify, null, () => isAborted);
+            if (isAborted) throw new Error('Analysis stopped by user.');
             finalAnnotations = classified.length > 0 ? classified : MODEL_FLASH_ANNOTATIONS;
 
             updateHUD(95, 'Finalizing differential count...');
@@ -4541,6 +4569,10 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
 
         await new Promise(resolve => {
           function updateProgress(now) {
+            if (isAborted) {
+              resolve();
+              return;
+            }
             const elapsed = now - startTime;
             const ratio = Math.min(1, elapsed / duration);
             const percent = Math.floor(ratio * 100);
@@ -4565,6 +4597,15 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
           requestAnimationFrame(updateProgress);
         });
         finalAnnotations = MODEL_PRO_ANNOTATIONS;
+      }
+
+      if (isAborted) {
+        isResettingInference = false;
+        if (resetModal) resetModal.classList.add('hidden');
+        if (resetModelSelection) resetModelSelection.classList.remove('hidden');
+        if (resetLoadingView) resetLoadingView.classList.add('hidden');
+        showToast('⏹️ Analysis stopped by user');
+        return;
       }
 
       // Commit newly inferred annotations
