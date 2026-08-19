@@ -63,7 +63,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ After Filter All:', allRestored);
     assert.strictEqual(allRestored, initialVisible, 'All filters should be restored');
 
-    // 5. Test Confidence Threshold Slider
+    // 5. Test Confidence Threshold Slider (at 98% and down to 0%)
     await page.evaluate(() => {
       const slider = document.getElementById('conf-slider');
       slider.value = '0.98';
@@ -73,6 +73,18 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Visible Annotations at 98% min confidence:', highConfCount);
     assert(highConfCount < initialVisible, 'Count should be filtered down at high confidence threshold');
     assert(highConfCount > 0, 'Should still have high confidence cells');
+
+    // Test slider down to 0.00 (all cells visible)
+    await page.evaluate(() => {
+      const slider = document.getElementById('conf-slider');
+      slider.value = '0.00';
+      slider.dispatchEvent(new Event('input'));
+    });
+    const zeroConfCount = await page.evaluate(() => window.__CYTO_APP__.getVisibleAnnotations().length);
+    const zeroConfLabel = await page.evaluate(() => document.getElementById('conf-value-label').textContent);
+    console.log('  ✓ Visible Annotations at 0% min confidence:', zeroConfCount, `(Label: ${zeroConfLabel})`);
+    assert.strictEqual(zeroConfCount, initialVisible, 'All annotations should be visible at 0% min confidence');
+    assert.strictEqual(zeroConfLabel, '0%', 'Label should display 0% at min confidence 0.00');
 
     console.log('🎉 Task 3.1 Test PASSED successfully!\n');
   } finally {

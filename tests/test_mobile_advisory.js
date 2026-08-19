@@ -42,7 +42,84 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Advisory modal dismissed when continuing on mobile:', isHiddenAfterDismiss);
     assert.strictEqual(isHiddenAfterDismiss, true, 'Modal should close on dismiss');
 
-    // 4. Verify right click is not prevented / hijacked anywhere on the canvas
+    // 4. Verify sidebars start off folded on mobile
+    const mobileLeftWidth = await mobilePage.$eval('#left-sidebar', el => el.getBoundingClientRect().width);
+    const mobileRightWidth = await mobilePage.$eval('#right-sidebar', el => el.getBoundingClientRect().width);
+    const isExpandLeftShown = await mobilePage.$eval('#btn-expand-left', el => !el.classList.contains('hidden'));
+    const isExpandRightShown = await mobilePage.$eval('#btn-expand-right', el => !el.classList.contains('hidden'));
+
+    console.log('  ✓ Sidebars start folded on mobile:', {
+      leftWidth: mobileLeftWidth,
+      rightWidth: mobileRightWidth,
+      expandLeft: isExpandLeftShown,
+      expandRight: isExpandRightShown
+    });
+    assert.strictEqual(mobileLeftWidth, 0, 'Left sidebar should start folded (0px) on mobile');
+    assert.strictEqual(mobileRightWidth, 0, 'Right sidebar should start folded (0px) on mobile');
+    assert.strictEqual(isExpandLeftShown, true, 'Left expand button should be visible on mobile');
+    assert.strictEqual(isExpandRightShown, true, 'Right expand button should be visible on mobile');
+
+    // 5. Verify tapping expand on mobile unfolds sidebar
+    await mobilePage.click('#btn-expand-left');
+    await new Promise(r => setTimeout(r, 400));
+    const unfoldedLeftWidth = await mobilePage.$eval('#left-sidebar', el => el.getBoundingClientRect().width);
+    console.log('  ✓ Left sidebar unfolded on mobile via tap:', unfoldedLeftWidth);
+    assert(unfoldedLeftWidth >= 180, 'Left sidebar should unfold when tapping expand handle');
+
+    // 6. Verify touch dragging resizer border works on mobile
+    const resizerBox = await mobilePage.$eval('#left-resizer', el => {
+      const r = el.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    });
+    
+    // Simulate touch drag
+    await mobilePage.evaluate((box) => {
+      const resizer = document.getElementById('left-resizer');
+      const createTouch = (x, y) => new Touch({
+        identifier: 1,
+        target: resizer,
+        clientX: x,
+        clientY: y,
+        screenX: x,
+        screenY: y,
+        pageX: x,
+        pageY: y
+      });
+
+      const tStart = createTouch(box.x, box.y);
+      resizer.dispatchEvent(new TouchEvent('touchstart', {
+        touches: [tStart],
+        targetTouches: [tStart],
+        changedTouches: [tStart],
+        bubbles: true,
+        cancelable: true
+      }));
+
+      const tMove = createTouch(280, box.y);
+      window.dispatchEvent(new TouchEvent('touchmove', {
+        touches: [tMove],
+        targetTouches: [tMove],
+        changedTouches: [tMove],
+        bubbles: true,
+        cancelable: true
+      }));
+
+      const tEnd = createTouch(280, box.y);
+      window.dispatchEvent(new TouchEvent('touchend', {
+        touches: [],
+        targetTouches: [],
+        changedTouches: [tEnd],
+        bubbles: true,
+        cancelable: true
+      }));
+    }, resizerBox);
+    await new Promise(r => setTimeout(r, 350));
+
+    const resizedTouchWidth = await mobilePage.$eval('#left-sidebar', el => el.getBoundingClientRect().width);
+    console.log('  ✓ Sidebar resized via mobile touch drag:', resizedTouchWidth);
+    assert(resizedTouchWidth >= 250, 'Sidebar should be draggable/resizable via touch events on mobile');
+
+    // 7. Verify right click is not prevented / hijacked anywhere on the canvas
     const rightClickHandledNaturally = await page.evaluate(() => {
       const canvas = document.getElementById('microscope-canvas');
       let defaultPrevented = false;
