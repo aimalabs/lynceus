@@ -147,7 +147,7 @@
       <div class="h-3.5 w-px bg-[#373437] hidden md:block"></div>
       <!-- Patient & Smear Clinical Metadata Pill (Interactive Button to open Case Modal) -->
       <button id="btn-case-meta" class="flex items-center space-x-1.5 text-[11px] bg-[#110f12] hover:bg-[#272527] px-2 py-1 rounded-lg border border-[#373437] hover:border-[#e52246]/50 transition cursor-pointer font-mono hidden md:flex text-left group" data-help="Case Metadata & Clinical Notes|View patient details, smear info, and edit doctor's diagnostic notes (Hotkey: N)|CASE">
-        <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#e52246] animate-pulse shrink-0"></span>
+        <span id="patient-status-dot" class="inline-block w-2 h-2 rounded-full bg-[#f59e0b] shadow-[0_0_6px_rgba(245,158,11,0.5)] shrink-0 transition-colors duration-200"></span>
         <span id="patient-name-display" class="text-white font-semibold tracking-wide">DOE, J.</span>
         <span class="text-[#5a575a]">•</span>
         <span id="patient-date-display" class="text-[#f7aab8] font-mono text-[10px]">2026-08-18</span>
@@ -2672,12 +2672,31 @@
       const sTitle = document.getElementById('slide-title');
       const notesBadge = document.getElementById('notes-badge-text');
       const modalTag = document.getElementById('modal-patient-tag');
+      const dot = document.getElementById('patient-status-dot');
 
       const firstInitial = meta.patientFirstName ? `${meta.patientFirstName[0]}.` : 'J.';
       if (pName) pName.textContent = `${meta.patientLastName || 'DOE'}, ${firstInitial}`;
       if (pDate) pDate.textContent = meta.collectionDate || '2026-08-18';
       if (sTitle) sTitle.textContent = meta.smearId || 'smear-02';
       if (modalTag) modalTag.textContent = `${meta.patientLastName || 'DOE'}, ${firstInitial} • ${meta.smearId || 'smear-02'}`;
+
+      // Reflect sign-off status color on the dot next to patient name
+      const status = meta.reviewStatus || 'in_review';
+      if (dot) {
+        if (status === 'reviewed') {
+          // 🟢 Reviewed & Signed
+          dot.className = 'inline-block w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_6px_rgba(16,185,129,0.5)] shrink-0 transition-colors duration-200';
+          dot.title = 'Status: Reviewed & Signed (Ready)';
+        } else if (status === 'critical') {
+          // 🔴 Critical Finding Alert
+          dot.className = 'inline-block w-2 h-2 rounded-full bg-[#e52246] animate-pulse shadow-[0_0_8px_rgba(229,34,70,0.8)] shrink-0 transition-colors duration-200';
+          dot.title = 'Status: Critical Finding Alert';
+        } else {
+          // 🟡 In Progress / Review (default)
+          dot.className = 'inline-block w-2 h-2 rounded-full bg-[#f59e0b] shadow-[0_0_6px_rgba(245,158,11,0.5)] shrink-0 transition-colors duration-200';
+          dot.title = 'Status: In Progress / Review';
+        }
+      }
 
       const hasNotes = meta.notes && meta.notes.trim().length > 0;
       if (notesBadge) {
