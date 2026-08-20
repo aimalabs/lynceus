@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+    :root {
+      --coral: #EC3B57;
+      --coral-2: #F0506A;
+      --crimson: #B21E3C;
+      --black: #131215;
+      --black-2: #1B191E;
+      --black-3: #0E0D10;
+      --paper: #ffffff;
+      --ink: #18161B;
+      --muted: #6C6770;
+      --muted-d: #B4AFBA;
+      --line-d: rgba(255, 255, 255, 0.12);
+      --font-display: 'Sora', system-ui, sans-serif;
+      --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+      --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-body);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .brand img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: contain;
+      background: #000;
+    }
+    .brand b {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: 0.02em;
+      color: #fff;
+    }
+
+    /* Custom clinical scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #110f12; }
+    ::-webkit-scrollbar-thumb { background: #373437; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #e52246; }
+    
+    #microscope-canvas {
+      touch-action: none;
+    }
+    .cursor-grab { cursor: grab !important; }
+    .cursor-grabbing { cursor: grabbing !important; }
+    .cursor-crosshair { cursor: crosshair !important; }
+    .cursor-cell { cursor: cell !important; }
+    .cursor-erase { cursor: not-allowed !important; }
+    
+    /* Resizer handles */
+    .sidebar-resizer {
+      width: 5px;
+      cursor: col-resize;
+      background-color: #272527;
+      border-left: 1px solid #373437;
+      border-right: 1px solid #373437;
+      transition: background-color 0.15s ease;
+      z-index: 25;
+      position: relative;
+    }
+    .sidebar-resizer:hover, .sidebar-resizer.resizing {
+      background-color: #e52246 !important;
+    }
+    .sidebar-resizer::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 2px;
+      height: 24px;
+      background: #7a767a;
+      border-radius: 1px;
+    }
+    .sidebar-resizer:hover::after, .sidebar-resizer.resizing::after {
+      background: #ffffff;
+    }
+
+    .sidebar-animated {
+      transition: width 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.22s ease !important;
+    }
+    
+    input[type=range] {
+      accent-color: #e52246;
+    }
+    /* Global SVG size constraint */
+    svg {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    svg.w-2 { width: 8px !important; height: 8px !important; }
+    svg.w-2\.5 { width: 10px !important; height: 10px !important; }
+    svg.w-3 { width: 12px !important; height: 12px !important; }
+    svg.w-3\.5 { width: 14px !important; height: 14px !important; }
+    svg.w-4 { width: 16px !important; height: 16px !important; }
+    svg.w-4\.5 { width: 18px !important; height: 18px !important; }
+    svg.w-5 { width: 20px !important; height: 20px !important; }
+    svg.w-6 { width: 24px !important; height: 24px !important; }
+    svg.w-8 { width: 32px !important; height: 32px !important; }
+
+    #tool-dropdown-container svg,
+    #tool-dropdown-menu svg,
+    #filter-dropdown-container svg,
+    #filter-dropdown-menu svg,
+    #active-tool-icon svg,
+    #active-filter-icon svg,
+    .tool-btn svg,
+    .filter-btn svg {
+      width: 14px !important;
+      height: 14px !important;
+      max-width: 14px !important;
+      max-height: 14px !important;
+      flex-shrink: 0 !important;
+    }
+    #tool-dropdown-trigger svg:last-child,
+    #filter-dropdown-trigger svg:last-child {
+      width: 12px !important;
+      height: 12px !important;
+    }
+    #draw-class-container svg,
+    #draw-class-menu svg {
+      width: 12px !important;
+      height: 12px !important;
+      max-width: 12px !important;
+      max-height: 12px !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* Global SVG size constraint */
+    svg {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    svg.w-2 { width: 8px; height: 8px; }
+    svg.w-2\.5 { width: 10px; height: 10px; }
+    svg.w-3 { width: 12px; height: 12px; }
+    svg.w-3\.5 { width: 14px; height: 14px; }
+    svg.w-4 { width: 16px; height: 16px; }
+    svg.w-5 { width: 20px; height: 20px; }
+    svg.w-6 { width: 24px; height: 24px; }
+    svg.w-8 { width: 32px; height: 32px; }
+      flex-shrink: 0 !important;
+    }
+
+    @keyframes smooth-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .smooth-spin {
+      animation: smooth-spin 0.85s linear infinite !important;
+      transform-origin: center center;
+      will-change: transform;
+      transform: translateZ(0);
+      display: inline-block;
+    }
