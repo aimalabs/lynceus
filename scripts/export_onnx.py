@@ -5,6 +5,20 @@ Exports real official Cellpose models with pre-trained weights:
   1. Cellpose 4 SAM ViT (cpsam_v2) - ~304.6M params, real ViT weights (~/.cellpose/models/cpsam_v2)
   2. Cellpose 2/3 Classic CPnet (cyto3) - ~6.6M params, real official weights from cellpose.org
   3. Cellpose Lightweight UNet (lightweight) - ~0.22M params for instant testing
+
+⚠️ CRITICAL WEBGPU FALLBACK ARCHITECTURAL NOTICE:
+ONNX Runtime Web's WebGPU execution provider currently lacks native GPU WGSL shader kernels
+for quantized integer operators (MatMulInteger, ConvInteger, DequantizeLinear, DynamicQuantizeLinear).
+When an INT8 ONNX graph is loaded into WebGPU, ORT does NOT raise an error; instead, it SILENTLY
+FALLS BACK to single-threaded CPU WASM execution, causing latency to degrade by 30x–50x (e.g. from
+<1s on WebGPU shaders to >30s on CPU) and pegging CPU to 100%.
+
+To achieve true sub-second GPU acceleration on Apple Silicon while maintaining low download size:
+- Export the ONNX computational graph in pure FP16 (cellpose_cpsam_v2_external.onnx, ~600 KB).
+- Store the FP16 weights externally and quantize them with per-block INT8 scales (cellpose_cpsam_v2_data_int8.bin, ~290 MB).
+- Dequantize the INT8 weights to Float16Array in the browser using JavaScript TypedArrays (~300ms) before session creation.
+- Pass the reconstructed Float16Array into `ort.InferenceSession.create(modelBuffer, { externalData: [...] })`.
+- Cache the resulting Float16Array in browser IndexedDB for instant 0ms future reloads.
 """
 
 import argparse

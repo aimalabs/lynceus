@@ -62,8 +62,8 @@ const assert = require('assert');
   });
 
   assert.deepStrictEqual(tensorTest.dims, [1, 2, 256, 256], 'Cellpose tensor dims must be [1, 2, 256, 256]');
-  assert.strictEqual(tensorTest.type, 'float32', 'Tensor type must be float32');
-  console.log(`  ✓ Cellpose 2-Channel Inverted Cytology Tensor Shape: [${tensorTest.dims.join(', ')}]`);
+  assert.strictEqual(tensorTest.type, 'float16', 'Tensor type must be float16 for WebGPU');
+  console.log(`  ✓ Cellpose 2-Channel Inverted Cytology Tensor Shape: [${tensorTest.dims.join(', ')}] (FP16)`);
 
   // Test 3: Test SquarePad and ImageNet Normalization
   const squarePadTest = await page.evaluate(() => {

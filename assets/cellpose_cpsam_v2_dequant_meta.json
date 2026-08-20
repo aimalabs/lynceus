@@ -1,0 +1,8 @@
+{
+  "totalElements": 304628928,
+  "totalFp16Bytes": 609257856,
+  "blockSize": 256,
+  "numBlocks": 1189957,
+  "int8Bytes": 304628928,
+  "scalesBytes": 2379914
+}
