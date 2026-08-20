@@ -60,6 +60,77 @@ This project is an active research prototype. To ensure it remains unlisted and 
 
 ---
 
+## 🧠 In-Browser AI Engine (WebGPU & ONNX Runtime)
+
+Lynceus executes a two-stage deep learning pipeline purely on-device via **WebGPU**:
+1. **Stage 1 (Cell Detection & Segmentation):** Quantized **Cellpose SAM-v2 ViT** (`cellpose_cpsam_v2_int8.onnx`) or **Cyto3 UNet** (`cellpose_cyto3_unet_int8.onnx`) predicts horizontal/vertical flow dynamics and cell probability maps. 2D Euler vector integration resolves touching and overlapping cell boundaries.
+2. **Stage 2 (Cell Classification):** Pure WebGPU FP32 **Swin Transformer** (`swin_classifier.onnx`) classifies each cropped cell patch into 20 ground-truth hematological lineages.
+
+---
+
+## 🛠️ Exporting & Chunking ONNX Models for WebGPU
+
+The `scripts/` directory contains Python tools to export PyTorch weights into WebGPU-compatible ONNX models, dynamically quantize them, and split them into 10-chunk manifests for resilient web streaming.
+
+### 1. Requirements
+
+Ensure PyTorch, Torchvision, and ONNX Runtime are installed:
+```bash
+pip install torch torchvision onnx onnxruntime
+```
+
+### 2. Exporting Models to ONNX (`scripts/export_onnx.py`)
+
+Run the master export script to convert pre-trained weights into WebGPU-compatible ONNX models:
+
+```bash
+python scripts/export_onnx.py --output-dir assets/
+```
+
+#### What `export_onnx.py` produces:
+- **`swin_classifier.onnx` (FP32)**: Pure WebGPU Swin Transformer for 20-lineage classification with dynamic batching. *(Note: INT8 DynamicQuantizeMatMul causes ORT-Web WebGPU to fall back to CPU/WASM; FP32 executes natively on WebGPU shaders at ~54ms/cell)*.
+- **`cellpose_cpsam_v2_int8.onnx` (INT8)**: Dynamically quantized SAM-v2 ViT segmentation model (~299 MB from 1.16 GB FP32).
+- **`cellpose_cyto3_unet_int8.onnx` (INT8)**: Lightweight Cyto3 UNet segmentation model (~6.8 MB).
+
+```bash
+# Export only the Swin-T classifier:
+python -c "from scripts.export_onnx import export_swin_classifier; export_swin_classifier('swin_model.pth', 'assets/')"
+
+# Export only the Cellpose SAM-v2 model:
+python -c "from scripts.export_onnx import export_cellpose_sam_vit; export_cellpose_sam_vit('assets/')"
+```
+
+---
+
+### 3. Chunking Models for Web Streaming (`scripts/split_model.py`)
+
+Large ONNX models (>30 MB) exceed GitHub's standard single-file limits and can fail on unstable network connections. `scripts/split_model.py` splits large ONNX files into 10 smaller parts (`.part0`–`.part9`) and generates an accompanying SHA-256 `.manifest.json`.
+
+```bash
+# Split Swin Classifier into 10 chunks (~10.7 MB each)
+python scripts/split_model.py assets/swin_classifier.onnx assets/ --chunks 10
+
+# Split Cellpose SAM-v2 into 10 chunks (~30 MB each)
+python scripts/split_model.py assets/cellpose_cpsam_v2_int8.onnx assets/ --chunks 10
+```
+
+#### Browser Streaming & Caching Flow:
+- When the browser loads the model, `fetchOrGetCachedModel()` reads `assets/<model>.onnx.manifest.json`.
+- Chunks are fetched concurrently (concurrency pool of 4) and cached individually in browser `IndexedDB`.
+- Chunks are concatenated into a contiguous binary `ArrayBuffer` and validated bit-for-bit against the manifest's SHA-256 hash before initializing the `ort.InferenceSession`.
+
+---
+
+### 4. Benchmarking & Parity Verification (`scripts/benchmark_models.py`)
+
+To verify numerical parity and measure inference latency across CPU, MPS (Apple Silicon), and ONNX Runtime:
+
+```bash
+python scripts/benchmark_models.py
+```
+
+---
+
 ## 🧪 Automated Testing
 
 The repository includes a comprehensive 14-suite Puppeteer end-to-end verification suite:

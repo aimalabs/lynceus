@@ -94,18 +94,18 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Document Title after State Import:', importedTitle);
     assert(importedTitle.includes('KOWALSKI'), 'Imported patient last name must be reflected in document title');
 
-    // 6. Test Import Dropdown & Smear Image Upload clears annotations
+    // 6. Test Import Dropdown & Smear Image Load clears annotations
     await page.click('#btn-import-dropdown-trigger');
     const isImportMenuVisible = await page.$eval('#import-dropdown-menu', el => !el.classList.contains('hidden'));
     console.log('  ✓ Import Dropdown Menu Opened:', isImportMenuVisible);
     assert.strictEqual(isImportMenuVisible, true, 'Import dropdown menu should open on trigger click');
 
     const optJsonExists = await page.$eval('#btn-import-json-opt', el => !!el);
-    const optImgExists = await page.$eval('#btn-upload-image-opt', el => !!el);
+    const optImgExists = await page.$eval('#btn-load-image-opt', el => !!el);
     console.log('  ✓ Import Options Present:', { json: optJsonExists, image: optImgExists });
-    assert(optJsonExists && optImgExists, 'Both JSON and Image upload options must exist in dropdown');
+    assert(optJsonExists && optImgExists, 'Both JSON and Image load options must exist in dropdown');
 
-    // Test uploading an image clears all annotations
+    // Test loading an image clears all annotations
     await page.evaluate(() => {
       // Simulate loading a new image
       const canvas = document.createElement('canvas');
@@ -128,9 +128,9 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     });
 
     await new Promise(r => setTimeout(r, 100));
-    const annCountAfterUpload = await page.evaluate(() => window.__CYTO_APP__.state.annotations.length);
-    console.log('  ✓ Annotations after Image Upload:', annCountAfterUpload);
-    assert.strictEqual(annCountAfterUpload, 0, 'Uploading a new image must clear all annotations from UI');
+    const annCountAfterLoad = await page.evaluate(() => window.__CYTO_APP__.state.annotations.length);
+    console.log('  ✓ Annotations after Image Load:', annCountAfterLoad);
+    assert.strictEqual(annCountAfterLoad, 0, 'Loading a new image must clear all annotations from UI');
 
     // 7. Test In-App Reset / Inference Model Selection Modal
     await page.click('#btn-reset-detections');
