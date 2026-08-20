@@ -1490,6 +1490,7 @@
 
           chunks[idx] = buf;
           receivedBytes += buf.byteLength;
+          await new Promise(r => setTimeout(r, 0));
 
           const rawPercent = (receivedBytes / totalBytes) * 100;
           const decile = Math.min(100, Math.floor(rawPercent / 10) * 10);
@@ -2178,7 +2179,7 @@
       return new ort.Tensor('float32', batchData, [B, 3, targetSize, targetSize]);
     }
 
-    async function classifySegmentedBatch(clfSession, sourceImage, cells, maxCells = null, shouldAbort = null) {
+    async function classifySegmentedBatch(clfSession, sourceImage, cells, maxCells = null, shouldAbort = null, onProgress = null) {
       const batchStartTime = performance.now();
       if (!cells || cells.length === 0) return [];
 
@@ -2213,6 +2214,10 @@
         const perCellMs = (parseFloat(runElapsed) / B).toFixed(1);
 
         console.log(`[${new Date().toISOString()}] [Stage 2 Swin-T] Chunk ${chunkIndex}/${numChunks} (${B} cells) -> Prep: ${prepElapsed}ms, Forward Pass: ${runElapsed}ms (${perCellMs}ms/cell)`);
+
+        if (onProgress) {
+          onProgress(chunkIndex, numChunks);
+        }
 
         const logits = outputs.logits || outputs[Object.keys(outputs)[0]];
         const logitData = logits.data;
@@ -4610,17 +4615,23 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       }
 
       const startTime = performance.now();
+      let maxReportedPercent = 0;
+
       const timerInterval = setInterval(() => {
         const elapsedSec = Math.floor((performance.now() - startTime) / 1000);
         if (resetProgressTime) resetProgressTime.textContent = `${elapsedSec}s elapsed`;
       }, 250);
 
       const updateHUD = (percent, stepText) => {
+        if (percent > maxReportedPercent) {
+          maxReportedPercent = percent;
+        }
+        const displayPercent = Math.min(100, maxReportedPercent);
         const elapsedSec = Math.floor((performance.now() - startTime) / 1000);
-        if (resetProgressBar) resetProgressBar.style.width = `${percent}%`;
-        if (resetProgressPercent) resetProgressPercent.textContent = `${percent}%`;
+        if (resetProgressBar) resetProgressBar.style.width = `${displayPercent}%`;
+        if (resetProgressPercent) resetProgressPercent.textContent = `${displayPercent}%`;
         if (resetProgressTime) resetProgressTime.textContent = `${elapsedSec}s elapsed`;
-        if (resetLoadingStepText) resetLoadingStepText.textContent = stepText;
+        if (stepText && resetLoadingStepText) resetLoadingStepText.textContent = stepText;
       };
 
       let finalAnnotations = null;
@@ -4650,21 +4661,34 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
           console.groupEnd();
         } else {
           try {
+            let segRecBytes = 0, segTotBytes = 313 * 1024 * 1024;
+            let clfRecBytes = 0, clfTotBytes = 112 * 1024 * 1024;
+
+            const onModelDownloadProgress = () => {
+              const totalRec = segRecBytes + clfRecBytes;
+              const totalTot = segTotBytes + clfTotBytes;
+              const ratio = Math.min(1.0, totalRec / Math.max(1, totalTot));
+              const percent = Math.round(ratio * 38);
+              const recMB = (totalRec / (1024 * 1024)).toFixed(1);
+              const totMB = (totalTot / (1024 * 1024)).toFixed(1);
+              updateHUD(percent, `Downloading AI models: ${recMB} / ${totMB} MB (${Math.round(ratio * 100)}%)...`);
+            };
+
             // STEP 1: PARALLEL ASYNC OVERLAP - Preload classifier in background with download progress
             const classifierWarmupPromise = preloadClassifierSession((percent, received, total) => {
-              const receivedMB = (received / (1024 * 1024)).toFixed(1);
-              const totalMB = (total / (1024 * 1024)).toFixed(1);
-              updateHUD(Math.min(25, Math.round(percent * 0.25)), `Downloading cell classification model: ${percent}% (${receivedMB} / ${totalMB} MB)...`);
+              clfRecBytes = received;
+              clfTotBytes = total || clfTotBytes;
+              onModelDownloadProgress();
             });
 
             // STEP 2: Concurrently load segmentation session with download progress & run Stage 1
             const segSession = await preloadSegmentationSession((percent, received, total) => {
-              const receivedMB = (received / (1024 * 1024)).toFixed(1);
-              const totalMB = (total / (1024 * 1024)).toFixed(1);
-              updateHUD(Math.min(35, Math.round(percent * 0.35)), `Downloading cell detection model: ${percent}% (${receivedMB} / ${totalMB} MB)...`);
+              segRecBytes = received;
+              segTotBytes = total || segTotBytes;
+              onModelDownloadProgress();
             });
 
-            updateHUD(35, 'Scanning smear fields and detecting cell boundaries...');
+            updateHUD(42, 'Scanning smear fields and detecting cell boundaries...');
             const preprocessed = prepareCellposeTensor(state.image, 0.50);
 
             const segOutputs = await segSession.run({ input: preprocessed.tensor });
@@ -4676,7 +4700,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
             const dP_x = segData.subarray(stride, stride * 2);
             const cellprob = segData.subarray(stride * 2, stride * 3);
 
-            updateHUD(55, 'Refining cell contours and morphology...');
+            updateHUD(58, 'Refining cell contours and morphology...');
             await new Promise(r => setTimeout(r, 30));
 
             const { cells } = computeMasksFromFlows(dP_y, dP_x, cellprob, preprocessed.width, preprocessed.height, {
@@ -4703,25 +4727,36 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
               }))
             }));
 
-            updateHUD(70, 'Classifying cell types across all 20 lineages...');
+            updateHUD(68, 'Classifying cell types across all 20 lineages...');
             await new Promise(r => setTimeout(r, 30));
 
             // STEP 3: Await pre-warmed classifier session (zero-wait stall!)
             if (isAborted) throw new Error('Analysis stopped by user.');
             const clfSession = await classifierWarmupPromise;
 
-            // STEP 4: Stage 2 Batched Forward Pass
+            // STEP 4: Stage 2 Batched Forward Pass with continuous progress advance
             const cellsToClassify = scaledCells.length > 0 ? scaledCells : MODEL_FLASH_ANNOTATIONS.map(a => ({
               bbox: [a.y, a.x, a.y + a.height, a.x + a.width],
               shape: a.shape,
               morphology: a.morphology
             }));
 
-            const classified = await classifySegmentedBatch(clfSession, state.image, cellsToClassify, null, () => isAborted);
+            const classified = await classifySegmentedBatch(
+              clfSession,
+              state.image,
+              cellsToClassify,
+              null,
+              () => isAborted,
+              (chunkIdx, numChunks) => {
+                const batchPct = 68 + Math.round((chunkIdx / numChunks) * 27);
+                updateHUD(batchPct, `Classifying cell lineages: batch ${chunkIdx}/${numChunks}...`);
+              }
+            );
+
             if (isAborted) throw new Error('Analysis stopped by user.');
             finalAnnotations = classified.length > 0 ? classified : MODEL_FLASH_ANNOTATIONS;
 
-            updateHUD(95, 'Finalizing differential count and cell summary...');
+            updateHUD(100, 'Finalizing differential count and cell summary...');
             await new Promise(r => setTimeout(r, 40));
             console.groupEnd();
           } catch (gpuErr) {

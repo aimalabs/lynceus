@@ -31,6 +31,7 @@ const fs = require('fs');
   const browser = await puppeteer.launch({
     executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     headless: true,
+    protocolTimeout: 60000,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
