@@ -1,0 +1,40 @@
+{
+  "modelName": "swin_classifier_fp16.onnx",
+  "totalBytes": 56851413,
+  "totalSizeMB": 54.22,
+  "chunkSizeBytes": 11370283,
+  "numChunks": 5,
+  "sha256": "d30708e1a69a0e269a7ab22e0fa129f629fb2d57899de0277fba23f3410de6a8",
+  "chunks": [
+    {
+      "index": 0,
+      "fileName": "swin_classifier_fp16.onnx.part0",
+      "bytes": 11370283,
+      "sha256": "bd9a09f12b4411b5c8a1484b8c365f6091a936b07a95f338903e592b40b4f646"
+    },
+    {
+      "index": 1,
+      "fileName": "swin_classifier_fp16.onnx.part1",
+      "bytes": 11370283,
+      "sha256": "6ebeac6fb0bbd050076d2456f289c729dcb3b2805dc27d7c27907df42c023ef7"
+    },
+    {
+      "index": 2,
+      "fileName": "swin_classifier_fp16.onnx.part2",
+      "bytes": 11370283,
+      "sha256": "d32c56fbc8a75ff3427b7707417c9970366a6711d5958055a3512fd59cd475d8"
+    },
+    {
+      "index": 3,
+      "fileName": "swin_classifier_fp16.onnx.part3",
+      "bytes": 11370283,
+      "sha256": "c829731af1d683d567ee3992bd0114a032f2b46995681d42db0621277033c168"
+    },
+    {
+      "index": 4,
+      "fileName": "swin_classifier_fp16.onnx.part4",
+      "bytes": 11370281,
+      "sha256": "ce6d6fc6b8bc3c171643fcf1a2636e63154c3cf42beed73bd16e984e91624af1"
+    }
+  ]
+}
