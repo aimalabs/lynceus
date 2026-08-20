@@ -2599,12 +2599,6 @@
         color: '#22c55e',
         icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m4.9 4.9 14.2 14.2"></path></svg>'
       },
-      cellpose_invert: {
-        label: 'Cellpose Invert',
-        shortLabel: 'Invert',
-        color: '#a855f7',
-        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>'
-      },
       two_tone: {
         label: 'Two-Tone Dye Fix',
         shortLabel: 'Two-Tone',
@@ -2786,36 +2780,7 @@
         }
       }
 
-      // 3. Cellpose Inverted Grayscale (Inverted flow preparation)
-      if (activeSet.has('cellpose_invert')) {
-        const gray = new Float32Array(total);
-        const hist = new Int32Array(256);
-        for (let i = 0; i < total; i++) {
-          const idx = i * 4;
-          const g = 255 - Math.round(0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2]);
-          const gClamped = Math.max(0, Math.min(255, g));
-          gray[i] = gClamped;
-          hist[gClamped]++;
-        }
-        const p1Thresh = Math.floor(total * 0.01);
-        const p99Thresh = Math.floor(total * 0.99);
-        let count = 0, p1 = 0, p99 = 255;
-        for (let i = 0; i < 256; i++) {
-          count += hist[i];
-          if (count >= p1Thresh && p1 === 0) p1 = i;
-          if (count >= p99Thresh) { p99 = i; break; }
-        }
-        const invRange = 255.0 / Math.max(1e-4, p99 - p1);
-        for (let i = 0; i < total; i++) {
-          const val = Math.max(0, Math.min(255, Math.round((gray[i] - p1) * invRange)));
-          const idx = i * 4;
-          data[idx] = val;
-          data[idx + 1] = val;
-          data[idx + 2] = val;
-        }
-      }
-
-      // 4. Chromatin CLAHE (4x4 tile adaptive histogram equalization)
+      // 3. Chromatin CLAHE (4x4 tile adaptive histogram equalization)
       if (activeSet.has('clahe')) {
         const NUM_TILES_X = 8, NUM_TILES_Y = 6;
         const tileW = Math.ceil(srcW / NUM_TILES_X);
@@ -3128,13 +3093,23 @@
     const filterTrigger = document.getElementById('filter-dropdown-trigger');
     const filterMenu = document.getElementById('filter-dropdown-menu');
     const btnPresetAiFilters = document.getElementById('btn-preset-ai-filters');
+    const btnPresetRomanowskiFilters = document.getElementById('btn-preset-romanowski-filters');
 
     if (btnPresetAiFilters) {
       btnPresetAiFilters.onclick = (e) => {
         e.stopPropagation();
         hideHelpTooltip();
-        setCanvasFilters(['clahe', 'fov_crop']);
-        showToast('Activated AI Optimal Preset: CLAHE + FOV Crop');
+        setCanvasFilters(['clahe', 'fov_crop', 'reinhard_lab']);
+        showToast('Activated May-Giemsa AI Preset (CLAHE + FOV + Reinhard LAB)');
+      };
+    }
+
+    if (btnPresetRomanowskiFilters) {
+      btnPresetRomanowskiFilters.onclick = (e) => {
+        e.stopPropagation();
+        hideHelpTooltip();
+        setCanvasFilters(['clahe', 'fov_crop', 'two_tone', 'reinhard_lab']);
+        showToast('Activated Romanowski AI Preset (CLAHE + FOV + Two-Tone + Reinhard LAB)');
       };
     }
 

@@ -68,13 +68,21 @@
             <span id="active-filters-summary" class="text-[#38bdf8] font-normal normal-case">Raw RGB</span>
           </div>
 
-          <!-- Quick Preset: Optimal for Telesphorus AI -->
-          <button id="btn-preset-ai-filters" class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#38bdf8]/10 hover:bg-[#38bdf8]/20 border border-[#38bdf8]/30 text-[#38bdf8] text-left transition text-[11px]" data-help="Recommended for AI Preset|Applies Chromatin CLAHE (4×4) + FOV Aperture Crop for optimal Telesphorus feature extraction|PRESET">
-            <span class="flex items-center space-x-1.5">
-              <svg width="13" height="13" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path></svg>
-              <span class="font-bold">⚡ Optimal for AI (CLAHE + FOV)</span>
-            </span>
-          </button>
+          <!-- Quick Presets: Optimal for Telesphorus AI -->
+          <div class="grid grid-cols-1 gap-1">
+            <button id="btn-preset-ai-filters" class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#38bdf8]/10 hover:bg-[#38bdf8]/20 border border-[#38bdf8]/30 text-[#38bdf8] text-left transition text-[11px]" data-help="May-Giemsa AI Pipeline|Why combined: FOV Crop strips dark corners so background stats aren't skewed; Reinhard LAB standardizes luminance/chroma variance across staining batches; 4×4 CLAHE amplifies fine nuclear chromatin granules without washing out cytoplasm.|MAY-GIEMSA">
+              <span class="flex items-center space-x-1.5 min-w-0">
+                <svg width="13" height="13" class="shrink-0 text-[#38bdf8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path></svg>
+                <span class="font-bold truncate">⚡ May-Giemsa AI (CLAHE + FOV + LAB)</span>
+              </span>
+            </button>
+            <button id="btn-preset-romanowski-filters" class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#ec4899]/10 hover:bg-[#ec4899]/20 border border-[#ec4899]/30 text-[#ec4899] text-left transition text-[11px]" data-help="Romanowski / Wright AI Pipeline|Why combined: Two-Tone Fix softens hyper-saturated purple dye precipitates before they skew global stats; Reinhard LAB maps the corrected smear onto standard May-Giemsa reference space; FOV Crop removes rim artifacts; 4×4 CLAHE sharpens chromatin texture.|ROMANOWSKI">
+              <span class="flex items-center space-x-1.5 min-w-0">
+                <svg width="13" height="13" class="shrink-0 text-[#ec4899]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"></path><path d="M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z"></path></svg>
+                <span class="font-bold truncate">⚡ Romanowski AI (All LAB Fixes)</span>
+              </span>
+            </button>
+          </div>
 
           <!-- Raw Reset Button -->
           <button data-filter="raw" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#272527] text-left text-white transition" data-help="Raw RGB (True Color)|Reset all filters to unmanipulated multi-spectral microscopy capture|RAW">
@@ -126,28 +134,26 @@
             <span class="filter-check text-xs">○</span>
           </button>
 
-          <button data-filter="cellpose_invert" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Cellpose Inverted Flow|Normalized brightfield inversion fed into Cellpose SAM-v2 segmentation graph|INVERT">
-            <span class="flex items-center space-x-2 min-w-0">
-              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#a855f7] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>
-              <span class="truncate">Cellpose Inverted</span>
-            </span>
-            <span class="filter-check text-xs">○</span>
-          </button>
-
-          <button data-filter="two_tone" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Two-Tone Dye Correction|Suppresses hyper-saturated Romanowski purple dye precipitation in LAB color space|TWO-TONE">
+          <button data-filter="two_tone" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Two-Tone Dye Correction|[Recommended for Romanowski] Suppresses hyper-saturated purple dye precipitation in LAB color space|TWO-TONE">
             <span class="flex items-center space-x-2 min-w-0">
               <svg width="14" height="14" class="w-3.5 h-3.5 text-[#ec4899] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"></path><path d="m5 2 5 5"></path><path d="M2 13h15"></path><path d="M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z"></path></svg>
               <span class="truncate">Two-Tone Dye Fix (LAB)</span>
             </span>
-            <span class="filter-check text-xs">○</span>
+            <div class="flex items-center space-x-1 shrink-0">
+              <span class="text-[9px] px-1 py-0.2 rounded bg-pink-500/15 text-pink-400 border border-pink-500/30">Romanowski</span>
+              <span class="filter-check text-xs">○</span>
+            </div>
           </button>
 
-          <button data-filter="reinhard_lab" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Reinhard LAB Stain Normalization|Standardizes slide channel mean and variance to reference May-Giemsa stain|REINHARD">
+          <button data-filter="reinhard_lab" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Reinhard LAB Stain Normalization|[Recommended for AI] Standardizes slide channel mean and variance to reference May-Giemsa stain|REINHARD">
             <span class="flex items-center space-x-2 min-w-0">
               <svg width="14" height="14" class="w-3.5 h-3.5 text-[#06b6d4] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
               <span class="truncate">Reinhard LAB Stain Norm</span>
             </span>
-            <span class="filter-check text-xs">○</span>
+            <div class="flex items-center space-x-1 shrink-0">
+              <span class="text-[9px] px-1 py-0.2 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">AI Best</span>
+              <span class="filter-check text-xs">○</span>
+            </div>
           </button>
         </div>
       </div>
@@ -681,17 +687,24 @@
       <!-- Model Selection State (Visible when not loading) -->
       <div id="reset-model-selection" class="space-y-3">
         <!-- Diagnostic Filter & Preprocessing Recommendation Callout -->
-        <div class="p-3 rounded-xl bg-[#38bdf8]/10 border border-[#38bdf8]/30 space-y-1.5">
+        <div class="p-3 rounded-xl bg-[#38bdf8]/10 border border-[#38bdf8]/30 space-y-2">
           <div class="flex items-center space-x-1.5 font-bold text-[#38bdf8] text-[11px]">
             <svg width="14" height="14" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-            <span>Recommended Preprocessing for Telesphorus AI</span>
+            <span>Why Preprocessing Filters Complement Telesphorus AI</span>
           </div>
           <p class="text-[10px] text-[#e2e8f0] leading-relaxed">
-            Telesphorus runs inference directly on the <b>active filtered canvas</b>. For optimal cell boundary segmentation and 20-class differential accuracy, we recommend enabling:
+            Telesphorus runs inference directly on the <b>active filtered canvas</b>. Combining complementary filters eliminates physical imaging artifacts and standardizes staining variations:
           </p>
-          <ul class="text-[10px] text-[#94a3b8] space-y-1 list-disc list-inside">
-            <li><b class="text-white">Chromatin CLAHE (4×4)</b>: Amplifies nuclear granules and cytoplasmic texture contrast for Swin-T ViT classification.</li>
-            <li><b class="text-white">FOV Aperture Crop</b>: Inscribes the largest clean square inside the circular microscope aperture, completely eliminating all 4 black corner regions.</li>
+          <ul class="text-[10px] text-[#94a3b8] space-y-1.5 list-disc list-inside">
+            <li>
+              <b class="text-white">FOV Crop + Reinhard LAB</b>: FOV Crop strips unilluminated dark corners so peripheral black pixels do not distort the global $(\mu, \sigma)$ calculations of Reinhard LAB normalization.
+            </li>
+            <li>
+              <b class="text-white">Reinhard LAB + 4×4 CLAHE</b>: Reinhard maps cross-laboratory stain intensity onto the standard May-Giemsa reference distribution, allowing 4×4 CLAHE to amplify subtle intra-nuclear chromatin texture and cytoplasmic granules without clipping or bleaching.
+            </li>
+            <li>
+              <b class="text-white">Two-Tone Dye Fix (Romanowski)</b>: Detects and softens hyper-concentrated purple dye precipitates in LAB chrominance space before Reinhard normalization, preventing false platelet clump detections and blast vs lymphocyte misclassifications.
+            </li>
           </ul>
         </div>
 
