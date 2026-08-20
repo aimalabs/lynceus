@@ -99,9 +99,9 @@
             </div>
           </button>
 
-          <button data-filter="fov_crop" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="FOV Aperture Mask|[Recommended for AI] Trims unilluminated black microscope borders to eliminate boundary bias|APERTURE">
+          <button data-filter="fov_crop" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="FOV Aperture Crop|[Recommended for AI] Crops the largest square inside circular microscope aperture, eliminating dark corners|APERTURE">
             <span class="flex items-center space-x-2 min-w-0">
-              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#ef4444] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v18"></path></svg>
+              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#ef4444] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><circle cx="12" cy="12" r="8"></circle></svg>
               <span class="truncate">FOV Aperture Crop</span>
             </span>
             <div class="flex items-center space-x-1 shrink-0">
@@ -130,6 +130,22 @@
             <span class="flex items-center space-x-2 min-w-0">
               <svg width="14" height="14" class="w-3.5 h-3.5 text-[#a855f7] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>
               <span class="truncate">Cellpose Inverted</span>
+            </span>
+            <span class="filter-check text-xs">○</span>
+          </button>
+
+          <button data-filter="two_tone" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Two-Tone Dye Correction|Suppresses hyper-saturated Romanowski purple dye precipitation in LAB color space|TWO-TONE">
+            <span class="flex items-center space-x-2 min-w-0">
+              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#ec4899] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"></path><path d="m5 2 5 5"></path><path d="M2 13h15"></path><path d="M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z"></path></svg>
+              <span class="truncate">Two-Tone Dye Fix (LAB)</span>
+            </span>
+            <span class="filter-check text-xs">○</span>
+          </button>
+
+          <button data-filter="reinhard_lab" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Reinhard LAB Stain Normalization|Standardizes slide channel mean and variance to reference May-Giemsa stain|REINHARD">
+            <span class="flex items-center space-x-2 min-w-0">
+              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#06b6d4] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+              <span class="truncate">Reinhard LAB Stain Norm</span>
             </span>
             <span class="filter-check text-xs">○</span>
           </button>
@@ -675,7 +691,7 @@
           </p>
           <ul class="text-[10px] text-[#94a3b8] space-y-1 list-disc list-inside">
             <li><b class="text-white">Chromatin CLAHE (4×4)</b>: Amplifies nuclear granules and cytoplasmic texture contrast for Swin-T ViT classification.</li>
-            <li><b class="text-white">FOV Aperture Crop</b>: Trims peripheral microscope vignette borders to eliminate edge bias.</li>
+            <li><b class="text-white">FOV Aperture Crop</b>: Inscribes the largest clean square inside the circular microscope aperture, completely eliminating all 4 black corner regions.</li>
           </ul>
         </div>
 

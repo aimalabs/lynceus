@@ -2604,8 +2604,60 @@
         shortLabel: 'Invert',
         color: '#a855f7',
         icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>'
+      },
+      two_tone: {
+        label: 'Two-Tone Dye Fix',
+        shortLabel: 'Two-Tone',
+        color: '#ec4899',
+        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"></path><path d="m5 2 5 5"></path><path d="M2 13h15"></path><path d="M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z"></path></svg>'
+      },
+      reinhard_lab: {
+        label: 'Reinhard LAB Norm',
+        shortLabel: 'Reinhard',
+        color: '#06b6d4',
+        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>'
       }
     };
+
+    function rgbToLab(r, g, b) {
+      let R = r / 255, G = g / 255, B = b / 255;
+      R = (R > 0.04045) ? Math.pow((R + 0.055) / 1.055, 2.4) : R / 12.92;
+      G = (G > 0.04045) ? Math.pow((G + 0.055) / 1.055, 2.4) : G / 12.92;
+      B = (B > 0.04045) ? Math.pow((B + 0.055) / 1.055, 2.4) : B / 12.92;
+
+      const X = (R * 0.4124564 + G * 0.3575761 + B * 0.1804375) / 0.95047;
+      const Y = (R * 0.2126729 + G * 0.7151522 + B * 0.0721750);
+      const Z = (R * 0.0193339 + G * 0.1191920 + B * 0.9503041) / 1.08883;
+
+      const fx = (X > 0.008856) ? Math.cbrt(X) : (7.787 * X + 16 / 116);
+      const fy = (Y > 0.008856) ? Math.cbrt(Y) : (7.787 * Y + 16 / 116);
+      const fz = (Z > 0.008856) ? Math.cbrt(Z) : (7.787 * Z + 16 / 116);
+
+      const L = 116 * fy - 16;
+      const a = 500 * (fx - fy);
+      const b_ = 200 * (fy - fz);
+      return [L, a, b_];
+    }
+
+    function labToRgb(L, a, b_) {
+      const fy = (L + 16) / 116;
+      const fx = a / 500 + fy;
+      const fz = fy - b_ / 200;
+
+      const X = ((fx * fx * fx > 0.008856) ? fx * fx * fx : (fx - 16 / 116) / 7.787) * 0.95047;
+      const Y = ((fy * fy * fy > 0.008856) ? fy * fy * fy : (fy - 16 / 116) / 7.787);
+      const Z = ((fz * fz * fz > 0.008856) ? fz * fz * fz : (fz - 16 / 116) / 7.787) * 1.08883;
+
+      let R = X *  3.2404542 + Y * -1.5371385 + Z * -0.4985314;
+      let G = X * -0.9692660 + Y *  1.8760108 + Z *  0.0415560;
+      let B = X *  0.0556434 + Y * -0.2040259 + Z *  1.0572252;
+
+      const clampSrgb = (c) => {
+        c = Math.max(0, Math.min(1, c));
+        return Math.round(((c > 0.0031308) ? (1.055 * Math.pow(c, 1 / 2.4) - 0.055) : (12.92 * c)) * 255);
+      };
+      return [clampSrgb(R), clampSrgb(G), clampSrgb(B)];
+    }
 
     function getActiveFilterKey(filters = state.activeFilters) {
       if (!filters || filters.length === 0) return 'raw';
@@ -2623,10 +2675,74 @@
       return state.filterCache[key] || state.image;
     }
 
+    function detectFieldOfViewCrop(data, srcW, srcH, threshold = 40, shrink = 0.97, aspect = 1.0) {
+      let minX = srcW, maxX = 0, minY = srcH, maxY = 0;
+      let countBright = 0;
+      let sumX = 0, sumY = 0;
+      const totalPixels = srcW * srcH;
+
+      for (let y = 0; y < srcH; y++) {
+        const rOff = y * srcW * 4;
+        for (let x = 0; x < srcW; x++) {
+          const idx = rOff + x * 4;
+          const gray = (data[idx] * 77 + data[idx + 1] * 150 + data[idx + 2] * 29) >> 8;
+          if (gray > threshold) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            sumX += x;
+            sumY += y;
+            countBright++;
+          }
+        }
+      }
+
+      if (countBright < 0.05 * totalPixels || countBright > 0.98 * totalPixels) {
+        return { x1: 0, y1: 0, x2: srcW, y2: srcH, cropped: false };
+      }
+
+      const cx = sumX / countBright;
+      const cy = sumY / countBright;
+      const boundW = maxX - minX + 1;
+      const boundH = maxY - minY + 1;
+      const r = Math.max(boundW, boundH) * 0.5;
+      const discArea = Math.PI * r * r;
+      const fill = countBright / (discArea + 1e-6);
+      const frac = countBright / totalPixels;
+
+      // Circular microscope disc: Inscribe the largest clean square/rectangle inside the disc (app.py)
+      if (r >= 0.12 * Math.min(srcW, srcH) && fill >= 0.70 && frac <= 0.95) {
+        const fittedR = r * shrink;
+        const k = Math.sqrt(1.0 + aspect * aspect); // Math.SQRT2 for square aspect
+        const w = (2 * fittedR * aspect) / k;
+        const h = (2 * fittedR) / k;
+        const x1 = Math.max(0, Math.round(cx - w / 2));
+        const x2 = Math.min(srcW, Math.round(cx + w / 2));
+        const y1 = Math.max(0, Math.round(cy - h / 2));
+        const y2 = Math.min(srcH, Math.round(cy + h / 2));
+        if (x2 - x1 >= 32 && y2 - y1 >= 32) {
+          return { x1, y1, x2, y2, cropped: true };
+        }
+      }
+
+      // Fallback: Crop black rectangular borders with 10px pad
+      const pad = 10;
+      const x1 = Math.max(0, minX + pad);
+      const y1 = Math.max(0, minY + pad);
+      const x2 = Math.min(srcW, maxX - pad + 1);
+      const y2 = Math.min(srcH, maxY - pad + 1);
+      if (x2 - x1 >= 32 && y2 - y1 >= 32 && (x1 > 0 || y1 > 0 || x2 < srcW || y2 < srcH)) {
+        return { x1, y1, x2, y2, cropped: true };
+      }
+
+      return { x1: 0, y1: 0, x2: srcW, y2: srcH, cropped: false };
+    }
+
     function generateCompositeFilteredCanvas(filterList) {
       if (!state.imageLoaded) return null;
-      const srcW = state.image.naturalWidth || state.image.width || 1500;
-      const srcH = state.image.naturalHeight || state.image.height || 1125;
+      let srcW = state.image.naturalWidth || state.image.width || 1500;
+      let srcH = state.image.naturalHeight || state.image.height || 1125;
       
       const offCanvas = document.createElement('canvas');
       offCanvas.width = srcW;
@@ -2637,50 +2753,26 @@
       const activeSet = new Set((filterList || []).filter(f => f && f !== 'raw'));
       if (activeSet.size === 0) return offCanvas;
 
-      const imgData = offCtx.getImageData(0, 0, srcW, srcH);
-      const data = imgData.data;
-      const total = srcW * srcH;
+      let imgData = offCtx.getImageData(0, 0, srcW, srcH);
+      let data = imgData.data;
 
-      // 1. FOV Aperture Crop (Microscope aperture vignette mask)
+      // 1. FOV Aperture Crop (Inscribe the largest clean square inside the microscope disc)
       if (activeSet.has('fov_crop')) {
-        let minX = srcW, maxX = 0, minY = srcH, maxY = 0;
-        let countBright = 0, sumX = 0, sumY = 0;
-        for (let y = 0; y < srcH; y++) {
-          const rOff = y * srcW * 4;
-          for (let x = 0; x < srcW; x++) {
-            const idx = rOff + x * 4;
-            const gray = (data[idx] * 77 + data[idx + 1] * 150 + data[idx + 2] * 29) >> 8;
-            if (gray > 40) {
-              if (x < minX) minX = x;
-              if (x > maxX) maxX = x;
-              if (y < minY) minY = y;
-              if (y > maxY) maxY = y;
-              sumX += x; sumY += y;
-              countBright++;
-            }
-          }
-        }
-        if (countBright > 0.05 * total) {
-          const cx = sumX / countBright;
-          const cy = sumY / countBright;
-          const r = Math.max(maxX - minX + 1, maxY - minY + 1) * 0.5 * 0.97;
-          const r2 = r * r;
-          for (let y = 0; y < srcH; y++) {
-            const dy = y - cy;
-            const dy2 = dy * dy;
-            const rOff = y * srcW * 4;
-            for (let x = 0; x < srcW; x++) {
-              const dx = x - cx;
-              if (dx * dx + dy2 > r2) {
-                const idx = rOff + x * 4;
-                data[idx] = 16;
-                data[idx + 1] = 14;
-                data[idx + 2] = 18;
-              }
-            }
-          }
+        const cropBox = detectFieldOfViewCrop(data, srcW, srcH);
+        if (cropBox.cropped) {
+          const cw = cropBox.x2 - cropBox.x1;
+          const ch = cropBox.y2 - cropBox.y1;
+          offCanvas.width = cw;
+          offCanvas.height = ch;
+          offCtx.drawImage(state.image, cropBox.x1, cropBox.y1, cw, ch, 0, 0, cw, ch);
+          srcW = cw;
+          srcH = ch;
+          imgData = offCtx.getImageData(0, 0, srcW, srcH);
+          data = imgData.data;
         }
       }
+
+      const total = srcW * srcH;
 
       // 2. Cytology Green Contrast (Romanowski/Giemsa stain channel optimization)
       if (activeSet.has('green_contrast')) {
@@ -2819,6 +2911,119 @@
               data[idx + c] = Math.max(0, Math.min(255, Math.round(boosted)));
             }
           }
+        }
+      }
+
+      // 6. Two-Tone Romanowski Dye Reduction (LAB space purple chrominance suppression)
+      if (activeSet.has('two_tone')) {
+        const labsL = new Float32Array(total);
+        const labsA = new Float32Array(total);
+        const labsB = new Float32Array(total);
+        const purpleMask = new Float32Array(total);
+
+        for (let i = 0; i < total; i++) {
+          const idx = i * 4;
+          const [L, a, b] = rgbToLab(data[idx], data[idx + 1], data[idx + 2]);
+          labsL[i] = L;
+          labsA[i] = a;
+          labsB[i] = b;
+          if (a > 10 && b < -5) {
+            purpleMask[i] = 1.0;
+          }
+        }
+
+        // Fast separable horizontal + vertical blur on purple mask (radius 15)
+        const blurredMask = new Float32Array(total);
+        const radius = 15;
+        const temp = new Float32Array(total);
+
+        for (let y = 0; y < srcH; y++) {
+          const rowOff = y * srcW;
+          for (let x = 0; x < srcW; x++) {
+            let sum = 0, count = 0;
+            const xMin = Math.max(0, x - radius);
+            const xMax = Math.min(srcW - 1, x + radius);
+            for (let ix = xMin; ix <= xMax; ix++) {
+              sum += purpleMask[rowOff + ix];
+              count++;
+            }
+            temp[rowOff + x] = sum / count;
+          }
+        }
+
+        for (let x = 0; x < srcW; x++) {
+          for (let y = 0; y < srcH; y++) {
+            let sum = 0, count = 0;
+            const yMin = Math.max(0, y - radius);
+            const yMax = Math.min(srcH - 1, y + radius);
+            for (let iy = yMin; iy <= yMax; iy++) {
+              sum += temp[iy * srcW + x];
+              count++;
+            }
+            blurredMask[y * srcW + x] = sum / count;
+          }
+        }
+
+        const strength = 0.30;
+        for (let i = 0; i < total; i++) {
+          const m = blurredMask[i] * strength;
+          const newA = labsA[i] * (1.0 - m);
+          const newB = labsB[i] * (1.0 - m);
+          const [r, g, b] = labToRgb(labsL[i], newA, newB);
+          const idx = i * 4;
+          data[idx] = r;
+          data[idx + 1] = g;
+          data[idx + 2] = b;
+        }
+      }
+
+      // 7. Reinhard LAB Stain Normalization (standardizes slide to reference May-Giemsa stats)
+      if (activeSet.has('reinhard_lab')) {
+        const labsL = new Float32Array(total);
+        const labsA = new Float32Array(total);
+        const labsB = new Float32Array(total);
+        let sumL = 0, sumA = 0, sumB = 0;
+
+        for (let i = 0; i < total; i++) {
+          const idx = i * 4;
+          const [L, a, b] = rgbToLab(data[idx], data[idx + 1], data[idx + 2]);
+          labsL[i] = L;
+          labsA[i] = a;
+          labsB[i] = b;
+          sumL += L; sumA += a; sumB += b;
+        }
+
+        const meanL = sumL / total;
+        const meanA = sumA / total;
+        const meanB = sumB / total;
+
+        let varL = 0, varA = 0, varB = 0;
+        for (let i = 0; i < total; i++) {
+          const dL = labsL[i] - meanL;
+          const dA = labsA[i] - meanA;
+          const dB = labsB[i] - meanB;
+          varL += dL * dL; varA += dA * dA; varB += dB * dB;
+        }
+
+        const stdL = Math.sqrt(varL / total) + 1e-5;
+        const stdA = Math.sqrt(varA / total) + 1e-5;
+        const stdB = Math.sqrt(varB / total) + 1e-5;
+
+        // Reference May-Giemsa target statistics in standard CIELAB
+        // Mapped from STAIN_REF_LAB = [(194.4, 18.7), (132.9, 6.9), (131.7, 5.5)]
+        const refMeanL = 76.2, refStdL = 7.33;
+        const refMeanA = 4.9,  refStdA = 6.9;
+        const refMeanB = 3.7,  refStdB = 5.5;
+
+        for (let i = 0; i < total; i++) {
+          const normL = Math.max(0, Math.min(100, (labsL[i] - meanL) / stdL * refStdL + refMeanL));
+          const normA = (labsA[i] - meanA) / stdA * refStdA + refMeanA;
+          const normB = (labsB[i] - meanB) / stdB * refStdB + refMeanB;
+          const [r, g, b] = labToRgb(normL, normA, normB);
+          const idx = i * 4;
+          data[idx] = r;
+          data[idx + 1] = g;
+          data[idx + 2] = b;
         }
       }
 
