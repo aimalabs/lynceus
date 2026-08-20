@@ -1770,35 +1770,51 @@
       const offCanvas = document.createElement('canvas');
       offCanvas.width = targetW;
       offCanvas.height = targetH;
-      const offCtx = offCanvas.getContext('2d');
+      const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
       offCtx.drawImage(sourceImage, 0, 0, targetW, targetH);
       const imgData = offCtx.getImageData(0, 0, targetW, targetH).data;
 
       const totalPixels = targetW * targetH;
       const ch0 = new Float32Array(totalPixels);
+      const hist = new Int32Array(256);
 
-      // Standard Luminance Grayscale with Brightfield Intensity Inversion
+      // Single-pass Grayscale with Brightfield Inversion & Histogram computation
       for (let i = 0; i < totalPixels; i++) {
-        const r = imgData[i * 4];
-        const g = imgData[i * 4 + 1];
-        const b = imgData[i * 4 + 2];
-        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-        ch0[i] = 255.0 - gray;
+        const i4 = i * 4;
+        const gray = 255.0 - (0.299 * imgData[i4] + 0.587 * imgData[i4 + 1] + 0.114 * imgData[i4 + 2]);
+        ch0[i] = gray;
+        const bin = gray < 0 ? 0 : (gray > 255 ? 255 : (gray | 0));
+        hist[bin]++;
       }
 
-      // Percentile Normalization matching Cellpose normalize99
-      const sorted = new Float32Array(ch0).sort();
-      const p1 = sorted[Math.floor(totalPixels * 0.01)];
-      const p99 = sorted[Math.min(Math.floor(totalPixels * 0.99), totalPixels - 1)];
+      // Fast O(1) Percentile calculation from 256-bin histogram
+      const targetCountP1 = Math.floor(totalPixels * 0.01);
+      const targetCountP99 = Math.min(Math.floor(totalPixels * 0.99), totalPixels - 1);
+      let cumCount = 0;
+      let p1 = 0;
+      let p99 = 255;
+      let foundP1 = false;
+
+      for (let bin = 0; bin < 256; bin++) {
+        cumCount += hist[bin];
+        if (!foundP1 && cumCount >= targetCountP1) {
+          p1 = bin;
+          foundP1 = true;
+        }
+        if (cumCount >= targetCountP99) {
+          p99 = bin;
+          break;
+        }
+      }
+
       const pRange = (p99 - p1) > 1e-6 ? (p99 - p1) : 1.0;
+      const invRange = 1.0 / pRange;
 
       const tensorData = new Float32Array(2 * totalPixels);
       for (let i = 0; i < totalPixels; i++) {
-        let val = (ch0[i] - p1) / pRange;
-        if (val < 0) val = 0;
-        if (val > 1) val = 1;
-        tensorData[i] = val; // Channel 0: Normalized Cytology
-        tensorData[totalPixels + i] = 0.0; // Channel 1: Zeros
+        let val = (ch0[i] - p1) * invRange;
+        tensorData[i] = val < 0 ? 0 : (val > 1 ? 1 : val); // Channel 0: Normalized Cytology
+        // Channel 1: zeros
       }
 
       const duration = (performance.now() - startTime).toFixed(1);
@@ -1849,35 +1865,43 @@
         ptX[i] = idx % width;
       }
 
-      // 2. Euler Flow Integration Dynamics with Bilinear Interpolation
+      // 2. Euler Flow Integration Dynamics with High-Performance Vector Stepping
+      const widthM1 = width - 1;
+      const heightM1 = height - 1;
       for (let iter = 0; iter < niter; iter++) {
         for (let i = 0; i < nPoints; i++) {
           const y = ptY[i];
           const x = ptX[i];
 
-          const x0 = Math.floor(x);
-          const x1 = Math.min(x0 + 1, width - 1);
-          const y0 = Math.floor(y);
-          const y1 = Math.min(y0 + 1, height - 1);
+          const x0 = x | 0;
+          const x1 = x0 < widthM1 ? x0 + 1 : widthM1;
+          const y0 = y | 0;
+          const y1 = y0 < heightM1 ? y0 + 1 : heightM1;
 
           const dx = x - x0;
           const dy = y - y0;
+          const one_minus_dx = 1.0 - dx;
+          const one_minus_dy = 1.0 - dy;
 
-          const idx00 = y0 * width + x0;
-          const idx01 = y0 * width + x1;
-          const idx10 = y1 * width + x0;
-          const idx11 = y1 * width + x1;
+          const row0 = y0 * width;
+          const row1 = y1 * width;
+          const idx00 = row0 + x0;
+          const idx01 = row0 + x1;
+          const idx10 = row1 + x0;
+          const idx11 = row1 + x1;
 
-          const vy0 = dP_y[idx00] * (1 - dx) + dP_y[idx01] * dx;
-          const vy1 = dP_y[idx10] * (1 - dx) + dP_y[idx11] * dx;
-          const vy = (vy0 * (1 - dy) + vy1 * dy) * 0.2;
+          const vy0 = dP_y[idx00] * one_minus_dx + dP_y[idx01] * dx;
+          const vy1 = dP_y[idx10] * one_minus_dx + dP_y[idx11] * dx;
+          const vy = (vy0 * one_minus_dy + vy1 * dy) * 0.2;
 
-          const vx0 = dP_x[idx00] * (1 - dx) + dP_x[idx01] * dx;
-          const vx1 = dP_x[idx10] * (1 - dx) + dP_x[idx11] * dx;
-          const vx = (vx0 * (1 - dy) + vx1 * dy) * 0.2;
+          const vx0 = dP_x[idx00] * one_minus_dx + dP_x[idx01] * dx;
+          const vx1 = dP_x[idx10] * one_minus_dx + dP_x[idx11] * dx;
+          const vx = (vx0 * one_minus_dy + vx1 * dy) * 0.2;
 
-          ptY[i] = Math.max(0, Math.min(height - 1, y + vy));
-          ptX[i] = Math.max(0, Math.min(width - 1, x + vx));
+          const nextY = y + vy;
+          const nextX = x + vx;
+          ptY[i] = nextY < 0 ? 0 : (nextY > heightM1 ? heightM1 : nextY);
+          ptX[i] = nextX < 0 ? 0 : (nextX > widthM1 ? widthM1 : nextX);
         }
       }
 
@@ -2009,36 +2033,43 @@
         }
       }
 
-      // 5. Morphological Cleanup & Quality Check
+      // 5. Morphological Cleanup & Quality Check (Optimized Single-Pass Bucketing)
       const maxAllowedArea = Math.floor(numPixels * maxSizeFraction);
       const cleanedMask = new Int32Array(numPixels);
       const cells = [];
       let nextCellId = 1;
 
+      // Group active pixel indices by seed label in a single O(N) pass
+      const seedPixelBuckets = Array.from({ length: seeds.length + 1 }, () => []);
+      for (let i = 0; i < nPoints; i++) {
+        const origIdx = activeIndices[i];
+        const label = rawMask[origIdx];
+        if (label > 0 && label <= seeds.length) {
+          seedPixelBuckets[label].push(origIdx);
+        }
+      }
+
       for (let s = 0; s < seeds.length; s++) {
         const seedId = seeds[s].seedId;
-        const cellPixelIndices = [];
-        let minX = width, maxX = 0, minY = height, maxY = 0;
-        let sumY = 0, sumX = 0;
-
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const idx = y * width + x;
-            if (rawMask[idx] === seedId) {
-              cellPixelIndices.push(idx);
-              if (x < minX) minX = x;
-              if (x > maxX) maxX = x;
-              if (y < minY) minY = y;
-              if (y > maxY) maxY = y;
-              sumY += y;
-              sumX += x;
-            }
-          }
-        }
-
+        const cellPixelIndices = seedPixelBuckets[seedId];
         const area = cellPixelIndices.length;
         if (area < minArea || area > maxAllowedArea) {
           continue;
+        }
+
+        let minX = width, maxX = 0, minY = height, maxY = 0;
+        let sumY = 0, sumX = 0;
+
+        for (let k = 0; k < area; k++) {
+          const idx = cellPixelIndices[k];
+          const y = (idx / width) | 0;
+          const x = idx % width;
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+          sumY += y;
+          sumX += x;
         }
 
         const centroidY = sumY / area;
@@ -2049,7 +2080,7 @@
           let sumFlowErr = 0;
           for (let k = 0; k < area; k++) {
             const pIdx = cellPixelIndices[k];
-            const py = Math.floor(pIdx / width);
+            const py = (pIdx / width) | 0;
             const px = pIdx % width;
 
             const dTargetY = centroidY - py;
@@ -2110,6 +2141,32 @@
     // Optimized offscreen patch cropper canvas
     let gCropCanvas = null;
     let gCropCtx = null;
+    let gSourceImageBufferCache = { image: null, src: null, data: null, width: 0, height: 0 };
+
+    function getSourceImageBuffer(sourceImage) {
+      const srcW = sourceImage.naturalWidth || sourceImage.width || 1500;
+      const srcH = sourceImage.naturalHeight || sourceImage.height || 1125;
+      const src = sourceImage.src || sourceImage;
+
+      if (gSourceImageBufferCache.image === sourceImage && gSourceImageBufferCache.src === src && gSourceImageBufferCache.width === srcW && gSourceImageBufferCache.height === srcH) {
+        return gSourceImageBufferCache;
+      }
+
+      const c = document.createElement('canvas');
+      c.width = srcW;
+      c.height = srcH;
+      const ctx = c.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(sourceImage, 0, 0, srcW, srcH);
+      const imgData = ctx.getImageData(0, 0, srcW, srcH);
+      gSourceImageBufferCache = {
+        image: sourceImage,
+        src,
+        data: imgData.data,
+        width: srcW,
+        height: srcH
+      };
+      return gSourceImageBufferCache;
+    }
 
     function getCropContext(targetSize = 224) {
       if (!gCropCanvas) {
@@ -2170,10 +2227,73 @@
       const B = cells.length;
       const patchSize = 3 * targetSize * targetSize;
       const batchData = new Float32Array(B * patchSize);
+      const stride = targetSize * targetSize;
+
+      const srcBuf = getSourceImageBuffer(sourceImage);
+      const srcData = srcBuf.data;
+      const srcW = srcBuf.width;
+      const srcH = srcBuf.height;
+
+      const mean0 = 0.485, mean1 = 0.456, mean2 = 0.406;
+      const invStd0 = 1.0 / 0.229, invStd1 = 1.0 / 0.224, invStd2 = 1.0 / 0.225;
+      const normBlack0 = (0 - mean0) * invStd0;
+      const normBlack1 = (0 - mean1) * invStd1;
+      const normBlack2 = (0 - mean2) * invStd2;
 
       for (let b = 0; b < B; b++) {
-        const cellTensor = cropAndSquarePadCell(sourceImage, cells[b].bbox, targetSize);
-        batchData.set(cellTensor, b * patchSize);
+        const [minY, minX, maxY, maxX] = cells[b].bbox;
+        const validX0 = Math.max(0, Math.min(srcW - 1, minX));
+        const validY0 = Math.max(0, Math.min(srcH - 1, minY));
+        const validX1 = Math.max(0, Math.min(srcW, maxX + 1));
+        const validY1 = Math.max(0, Math.min(srcH, maxY + 1));
+
+        const validW = Math.max(1, validX1 - validX0);
+        const validH = Math.max(1, validY1 - validY0);
+
+        const s = Math.max(validW, validH);
+        const scale = targetSize / s;
+        const dw = validW * scale;
+        const dh = validH * scale;
+        const dx0 = (targetSize - dw) * 0.5;
+        const dy0 = (targetSize - dh) * 0.5;
+        const dx1 = dx0 + dw;
+        const dy1 = dy0 + dh;
+
+        const bOffset = b * patchSize;
+        const ch0Offset = bOffset;
+        const ch1Offset = bOffset + stride;
+        const ch2Offset = bOffset + stride * 2;
+
+        const invScale = 1.0 / scale;
+
+        for (let py = 0; py < targetSize; py++) {
+          const rowOffset = py * targetSize;
+          if (py < dy0 || py >= dy1) {
+            for (let px = 0; px < targetSize; px++) {
+              const pIdx = rowOffset + px;
+              batchData[ch0Offset + pIdx] = normBlack0;
+              batchData[ch1Offset + pIdx] = normBlack1;
+              batchData[ch2Offset + pIdx] = normBlack2;
+            }
+          } else {
+            const srcY = Math.min(srcH - 1, Math.max(0, validY0 + Math.floor((py - dy0) * invScale)));
+            const srcRow = srcY * srcW * 4;
+            for (let px = 0; px < targetSize; px++) {
+              const pIdx = rowOffset + px;
+              if (px < dx0 || px >= dx1) {
+                batchData[ch0Offset + pIdx] = normBlack0;
+                batchData[ch1Offset + pIdx] = normBlack1;
+                batchData[ch2Offset + pIdx] = normBlack2;
+              } else {
+                const srcX = Math.min(srcW - 1, Math.max(0, validX0 + Math.floor((px - dx0) * invScale)));
+                const srcIdx = srcRow + (srcX * 4);
+                batchData[ch0Offset + pIdx] = ((srcData[srcIdx] / 255.0) - mean0) * invStd0;
+                batchData[ch1Offset + pIdx] = ((srcData[srcIdx + 1] / 255.0) - mean1) * invStd1;
+                batchData[ch2Offset + pIdx] = ((srcData[srcIdx + 2] / 255.0) - mean2) * invStd2;
+              }
+            }
+          }
+        }
       }
 
       return new ort.Tensor('float32', batchData, [B, 3, targetSize, targetSize]);
@@ -2189,7 +2309,7 @@
         : cells;
       const total = targetCells.length;
       const results = [];
-      const CHUNK_SIZE = 16;
+      const CHUNK_SIZE = 32;
       const numChunks = Math.ceil(total / CHUNK_SIZE);
 
       console.log(`[${new Date().toISOString()}] [Stage 2 Swin-T] Starting classification for ${total} cells in ${numChunks} chunks (CHUNK_SIZE=${CHUNK_SIZE})...`);
