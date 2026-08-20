@@ -4,10 +4,7 @@ node_modules/
 *.onnx.data
 *.pth
 *.bin
-
-# Allow chunked model parts and manifests (under 25MB each)
-!assets/*.part*
-!assets/*.manifest.json
-!assets/cellpose_cpsam_v2_external.onnx
-!assets/cellpose_cpsam_v2_scales.bin
-!assets/cellpose_cpsam_v2_dequant_meta.json
+*.part*
+assets/*.bin
+assets/*.onnx
+assets/*.part*

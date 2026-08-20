@@ -92,47 +92,10 @@ const fs = require('fs');
     };
   });
 
-  // Test 3: Test Chunked Streaming & Merging for SAM-v2 ViT (10 parts)
-  const chunkLoad = await page.evaluate(async () => {
-    const chunkReports = [];
-    const res = await fetchOrGetCachedModel('assets/cellpose_cpsam_v2_int8.onnx', 'Cellpose SAM-v2 ViT (INT8)', (percent, rec, total) => {
-      chunkReports.push(percent);
-    });
-    const registry = JSON.parse(localStorage.getItem('LYNCEUS_MODEL_REGISTRY') || '{}');
-    return {
-      fileName: 'cellpose_cpsam_v2_int8.onnx',
-      hash: res.hash,
-      cacheKey: res.cacheKey,
-      fromCache: res.fromCache,
-      registryHash: registry['cellpose_cpsam_v2_int8.onnx'],
-      byteLength: res.buffer.byteLength,
-      chunkReports
-    };
-  });
-
-  assert.strictEqual(chunkLoad.fromCache, false, 'First chunked load should not be from cache');
-  assert.strictEqual(chunkLoad.hash, '8c51f729d4202f9b32418b4c7b197284cf35963069fd58fcaa4dadc287fd351a', 'Concatenated SHA-256 hash must match ground truth');
-  assert(chunkLoad.byteLength > 290 * 1024 * 1024, 'Merged buffer must contain all ~299 MB of the 10 chunks');
-  assert(chunkLoad.chunkReports.includes(100), 'Chunked progress should reach 100%');
-  console.log(`  ✓ Chunked Model Download: 10 chunks merged into ${(chunkLoad.byteLength / 1e6).toFixed(2)} MB buffer`);
-  console.log(`  ✓ Bit-for-bit SHA-256 Validated: ${chunkLoad.hash}`);
-  console.log(`  ✓ Chunk Progress Events: [${chunkLoad.chunkReports.join(', ')}]%`);
-
-  // Test 4: Verify Chunked Model is cached in IndexedDB
-  const chunkCached = await page.evaluate(async () => {
-    const res = await fetchOrGetCachedModel('assets/cellpose_cpsam_v2_int8.onnx', 'Cellpose SAM-v2 ViT (INT8)');
-    return {
-      fromCache: res.fromCache,
-      byteLength: res.buffer.byteLength
-    };
-  });
-  assert.strictEqual(chunkCached.fromCache, true, 'Subsequent chunked model load must hit persistent cache');
-  console.log(`  ✓ Persistent Cache Hit for merged ViT: ${(chunkCached.byteLength / 1e6).toFixed(2)} MB in 0ms (0 network fetch)`);
-
-  // Test 5: Test Chunked Streaming & Merging for Swin Classifier (10 parts)
+  // Test 3: Test Chunked Streaming & Merging for Swin-T Classifier FP16 (5 parts)
   const swinChunkLoad = await page.evaluate(async () => {
     const swinReports = [];
-    const res = await fetchOrGetCachedModel('assets/swin_classifier.onnx', 'Swin Classifier', (percent) => {
+    const res = await fetchOrGetCachedModel('assets/swin_classifier_fp16.onnx', 'Swin-T Classifier (FP16)', (percent) => {
       swinReports.push(percent);
     });
     return {
@@ -144,12 +107,23 @@ const fs = require('fs');
   });
 
   assert.strictEqual(swinChunkLoad.fromCache, false, 'First chunked swin load should not be from cache');
-  assert.strictEqual(swinChunkLoad.hash, 'b4e5057c2ecbf381091569aea2ffca759c5addf1da81f41e624ccc94d9575344', 'Concatenated SHA-256 hash must match manifest');
-  assert(swinChunkLoad.byteLength > 100 * 1024 * 1024, 'Merged buffer must contain all ~107 MB of the 10 classifier chunks');
-  console.log(`  ✓ Swin Classifier 10-Chunk Download: 10 chunks merged into ${(swinChunkLoad.byteLength / 1e6).toFixed(2)} MB buffer`);
-  console.log(`  ✓ Swin Classifier SHA-256 Validated: ${swinChunkLoad.hash}`);
+  assert.strictEqual(swinChunkLoad.hash, 'd30708e1a69a0e269a7ab22e0fa129f629fb2d57899de0277fba23f3410de6a8', 'Concatenated SHA-256 hash must match manifest');
+  assert(swinChunkLoad.byteLength > 50 * 1024 * 1024, 'Merged buffer must contain all ~54 MB of the 5 classifier chunks');
+  console.log(`  ✓ Swin-T FP16 Classifier 5-Chunk Download: 5 chunks merged into ${(swinChunkLoad.byteLength / 1e6).toFixed(2)} MB buffer`);
+  console.log(`  ✓ Swin-T FP16 Classifier SHA-256 Validated: ${swinChunkLoad.hash}`);
 
-  // Test 6: Test Chunked Streaming & Merging for Cellpose SAM-v2 INT8 External Weights (10 parts)
+  // Test 4: Verify Chunked Swin is cached in IndexedDB
+  const swinCached = await page.evaluate(async () => {
+    const res = await fetchOrGetCachedModel('assets/swin_classifier_fp16.onnx', 'Swin-T Classifier (FP16)');
+    return {
+      fromCache: res.fromCache,
+      byteLength: res.buffer.byteLength
+    };
+  });
+  assert.strictEqual(swinCached.fromCache, true, 'Subsequent chunked model load must hit persistent cache');
+  console.log(`  ✓ Persistent Cache Hit for merged Swin-T FP16: ${(swinCached.byteLength / 1e6).toFixed(2)} MB in 0ms (0 network fetch)`);
+
+  // Test 5: Test Chunked Streaming & Merging for Cellpose SAM-v2 INT8 External Weights (10 parts)
   const int8DataChunkLoad = await page.evaluate(async () => {
     const int8Reports = [];
     const res = await fetchOrGetCachedModel('assets/cellpose_cpsam_v2_data_int8.bin', 'Cellpose SAM-v2 INT8 Weights', (percent) => {
