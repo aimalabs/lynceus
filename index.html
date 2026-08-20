@@ -8,6 +8,13 @@
   <title>aimalabs • Lynceus | Digital Pathology & Hematology Reviewer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.all.min.js"></script>
+  <script src="assets/pako.min.js"></script>
+  <script src="assets/utif.js"></script>
+  <script>
+    if (typeof UTIF === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"><\/script>');
+    }
+  </script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -4374,14 +4381,16 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
 
     function loadSmearImage(file) {
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
+
+      const isTiff = (file.name && file.name.match(/\.tiff?$/i)) || file.type === 'image/tiff';
+
+      const applyLoadedImage = (imgSrc) => {
         const img = new Image();
         img.onload = () => {
           state.image = img;
           state.imageLoaded = true;
 
-          const fileName = file.name.replace(/\.[^/.]+$/, "");
+          const fileName = file.name ? file.name.replace(/\.[^/.]+$/, "") : "smear-image";
           if (state.metadata) {
             state.metadata.smearId = fileName;
           }
@@ -4405,11 +4414,67 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
           scheduleRender();
 
           pushHistory('Load Smear Image');
-          showToast(`✓ Smear image loaded: ${file.name} (annotations cleared)`);
+          showToast(`✓ Smear image loaded: ${file.name || 'image'} (annotations cleared)`);
         };
-        img.src = e.target.result;
+        img.onerror = () => {
+          showToast(`Failed to decode image: ${file.name || 'image'}`, 'warn');
+        };
+        img.src = imgSrc;
       };
-      reader.readAsDataURL(file);
+
+      if (isTiff) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            if (typeof UTIF === 'undefined') {
+              throw new Error('TIFF decoder library (UTIF) is not available.');
+            }
+            const buffer = e.target.result;
+            const ifds = UTIF.decode(buffer);
+            if (!ifds || ifds.length === 0) {
+              throw new Error('No readable image records found in TIFF.');
+            }
+            UTIF.decodeImage(buffer, ifds[0]);
+            const width = ifds[0].width || (ifds[0].t256 ? ifds[0].t256[0] : 0);
+            const height = ifds[0].height || (ifds[0].t257 ? ifds[0].t257[0] : 0);
+            if (!width || !height) {
+              throw new Error('Could not determine TIFF image dimensions.');
+            }
+            const rgba = UTIF.toRGBA8(ifds[0]);
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            const imgData = ctx.createImageData(width, height);
+            imgData.data.set(rgba);
+            ctx.putImageData(imgData, 0, 0);
+
+            canvas.toBlob((blob) => {
+              if (blob) {
+                applyLoadedImage(URL.createObjectURL(blob));
+              } else {
+                applyLoadedImage(canvas.toDataURL('image/png'));
+              }
+            }, 'image/png');
+          } catch (err) {
+            console.error('Failed to parse TIFF:', err);
+            showToast(`TIFF decode error: ${err.message || err}`, 'warn');
+          }
+        };
+        reader.onerror = () => {
+          showToast(`Failed to read file: ${file.name}`, 'warn');
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          applyLoadedImage(e.target.result);
+        };
+        reader.onerror = () => {
+          showToast(`Failed to read file: ${file.name}`, 'warn');
+        };
+        reader.readAsDataURL(file);
+      }
     }
 
     const btnExpJson = document.getElementById('btn-export-json');
@@ -4473,6 +4538,22 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
         }
       };
     }
+
+    // Drag & drop support for image and JSON files
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        if (file.name.endsWith('.json') || file.type === 'application/json') {
+          importAnnotationsJSON(file);
+        } else if (file.name.match(/\.(png|jpe?g|webp|tiff?)$/i) || file.type.startsWith('image/')) {
+          loadSmearImage(file);
+        }
+      }
+    });
 
     // Patient & Case Metadata Functions
     function updateDocumentTitle() {
