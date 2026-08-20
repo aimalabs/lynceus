@@ -70,16 +70,16 @@
 
           <!-- Quick Presets: Optimal for Telesphorus AI -->
           <div class="grid grid-cols-1 gap-1">
-            <button id="btn-preset-ai-filters" class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#38bdf8]/10 hover:bg-[#38bdf8]/20 border border-[#38bdf8]/30 text-[#38bdf8] text-left transition text-[11px]" data-help="May-Giemsa AI Pipeline|Why combined: FOV Crop strips dark corners so background stats aren't skewed; Reinhard LAB standardizes luminance/chroma variance across staining batches; 4×4 CLAHE amplifies fine nuclear chromatin granules without washing out cytoplasm.|MAY-GIEMSA">
+            <button id="btn-preset-ai-filters" class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#38bdf8]/10 hover:bg-[#38bdf8]/20 border border-[#38bdf8]/30 text-[#38bdf8] text-left transition text-[11px]" data-help="May-Giemsa AI Preset|When to use: Select for standard clinical May-Grünwald Giemsa (MGG) blood or bone marrow smears, especially slides captured across different microscope light sources or circular ocular fields.|MAY-GIEMSA">
               <span class="flex items-center space-x-1.5 min-w-0">
                 <svg width="13" height="13" class="shrink-0 text-[#38bdf8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path></svg>
-                <span class="font-bold truncate">⚡ May-Giemsa AI (CLAHE + FOV + LAB)</span>
+                <span class="font-bold truncate">⚡ May-Giemsa AI (Standard Smears)</span>
               </span>
             </button>
-            <button id="btn-preset-romanowski-filters" class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#ec4899]/10 hover:bg-[#ec4899]/20 border border-[#ec4899]/30 text-[#ec4899] text-left transition text-[11px]" data-help="Romanowski / Wright AI Pipeline|Why combined: Two-Tone Fix softens hyper-saturated purple dye precipitates before they skew global stats; Reinhard LAB maps the corrected smear onto standard May-Giemsa reference space; FOV Crop removes rim artifacts; 4×4 CLAHE sharpens chromatin texture.|ROMANOWSKI">
+            <button id="btn-preset-romanowski-filters" class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#ec4899]/10 hover:bg-[#ec4899]/20 border border-[#ec4899]/30 text-[#ec4899] text-left transition text-[11px]" data-help="Romanowski / Wright AI Preset|When to use: Select for Wright, Wright-Giemsa, Leishman, or Field stained smears displaying deep purple dye precipitates, overstaining, or dark optical borders.|ROMANOWSKI">
               <span class="flex items-center space-x-1.5 min-w-0">
                 <svg width="13" height="13" class="shrink-0 text-[#ec4899]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"></path><path d="M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z"></path></svg>
-                <span class="font-bold truncate">⚡ Romanowski AI (All LAB Fixes)</span>
+                <span class="font-bold truncate">⚡ Romanowski AI (Precipitate / Wright)</span>
               </span>
             </button>
           </div>
@@ -690,20 +690,20 @@
         <div class="p-3 rounded-xl bg-[#38bdf8]/10 border border-[#38bdf8]/30 space-y-2">
           <div class="flex items-center space-x-1.5 font-bold text-[#38bdf8] text-[11px]">
             <svg width="14" height="14" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-            <span>Why Preprocessing Filters Complement Telesphorus AI</span>
+            <span>When to Apply Preprocessing Presets</span>
           </div>
           <p class="text-[10px] text-[#e2e8f0] leading-relaxed">
-            Telesphorus runs inference directly on the <b>active filtered canvas</b>. Combining complementary filters eliminates physical imaging artifacts and standardizes staining variations:
+            Telesphorus runs inference directly on the <b>active filtered canvas</b>. Choose the preset tailored to your slide preparation:
           </p>
           <ul class="text-[10px] text-[#94a3b8] space-y-1.5 list-disc list-inside">
             <li>
-              <b class="text-white">FOV Crop + Reinhard LAB</b>: FOV Crop strips unilluminated dark corners so peripheral black pixels do not distort the global $(\mu, \sigma)$ calculations of Reinhard LAB normalization.
+              <b class="text-white">⚡ May-Giemsa AI Preset</b>: Use for standard clinical May-Grünwald Giemsa (MGG) peripheral blood or bone marrow slides to normalize varying illumination, circular microscope apertures, and camera sensors across different laboratories.
             </li>
             <li>
-              <b class="text-white">Reinhard LAB + 4×4 CLAHE</b>: Reinhard maps cross-laboratory stain intensity onto the standard May-Giemsa reference distribution, allowing 4×4 CLAHE to amplify subtle intra-nuclear chromatin texture and cytoplasmic granules without clipping or bleaching.
+              <b class="text-white">⚡ Romanowski AI Preset</b>: Use for Wright, Wright-Giemsa, Leishman, or Field stained smears displaying deep purple/azure dye precipitation, overstaining, or false platelet-like debris.
             </li>
             <li>
-              <b class="text-white">Two-Tone Dye Fix (Romanowski)</b>: Detects and softens hyper-concentrated purple dye precipitates in LAB chrominance space before Reinhard normalization, preventing false platelet clump detections and blast vs lymphocyte misclassifications.
+              <b class="text-white">Raw RGB (True Color)</b>: Use for pre-calibrated digital whole-slide scanners (WSI) that already provide flat-field illumination, white balancing, and rectangular border cropping.
             </li>
           </ul>
         </div>
