@@ -1703,9 +1703,11 @@
       const scalesBuf = await scalesResp.arrayBuffer();
       const scalesFp16 = new Float16Array(scalesBuf);
 
-      if (onProgress) onProgress(10, 100, meta.int8Bytes);
-      const int8Resp = await fetch('assets/cellpose_cpsam_v2_data_int8.bin');
-      const int8Buf = await int8Resp.arrayBuffer();
+      const { buffer: int8Buf } = await fetchOrGetCachedModel(
+        'assets/cellpose_cpsam_v2_data_int8.bin',
+        'Cellpose SAM-v2 INT8 Weights',
+        onProgress
+      );
       const int8Arr = new Int8Array(int8Buf);
 
       if (onProgress) onProgress(60, 100, meta.int8Bytes);
@@ -2414,10 +2416,11 @@
         : cells;
       const total = targetCells.length;
       const results = [];
-      const CHUNK_SIZE = 32;
+      // WebGPU accelerated batch execution: all segmented cells processed in a single monolithic forward pass
+      const CHUNK_SIZE = total > 0 ? total : 256;
       const numChunks = Math.ceil(total / CHUNK_SIZE);
 
-      console.log(`[${new Date().toISOString()}] [Stage 2 Swin-T] Starting classification for ${total} cells in ${numChunks} chunks (CHUNK_SIZE=${CHUNK_SIZE})...`);
+      console.log(`[${new Date().toISOString()}] [Stage 2 Swin-T] Starting classification for ${total} cells in a single WebGPU forward pass (B=${total})...`);
 
       for (let offset = 0; offset < total; offset += CHUNK_SIZE) {
         if (shouldAbort && shouldAbort()) {
@@ -2438,7 +2441,7 @@
         const runElapsed = (performance.now() - tRun0).toFixed(1);
         const perCellMs = (parseFloat(runElapsed) / B).toFixed(1);
 
-        console.log(`[${new Date().toISOString()}] [Stage 2 Swin-T] Chunk ${chunkIndex}/${numChunks} (${B} cells) -> Prep: ${prepElapsed}ms, Forward Pass: ${runElapsed}ms (${perCellMs}ms/cell)`);
+        console.log(`[${new Date().toISOString()}] [Stage 2 Swin-T] Forward Pass (${B} cells) -> Prep: ${prepElapsed}ms, Run: ${runElapsed}ms (${perCellMs}ms/cell)`);
 
         if (onProgress) {
           onProgress(chunkIndex, numChunks);

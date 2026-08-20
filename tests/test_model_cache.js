@@ -31,11 +31,12 @@ const fs = require('fs');
   const browser = await puppeteer.launch({
     executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     headless: true,
-    protocolTimeout: 60000,
+    protocolTimeout: 120000,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--enable-unsafe-webgpu'
+      '--enable-unsafe-webgpu',
+      '--js-flags=--max-old-space-size=4096'
     ]
   });
 
@@ -147,6 +148,30 @@ const fs = require('fs');
   assert(swinChunkLoad.byteLength > 100 * 1024 * 1024, 'Merged buffer must contain all ~107 MB of the 10 classifier chunks');
   console.log(`  ✓ Swin Classifier 10-Chunk Download: 10 chunks merged into ${(swinChunkLoad.byteLength / 1e6).toFixed(2)} MB buffer`);
   console.log(`  ✓ Swin Classifier SHA-256 Validated: ${swinChunkLoad.hash}`);
+
+  // Test 6: Test Chunked Streaming & Merging for Cellpose SAM-v2 INT8 External Weights (10 parts)
+  const int8DataChunkLoad = await page.evaluate(async () => {
+    const int8Reports = [];
+    const res = await fetchOrGetCachedModel('assets/cellpose_cpsam_v2_data_int8.bin', 'Cellpose SAM-v2 INT8 Weights', (percent) => {
+      int8Reports.push(percent);
+    });
+    const registry = JSON.parse(localStorage.getItem('LYNCEUS_MODEL_REGISTRY') || '{}');
+    return {
+      fileName: 'cellpose_cpsam_v2_data_int8.bin',
+      hash: res.hash,
+      cacheKey: res.cacheKey,
+      fromCache: res.fromCache,
+      registryHash: registry['cellpose_cpsam_v2_data_int8.bin'],
+      byteLength: res.buffer.byteLength,
+      int8Reports
+    };
+  });
+
+  assert.strictEqual(int8DataChunkLoad.fromCache, false, 'First chunked INT8 data load should not be from cache');
+  assert.strictEqual(int8DataChunkLoad.hash, '8a15627ca822ffdcd2978c9bafd837e56674aa44ee3793e8ee1944cf9b44f828', 'Concatenated SHA-256 hash must match manifest');
+  assert.strictEqual(int8DataChunkLoad.byteLength, 304628928, 'Merged INT8 data buffer length must match 304,628,928 bytes');
+  console.log(`  ✓ Cellpose CPSAM INT8 Data 10-Chunk Download: 10 chunks merged into ${(int8DataChunkLoad.byteLength / 1e6).toFixed(2)} MB buffer`);
+  console.log(`  ✓ Cellpose CPSAM INT8 Data SHA-256 Validated: ${int8DataChunkLoad.hash}`);
 
   await browser.close();
   server.close();

@@ -1,0 +1,70 @@
+{
+  "modelName": "cellpose_cpsam_v2_data_int8.bin",
+  "totalBytes": 304628928,
+  "totalSizeMB": 290.52,
+  "chunkSizeBytes": 30462893,
+  "numChunks": 10,
+  "sha256": "8a15627ca822ffdcd2978c9bafd837e56674aa44ee3793e8ee1944cf9b44f828",
+  "chunks": [
+    {
+      "index": 0,
+      "fileName": "cellpose_cpsam_v2_data_int8.bin.part0",
+      "bytes": 30462893,
+      "sha256": "755786fa93ed293995344a9b61116097ea8a31121e97e8ae28f288904db6b155"
+    },
+    {
+      "index": 1,
+      "fileName": "cellpose_cpsam_v2_data_int8.bin.part1",
+      "bytes": 30462893,
+      "sha256": "1ac301d245994fe5393bf2a973b8cc218563c3a47511d3e1fc80809303663e7f"
+    },
+    {
+      "index": 2,
+      "fileName": "cellpose_cpsam_v2_data_int8.bin.part2",
+      "bytes": 30462893,
+      "sha256": "a858158aec60385de9567c1fa3680a7184715910c01cfe6213a171c963748c66"
+    },
+    {
+      "index": 3,
+      "fileName": "cellpose_cpsam_v2_data_int8.bin.part3",
+      "bytes": 30462893,
+      "sha256": "154b7f0621568962e996b4b36b1430e66b9736b59b321ee785c44acc3acb2e54"
+    },
+    {
+      "index": 4,
+      "fileName": "cellpose_cpsam_v2_data_int8.bin.part4",
+      "bytes": 30462893,
+      "sha256": "e3d909232005f668d5c5b863d07f5697d4a1029d16a421eecacaea17bb657ac2"
+    },
+    {
+      "index": 5,
+      "fileName": "cellpose_cpsam_v2_data_int8.bin.part5",
+      "bytes": 30462893,
+      "sha256": "8d1d8b28b617b6c05b7493f560e00b4ad3387563982ee8555b0945a47a9fc7bb"
+    },
+    {
+      "index": 6,
+      "fileName": "cellpose_cpsam_v2_data_int8.bin.part6",
+      "bytes": 30462893,
+      "sha256": "92f545866bbefc0f03899e85c70325f041c9f2a78631f71a8160edaf5818acde"
+    },
+    {
+      "index": 7,
+      "fileName": "cellpose_cpsam_v2_data_int8.bin.part7",
+      "bytes": 30462893,
+      "sha256": "d3f29e5870861731e8ae0c498e9664c957bb8875b3ddad58d3e7e02ecc255d6f"
+    },
+    {
+      "index": 8,
+      "fileName": "cellpose_cpsam_v2_data_int8.bin.part8",
+      "bytes": 30462893,
+      "sha256": "79bd175e768601558aadda602f76b1a1afdf24520bc45a24624e0cae0eaa756a"
+    },
+    {
+      "index": 9,
+      "fileName": "cellpose_cpsam_v2_data_int8.bin.part9",
+      "bytes": 30462891,
+      "sha256": "b4b1b7b558dee1d36fb8adc272842baa4d0b04241a47486e325d7a6673271f4c"
+    }
+  ]
+}
