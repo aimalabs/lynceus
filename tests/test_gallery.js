@@ -34,13 +34,13 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert.strictEqual(initialThumbnails, 40, 'Gallery should render 40 thumbnail cards');
 
     // 3. Test Gallery Lineage Filtering (Filter by NEU)
-    await page.click('button[data-gallery-filter="neutrophil"]');
+    await page.click('button[data-gallery-filter="neutrophils"]');
     const neuThumbnails = await page.$$eval('#gallery-grid > div', els => els.length);
     console.log('  ✓ Filtered NEU Thumbnails Count:', neuThumbnails);
     assert.strictEqual(neuThumbnails, 10, 'There should be 10 Neutrophil thumbnails');
 
     // 4. Test Filter by BLA (Blasts)
-    await page.click('button[data-gallery-filter="blast"]');
+    await page.click('button[data-gallery-filter="blasts"]');
     const blastThumbnails = await page.$$eval('#gallery-grid > div', els => els.length);
     console.log('  ✓ Filtered Blast Thumbnails Count:', blastThumbnails);
     assert.strictEqual(blastThumbnails, 2, 'There should be 2 Blast thumbnails');
@@ -51,14 +51,14 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert(cardHeight >= 100 && cardHeight <= 135, 'Gallery card height should be tightly packed without vertical stretching');
 
     // 5. Test Real-time MON tab live synchronization when adding/modifying cells
-    await page.click('button[data-gallery-filter="monocyte"]');
+    await page.click('button[data-gallery-filter="monocytes"]');
     const initialMonCount = await page.$$eval('#gallery-grid > div', els => els.length);
     console.log('  ✓ Initial Monocyte Gallery Count:', initialMonCount);
     assert.strictEqual(initialMonCount, 3, 'Should start with 3 Monocytes');
 
     // Set active lineage to monocyte and add a new Monocyte bounding box
     await page.evaluate(() => {
-      window.__CYTO_APP__.state.activeClassId = 'monocyte';
+      window.__CYTO_APP__.state.activeClassId = 'monocytes';
       window.__CYTO_APP__.addCellAnnotation(700, 500, 60, 60, 'box');
     });
 

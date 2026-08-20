@@ -127,6 +127,26 @@ const fs = require('fs');
   assert.strictEqual(chunkCached.fromCache, true, 'Subsequent chunked model load must hit persistent cache');
   console.log(`  ✓ Persistent Cache Hit for merged ViT: ${(chunkCached.byteLength / 1e6).toFixed(2)} MB in 0ms (0 network fetch)`);
 
+  // Test 5: Test Chunked Streaming & Merging for Swin Classifier (10 parts)
+  const swinChunkLoad = await page.evaluate(async () => {
+    const swinReports = [];
+    const res = await fetchOrGetCachedModel('assets/swin_classifier.onnx', 'Swin Classifier', (percent) => {
+      swinReports.push(percent);
+    });
+    return {
+      hash: res.hash,
+      byteLength: res.buffer.byteLength,
+      fromCache: res.fromCache,
+      swinReports
+    };
+  });
+
+  assert.strictEqual(swinChunkLoad.fromCache, false, 'First chunked swin load should not be from cache');
+  assert.strictEqual(swinChunkLoad.hash, 'b4e5057c2ecbf381091569aea2ffca759c5addf1da81f41e624ccc94d9575344', 'Concatenated SHA-256 hash must match manifest');
+  assert(swinChunkLoad.byteLength > 100 * 1024 * 1024, 'Merged buffer must contain all ~107 MB of the 10 classifier chunks');
+  console.log(`  ✓ Swin Classifier 10-Chunk Download: 10 chunks merged into ${(swinChunkLoad.byteLength / 1e6).toFixed(2)} MB buffer`);
+  console.log(`  ✓ Swin Classifier SHA-256 Validated: ${swinChunkLoad.hash}`);
+
   await browser.close();
   server.close();
   console.log('🎉 Persistent Model Cache & SHA-256 Hashing test PASSED successfully!\n');

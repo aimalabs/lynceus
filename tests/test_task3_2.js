@@ -72,7 +72,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert.strictEqual(inspInfo.area, '154.2 µm²', 'Inspector area should match mock data');
 
     // 3. Test Reclassification in Inspector (Reclassify c-01 to Monocyte)
-    await page.click('button[data-reclass="monocyte"]');
+    await page.click('button[data-reclass="monocytes"]');
 
     const afterReclass = await page.evaluate(() => {
       const ann = window.__CYTO_APP__.state.annotations.find(a => a.id === 'c-01');
@@ -83,7 +83,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
       };
     });
     console.log('  ✓ After Reclassifying to Monocyte:', afterReclass);
-    assert.strictEqual(afterReclass.classId, 'monocyte', 'Annotation classId should now be monocyte');
+    assert.strictEqual(afterReclass.classId, 'monocytes', 'Annotation classId should now be monocytes');
     assert(afterReclass.inspName.includes('Monocyte'), 'Inspector should update to Monocyte');
 
     // 4. Test Cell Selection & Deletion via Keyboard (Delete selected cell c-01)

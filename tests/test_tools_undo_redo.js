@@ -124,10 +124,10 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     await page.evaluate(id => window.__CYTO_APP__.selectCell(id), firstCell.id);
 
     const originalClass = firstCell.classId;
-    await page.evaluate((id) => window.__CYTO_APP__.reclassifyCell(id, 'monocyte'), firstCell.id);
+    await page.evaluate((id) => window.__CYTO_APP__.reclassifyCell(id, 'monocytes'), firstCell.id);
 
     let reclassedClass = await page.evaluate(id => window.__CYTO_APP__.state.annotations.find(a => a.id === id).classId, firstCell.id);
-    assert.strictEqual(reclassedClass, 'monocyte', 'Cell should be reclassified to monocyte');
+    assert.strictEqual(reclassedClass, 'monocytes', 'Cell should be reclassified to monocyte');
     console.log('  ✓ Cell reclassified to monocyte');
 
     await page.evaluate(() => window.__CYTO_APP__.undo());
@@ -137,7 +137,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
 
     await page.evaluate(() => window.__CYTO_APP__.redo());
     reclassedClass = await page.evaluate(id => window.__CYTO_APP__.state.annotations.find(a => a.id === id).classId, firstCell.id);
-    assert.strictEqual(reclassedClass, 'monocyte', 'Redo should restore reclassification');
+    assert.strictEqual(reclassedClass, 'monocytes', 'Redo should restore reclassification');
     console.log('  ✓ Redo reclassification verified');
 
     console.log('🎉 All Tool Add / Delete / Undo / Redo tests PASSED successfully!\n');

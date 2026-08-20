@@ -42,7 +42,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     // 3. Verify Taxonomy Rendered
     const taxonomyCount = await page.$$eval('#taxonomy-list > div', els => els.length);
     console.log('  ✓ Taxonomy Count in Sidebar:', taxonomyCount);
-    assert.strictEqual(taxonomyCount, 8, 'There should be 8 cell classes rendered in taxonomy');
+    assert.strictEqual(taxonomyCount, 20, 'There should be 20 cell classes rendered in taxonomy');
 
     // 4. Verify __CYTO_APP__ Global State
     const appState = await page.evaluate(() => {
@@ -53,7 +53,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
       };
     });
     console.log('  ✓ App State Check:', appState);
-    assert.strictEqual(appState.taxonomyLength, 8, 'State taxonomy should have 8 classes');
+    assert.strictEqual(appState.taxonomyLength, 20, 'State taxonomy should have 20 classes');
     assert(appState.annotationsLength > 0, 'Should have initial annotations');
 
     // 5. Verify Canvas

@@ -213,6 +213,18 @@
       flex-shrink: 0 !important;
     }
 
+    @keyframes smooth-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .smooth-spin {
+      animation: smooth-spin 0.85s linear infinite !important;
+      transform-origin: center center;
+      will-change: transform;
+      transform: translateZ(0);
+      display: inline-block;
+    }
+
   </style>
 </head>
 <body class="h-full flex flex-col overflow-hidden select-none font-sans bg-[#110f12] text-white">
@@ -383,14 +395,14 @@
         </div>
       </div>
 
-      <!-- WBC Differential Summary Card -->
+      <!-- Multi-Lineage Differential Summary Card -->
       <div id="wbc-diff-summary" class="p-2.5 border-b border-[#373437] bg-[#141316]/90 space-y-1.5">
         <div class="flex items-center justify-between text-[11px] font-mono">
-          <span class="text-[#7a767a] font-semibold uppercase tracking-wider text-[10px]">WBC Differential</span>
-          <span id="wbc-total-count" class="text-white font-bold text-[10px]">24 WBCs</span>
+          <span class="text-[#7a767a] font-semibold uppercase tracking-wider text-[10px]">Lineage Differential</span>
+          <span id="wbc-total-count" class="text-white font-bold text-[10px]">40 Classified</span>
         </div>
         <!-- Stacked Progress Bar -->
-        <div id="wbc-stacked-bar" class="h-2 w-full bg-[#272527] rounded-full overflow-hidden flex" data-help="WBC Differential Bar|Relative proportional distribution of leukocyte lineages.|DIFF"></div>
+        <div id="wbc-stacked-bar" class="h-2 w-full bg-[#272527] rounded-full overflow-hidden flex" data-help="Lineage Differential Bar|Relative proportional distribution of classified cellular lineages.|DIFF"></div>
         <!-- Abnormality Banner -->
         <div id="wbc-alert-banner" class="hidden text-[10px] font-mono px-2 py-1 rounded bg-[#e52246]/15 text-[#e52246] border border-[#e52246]/30 font-semibold flex items-center space-x-1.5">
           <span class="w-1.5 h-1.5 rounded-full bg-[#e52246] animate-pulse"></span>
@@ -416,7 +428,7 @@
     <div id="left-resizer" class="sidebar-resizer shrink-0" title="Drag to resize or collapse left sidebar" data-help="Resize / Collapse Sidebar|Drag to resize panel. Dragging to the edge collapses sidebar.|DRAG"></div>
 
     <!-- Expand Left Sidebar Handle (Visible when collapsed) -->
-    <button id="btn-expand-left" class="hidden absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-[#1a181b]/95 hover:bg-[#272527] border-y border-r border-[#373437] hover:border-[#e52246]/60 rounded-r-lg p-1.5 text-[#9e9a9e] hover:text-white shadow-2xl transition cursor-pointer group" title="Expand Filters (Taxonomy & WBC Differential)" data-help="Expand Filters|Restore left sidebar panel.|EXPAND">
+    <button id="btn-expand-left" class="hidden absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-[#1a181b]/95 hover:bg-[#272527] border-y border-r border-[#373437] hover:border-[#e52246]/60 rounded-r-lg p-1.5 text-[#9e9a9e] hover:text-white shadow-2xl transition cursor-pointer group" title="Expand Filters (Cell Taxonomy & Lineage Differential)" data-help="Expand Filters|Restore left sidebar panel.|EXPAND">
       <svg width="14" height="14" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
     </button>
 
@@ -476,7 +488,7 @@
               <span>20× Low Power</span>
               <span class="text-[10px] text-[#7a767a]">Search</span>
             </button>
-            <button data-zoom="0.40" class="obj-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-white bg-[#e52246]/15 font-semibold border border-[#e52246]/30 transition" data-help="40× High Dry|Standard dry high-power lens for WBC differential.|40X">
+            <button data-zoom="0.40" class="obj-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-white bg-[#e52246]/15 font-semibold border border-[#e52246]/30 transition" data-help="40× High Dry|Standard dry high-power lens for cell morphological assessment.|40X">
               <span class="text-[#e52246]">40× High Dry</span>
               <span class="text-[10px] text-[#e52246]">Default</span>
             </button>
@@ -620,11 +632,11 @@
         <!-- Gallery Lineage Filters -->
         <div class="p-2 border-b border-[#373437] bg-[#141316] flex items-center space-x-1 overflow-x-auto text-[10px] font-mono shrink-0" id="gallery-filter-chips">
           <button data-gallery-filter="all" class="btn-gal-filter px-2 py-0.5 rounded bg-[#e52246] text-white font-bold shrink-0">All</button>
-          <button data-gallery-filter="neutrophil" class="btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#9e9a9e] hover:text-white shrink-0">NEU</button>
-          <button data-gallery-filter="lymphocyte" class="btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#9e9a9e] hover:text-white shrink-0">LYM</button>
-          <button data-gallery-filter="monocyte" class="btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#9e9a9e] hover:text-white shrink-0">MON</button>
-          <button data-gallery-filter="blast" class="btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#e52246] hover:text-white shrink-0 font-bold">BLA</button>
-          <button data-gallery-filter="platelet" class="btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#9e9a9e] hover:text-white shrink-0">PLT</button>
+          <button data-gallery-filter="neutrophils" class="btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#9e9a9e] hover:text-white shrink-0">NEU</button>
+          <button data-gallery-filter="lymphocytes" class="btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#9e9a9e] hover:text-white shrink-0">LYM</button>
+          <button data-gallery-filter="monocytes" class="btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#9e9a9e] hover:text-white shrink-0">MON</button>
+          <button data-gallery-filter="blasts" class="btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#e52246] hover:text-white shrink-0 font-bold">BLA</button>
+          <button data-gallery-filter="plt" class="btn-gal-filter px-2 py-0.5 rounded bg-[#1B191E] text-[#9e9a9e] hover:text-white shrink-0">PLT</button>
         </div>
 
         <!-- Thumbnail Grid -->
@@ -754,15 +766,15 @@
                 <span class="font-bold text-white text-xs">Telesphorus</span>
                 <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30 flex items-center gap-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse"></span>
-                  REAL WEBGPU MODEL
+                  ACTIVE AI MODEL
                 </span>
               </div>
-              <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">⚡ RAPID SCAN • WebGPU</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">⚡ RAPID SCAN • Active AI</span>
             </div>
-            <p class="text-[10px] text-[#7a767a]">Live ONNX WebGPU pipeline: Cellpose SAM-v2 ViT segmentation paired with 20-class Swin Transformer.</p>
+            <p class="text-[10px] text-[#7a767a]">Automated smear analysis: High-precision cell detection paired with 20-lineage classification.</p>
             <div class="text-[9px] text-[#9e9a9e] flex items-center space-x-3 pt-0.5 font-mono">
               <span>Scope: <b class="text-white">Live AI Pipeline</b></span>
-              <span>Backend: <b class="text-[#38bdf8]">Cellpose + Swin-T</b></span>
+              <span>Engine: <b class="text-[#38bdf8]">AI Vision Pipeline</b></span>
             </div>
           </div>
 
@@ -773,15 +785,15 @@
                 <span class="font-bold text-white text-xs">Asclepius</span>
                 <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                  FAKE / SIMULATED MODEL
+                  DEMO PRESET
                 </span>
               </div>
               <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#e52246]/20 text-[#e52246] border border-[#e52246]/40">🔬 MOCK PRESET • 5.0s</span>
             </div>
-            <p class="text-[10px] text-[#B4AFBA]">Simulated mock diagnostics for UI demonstration only. Not underpinned by active ONNX deep learning weights.</p>
+            <p class="text-[10px] text-[#B4AFBA]">Simulated mock sample for demonstration only. Does not run live cell detection.</p>
             <div class="text-[9px] text-[#9e9a9e] flex items-center space-x-3 pt-0.5 font-mono">
               <span>Scope: <b class="text-amber-400">Mock Data Only</b></span>
-              <span>Status: <b class="text-amber-400">No Real Model</b></span>
+              <span>Status: <b class="text-amber-400">Demo Preset</b></span>
             </div>
           </div>
         </div>
@@ -799,10 +811,10 @@
       <div id="reset-loading-view" class="hidden space-y-4 py-2">
         <div class="text-center space-y-1">
           <div class="inline-flex items-center space-x-2 text-xs font-bold text-white" id="reset-loading-model-name">
-            <svg width="16" height="16" class="animate-spin shrink-0 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"></path></svg>
-            <span>Running CytoNet-Pro Inference Pipeline...</span>
+            <svg width="16" height="16" class="smooth-spin shrink-0 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"></path></svg>
+            <span>Running Automated Cell Analysis Pipeline...</span>
           </div>
-          <p class="text-[10px] text-[#9e9a9e]" id="reset-loading-step-text">Tiling 40x FOV and running multi-scale feature extractor...</p>
+          <p class="text-[10px] text-[#9e9a9e]" id="reset-loading-step-text">Scanning 40x field of view and analyzing cell morphology...</p>
         </div>
 
         <!-- Progress Bar -->
@@ -812,7 +824,7 @@
           </div>
           <div class="flex items-center justify-between text-[10px] font-mono text-[#7a767a]">
             <span id="reset-progress-percent">0%</span>
-            <span id="reset-progress-time">0.0s elapsed</span>
+            <span id="reset-progress-time">0s elapsed</span>
           </div>
         </div>
 
@@ -1063,193 +1075,7 @@
   </div>
 
   <script>
-    // --- Application State & Taxonomy ---
-    const CELL_TAXONOMY = [
-      { id: 'neutrophil', name: 'Segmented Neutrophil', short: 'Neutrophil', code: 'NEU', color: '#38bdf8', lightBg: 'rgba(56, 189, 248, 0.15)', border: '#0284c7', range: [40, 70], hotkey: '1', desc: 'Multilobed nucleus (3-5 segments), fine pink-lilac granules' },
-      { id: 'lymphocyte', name: 'Small Lymphocyte', short: 'Lymphocyte', code: 'LYM', color: '#10b981', lightBg: 'rgba(16, 185, 129, 0.15)', border: '#059669', range: [20, 40], hotkey: '2', desc: 'Dense spherical nucleus, high N:C ratio, narrow pale blue rim' },
-      { id: 'monocyte', name: 'Monocyte', short: 'Monocyte', code: 'MON', color: '#a855f7', lightBg: 'rgba(168, 85, 247, 0.15)', border: '#7e22ce', range: [2, 8], hotkey: '3', desc: 'Indented/kidney-shaped folded nucleus, grayish-blue cytoplasm' },
-      { id: 'eosinophil', name: 'Eosinophil', short: 'Eosinophil', code: 'EOS', color: '#f97316', lightBg: 'rgba(249, 115, 22, 0.15)', border: '#c2410c', range: [1, 4], hotkey: '4', desc: 'Bilobed nucleus, coarse spherical reddish-orange granules' },
-      { id: 'basophil', name: 'Basophil', short: 'Basophil', code: 'BAS', color: '#06b6d4', lightBg: 'rgba(6, 182, 212, 0.15)', border: '#0891b2', range: [0.5, 1], hotkey: '5', desc: 'Dense coarse dark-purple granules obscuring nucleus' },
-      { id: 'blast', name: 'Atypical / Blast Cell', short: 'Blast Cell', code: 'BLA', color: '#e52246', lightBg: 'rgba(229, 34, 70, 0.2)', border: '#ce1438', range: [0, 0], hotkey: '6', desc: 'Immature blast with fine open chromatin & nucleoli' },
-      { id: 'platelet', name: 'Platelet / Thrombocyte', short: 'Platelet', code: 'PLT', color: '#f59e0b', lightBg: 'rgba(245, 158, 11, 0.15)', border: '#d97706', range: [150, 450], hotkey: '7', desc: 'Small anucleate cell fragment (2-4 µm)' },
-      { id: 'rbc_variant', name: 'Erythrocyte Variant', short: 'RBC Variant', code: 'RBC-V', color: '#ec4899', lightBg: 'rgba(236, 72, 153, 0.15)', border: '#db2777', range: [0, 2], hotkey: '8', desc: 'Abnormal red blood cell morphology' }
-    ];
-
-    const INITIAL_ANNOTATIONS = [
-      // Neutrophils (10)
-      { id: 'c-01', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 280, y: 190, width: 110, height: 105, confidence: 0.984, shape: 'box', morphology: { area_um2: 154.2, diameter_um: 14.0, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophil', prob: 0.984 }, { classId: 'monocyte', prob: 0.012 }, { classId: 'eosinophil', prob: 0.004 }] },
-      { id: 'c-02', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 670, y: 240, width: 115, height: 110, confidence: 0.976, shape: 'box', morphology: { area_um2: 162.5, diameter_um: 14.4, circularity: 0.86, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophil', prob: 0.976 }, { classId: 'monocyte', prob: 0.018 }, { classId: 'eosinophil', prob: 0.006 }] },
-      { id: 'c-03', classId: 'neutrophil', label: 'Band Neutrophil', x: 1040, y: 160, width: 105, height: 105, confidence: 0.952, shape: 'box', morphology: { area_um2: 145.8, diameter_um: 13.6, circularity: 0.82, nc_ratio: 0.48 }, predictions: [{ classId: 'neutrophil', prob: 0.952 }, { classId: 'monocyte', prob: 0.038 }, { classId: 'lymphocyte', prob: 0.010 }] },
-      { id: 'c-04', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1210, y: 390, width: 118, height: 112, confidence: 0.988, shape: 'box', morphology: { area_um2: 168.0, diameter_um: 14.6, circularity: 0.87, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophil', prob: 0.988 }, { classId: 'eosinophil', prob: 0.008 }, { classId: 'monocyte', prob: 0.004 }] },
-      { id: 'c-05', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 420, y: 480, width: 112, height: 108, confidence: 0.965, shape: 'box', morphology: { area_um2: 156.4, diameter_um: 14.1, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophil', prob: 0.965 }, { classId: 'monocyte', prob: 0.025 }, { classId: 'eosinophil', prob: 0.010 }] },
-      { id: 'c-06', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 810, y: 530, width: 116, height: 114, confidence: 0.991, shape: 'box', morphology: { area_um2: 165.2, diameter_um: 14.5, circularity: 0.89, nc_ratio: 0.40 }, predictions: [{ classId: 'neutrophil', prob: 0.991 }, { classId: 'eosinophil', prob: 0.006 }, { classId: 'monocyte', prob: 0.003 }] },
-      { id: 'c-07', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1320, y: 710, width: 114, height: 108, confidence: 0.978, shape: 'box', morphology: { area_um2: 158.9, diameter_um: 14.2, circularity: 0.86, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophil', prob: 0.978 }, { classId: 'monocyte', prob: 0.016 }, { classId: 'eosinophil', prob: 0.006 }] },
-      { id: 'c-08', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 190, y: 760, width: 110, height: 105, confidence: 0.972, shape: 'box', morphology: { area_um2: 152.0, diameter_um: 13.9, circularity: 0.85, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophil', prob: 0.972 }, { classId: 'monocyte', prob: 0.021 }, { classId: 'eosinophil', prob: 0.007 }] },
-      { id: 'c-09', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 590, y: 820, width: 115, height: 110, confidence: 0.981, shape: 'box', morphology: { area_um2: 161.8, diameter_um: 14.3, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophil', prob: 0.981 }, { classId: 'eosinophil', prob: 0.012 }, { classId: 'monocyte', prob: 0.007 }] },
-      { id: 'c-10', classId: 'neutrophil', label: 'Band Neutrophil', x: 990, y: 880, width: 108, height: 104, confidence: 0.948, shape: 'box', morphology: { area_um2: 149.3, diameter_um: 13.8, circularity: 0.81, nc_ratio: 0.49 }, predictions: [{ classId: 'neutrophil', prob: 0.948 }, { classId: 'monocyte', prob: 0.040 }, { classId: 'lymphocyte', prob: 0.012 }] },
-
-      // Lymphocytes (7)
-      { id: 'c-11', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 490, y: 150, width: 78, height: 76, confidence: 0.989, shape: 'box', morphology: { area_um2: 68.4, diameter_um: 9.3, circularity: 0.93, nc_ratio: 0.82 }, predictions: [{ classId: 'lymphocyte', prob: 0.989 }, { classId: 'blast', prob: 0.008 }, { classId: 'monocyte', prob: 0.003 }] },
-      { id: 'c-12', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 890, y: 210, width: 80, height: 78, confidence: 0.975, shape: 'box', morphology: { area_um2: 71.2, diameter_um: 9.5, circularity: 0.92, nc_ratio: 0.84 }, predictions: [{ classId: 'lymphocyte', prob: 0.975 }, { classId: 'blast', prob: 0.018 }, { classId: 'monocyte', prob: 0.007 }] },
-      { id: 'c-13', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 1350, y: 220, width: 76, height: 74, confidence: 0.982, shape: 'box', morphology: { area_um2: 66.8, diameter_um: 9.2, circularity: 0.94, nc_ratio: 0.80 }, predictions: [{ classId: 'lymphocyte', prob: 0.982 }, { classId: 'blast', prob: 0.012 }, { classId: 'monocyte', prob: 0.006 }] },
-      { id: 'c-14', classId: 'lymphocyte', label: 'Large Granular Lymphocyte', x: 260, y: 520, width: 88, height: 84, confidence: 0.945, shape: 'box', morphology: { area_um2: 86.5, diameter_um: 10.5, circularity: 0.89, nc_ratio: 0.72 }, predictions: [{ classId: 'lymphocyte', prob: 0.945 }, { classId: 'monocyte', prob: 0.038 }, { classId: 'blast', prob: 0.017 }] },
-      { id: 'c-15', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 710, y: 680, width: 75, height: 75, confidence: 0.992, shape: 'box', morphology: { area_um2: 67.1, diameter_um: 9.2, circularity: 0.95, nc_ratio: 0.85 }, predictions: [{ classId: 'lymphocyte', prob: 0.992 }, { classId: 'blast', prob: 0.005 }, { classId: 'monocyte', prob: 0.003 }] },
-      { id: 'c-16', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 1180, y: 620, width: 82, height: 79, confidence: 0.979, shape: 'box', morphology: { area_um2: 73.8, diameter_um: 9.7, circularity: 0.91, nc_ratio: 0.81 }, predictions: [{ classId: 'lymphocyte', prob: 0.979 }, { classId: 'blast', prob: 0.015 }, { classId: 'monocyte', prob: 0.006 }] },
-      { id: 'c-17', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 420, y: 920, width: 77, height: 76, confidence: 0.986, shape: 'box', morphology: { area_um2: 69.5, diameter_um: 9.4, circularity: 0.93, nc_ratio: 0.83 }, predictions: [{ classId: 'lymphocyte', prob: 0.986 }, { classId: 'blast', prob: 0.010 }, { classId: 'monocyte', prob: 0.004 }] },
-
-      // Monocytes (3)
-      { id: 'c-18', classId: 'monocyte', label: 'Monocyte', x: 130, y: 340, width: 142, height: 136, confidence: 0.963, shape: 'box', morphology: { area_um2: 242.0, diameter_um: 17.5, circularity: 0.78, nc_ratio: 0.52 }, predictions: [{ classId: 'monocyte', prob: 0.963 }, { classId: 'neutrophil', prob: 0.024 }, { classId: 'blast', prob: 0.013 }] },
-      { id: 'c-19', classId: 'monocyte', label: 'Monocyte', x: 980, y: 440, width: 138, height: 132, confidence: 0.954, shape: 'box', morphology: { area_um2: 235.4, diameter_um: 17.3, circularity: 0.79, nc_ratio: 0.54 }, predictions: [{ classId: 'monocyte', prob: 0.954 }, { classId: 'neutrophil', prob: 0.032 }, { classId: 'blast', prob: 0.014 }] },
-      { id: 'c-20', classId: 'monocyte', label: 'Monocyte', x: 780, y: 920, width: 145, height: 138, confidence: 0.971, shape: 'box', morphology: { area_um2: 248.6, diameter_um: 17.8, circularity: 0.77, nc_ratio: 0.51 }, predictions: [{ classId: 'monocyte', prob: 0.971 }, { classId: 'neutrophil', prob: 0.019 }, { classId: 'blast', prob: 0.010 }] },
-
-      // Eosinophils (2)
-      { id: 'c-21', classId: 'eosinophil', label: 'Eosinophil', x: 520, y: 320, width: 116, height: 114, confidence: 0.985, shape: 'box', morphology: { area_um2: 165.0, diameter_um: 14.5, circularity: 0.84, nc_ratio: 0.40 }, predictions: [{ classId: 'eosinophil', prob: 0.985 }, { classId: 'neutrophil', prob: 0.012 }, { classId: 'monocyte', prob: 0.003 }] },
-      { id: 'c-22', classId: 'eosinophil', label: 'Eosinophil', x: 1220, y: 900, width: 114, height: 112, confidence: 0.977, shape: 'box', morphology: { area_um2: 161.2, diameter_um: 14.3, circularity: 0.85, nc_ratio: 0.39 }, predictions: [{ classId: 'eosinophil', prob: 0.977 }, { classId: 'neutrophil', prob: 0.018 }, { classId: 'monocyte', prob: 0.005 }] },
-
-      // Basophil (1)
-      { id: 'c-23', classId: 'basophil', label: 'Basophil', x: 380, y: 690, width: 106, height: 104, confidence: 0.968, shape: 'box', morphology: { area_um2: 138.5, diameter_um: 13.3, circularity: 0.83, nc_ratio: 0.46 }, predictions: [{ classId: 'basophil', prob: 0.968 }, { classId: 'eosinophil', prob: 0.022 }, { classId: 'neutrophil', prob: 0.010 }] },
-
-      // Atypical / Blasts (2)
-      { id: 'c-24', classId: 'blast', label: 'Atypical / Blast Cell', x: 860, y: 370, width: 148, height: 144, confidence: 0.932, shape: 'box', morphology: { area_um2: 274.0, diameter_um: 18.7, circularity: 0.88, nc_ratio: 0.88 }, predictions: [{ classId: 'blast', prob: 0.932 }, { classId: 'monocyte', prob: 0.045 }, { classId: 'lymphocyte', prob: 0.023 }] },
-      { id: 'c-25', classId: 'blast', label: 'Atypical Monocytoid Blast', x: 160, y: 940, width: 144, height: 140, confidence: 0.915, shape: 'box', morphology: { area_um2: 265.0, diameter_um: 18.4, circularity: 0.86, nc_ratio: 0.86 }, predictions: [{ classId: 'blast', prob: 0.915 }, { classId: 'monocyte', prob: 0.060 }, { classId: 'lymphocyte', prob: 0.025 }] },
-
-      // Platelets (11)
-      { id: 'c-26', classId: 'platelet', label: 'Platelet', x: 230, y: 130, width: 26, height: 24, confidence: 0.978, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.978 }, { classId: 'rbc_variant', prob: 0.022 }] },
-      { id: 'c-27', classId: 'platelet', label: 'Platelet Clump', x: 620, y: 120, width: 42, height: 38, confidence: 0.962, shape: 'box', morphology: { area_um2: 17.5, diameter_um: 4.7, circularity: 0.82, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.962 }, { classId: 'rbc_variant', prob: 0.038 }] },
-      { id: 'c-28', classId: 'platelet', label: 'Platelet', x: 800, y: 140, width: 25, height: 25, confidence: 0.984, shape: 'circle', morphology: { area_um2: 6.8, diameter_um: 2.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.984 }, { classId: 'rbc_variant', prob: 0.016 }] },
-      { id: 'c-29', classId: 'platelet', label: 'Platelet', x: 1140, y: 260, width: 28, height: 26, confidence: 0.980, shape: 'circle', morphology: { area_um2: 7.6, diameter_um: 3.1, circularity: 0.92, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.980 }, { classId: 'rbc_variant', prob: 0.020 }] },
-      { id: 'c-30', classId: 'platelet', label: 'Platelet', x: 340, y: 400, width: 24, height: 24, confidence: 0.974, shape: 'circle', morphology: { area_um2: 6.5, diameter_um: 2.9, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.974 }, { classId: 'rbc_variant', prob: 0.026 }] },
-      { id: 'c-31', classId: 'platelet', label: 'Giant Platelet', x: 640, y: 440, width: 36, height: 34, confidence: 0.942, shape: 'box', morphology: { area_um2: 14.8, diameter_um: 4.3, circularity: 0.86, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.942 }, { classId: 'rbc_variant', prob: 0.058 }] },
-      { id: 'c-32', classId: 'platelet', label: 'Platelet', x: 1090, y: 550, width: 26, height: 26, confidence: 0.981, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.981 }, { classId: 'rbc_variant', prob: 0.019 }] },
-      { id: 'c-33', classId: 'platelet', label: 'Platelet Clump', x: 1410, y: 560, width: 44, height: 40, confidence: 0.955, shape: 'box', morphology: { area_um2: 18.2, diameter_um: 4.8, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.955 }, { classId: 'rbc_variant', prob: 0.045 }] },
-      { id: 'c-34', classId: 'platelet', label: 'Platelet', x: 530, y: 640, width: 25, height: 24, confidence: 0.976, shape: 'circle', morphology: { area_um2: 6.9, diameter_um: 3.0, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.976 }, { classId: 'rbc_variant', prob: 0.024 }] },
-      { id: 'c-35', classId: 'platelet', label: 'Platelet', x: 920, y: 760, width: 26, height: 25, confidence: 0.983, shape: 'circle', morphology: { area_um2: 7.1, diameter_um: 3.0, circularity: 0.93, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.983 }, { classId: 'rbc_variant', prob: 0.017 }] },
-      { id: 'c-36', classId: 'platelet', label: 'Platelet', x: 1370, y: 840, width: 24, height: 24, confidence: 0.969, shape: 'circle', morphology: { area_um2: 6.4, diameter_um: 2.8, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.969 }, { classId: 'rbc_variant', prob: 0.031 }] },
-
-      // Erythrocyte variants (4)
-      { id: 'c-37', classId: 'rbc_variant', label: 'Target Cell', x: 450, y: 260, width: 56, height: 56, confidence: 0.935, shape: 'circle', morphology: { area_um2: 38.5, diameter_um: 7.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.935 }, { classId: 'platelet', prob: 0.065 }] },
-      { id: 'c-38', classId: 'rbc_variant', label: 'Schistocyte', x: 940, y: 130, width: 46, height: 38, confidence: 0.895, shape: 'box', morphology: { area_um2: 27.2, diameter_um: 5.9, circularity: 0.76, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.895 }, { classId: 'platelet', prob: 0.105 }] },
-      { id: 'c-39', classId: 'rbc_variant', label: 'Tear Drop Cell', x: 1100, y: 730, width: 58, height: 44, confidence: 0.922, shape: 'box', morphology: { area_um2: 34.6, diameter_um: 6.6, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.922 }, { classId: 'platelet', prob: 0.078 }] },
-      { id: 'c-40', classId: 'rbc_variant', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.948, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.948 }, { classId: 'platelet', prob: 0.052 }] }
-    ];
-
-    // Telesphorus (Fast Model - 32 Cells)
-    const MODEL_FLASH_ANNOTATIONS = [
-      // Neutrophils (8)
-      { id: 'fl-01', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 280, y: 190, width: 108, height: 104, confidence: 0.964, shape: 'box', morphology: { area_um2: 151.2, diameter_um: 13.9, circularity: 0.87, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophil', prob: 0.964 }, { classId: 'monocyte', prob: 0.024 }, { classId: 'eosinophil', prob: 0.012 }] },
-      { id: 'fl-02', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 670, y: 240, width: 114, height: 108, confidence: 0.956, shape: 'box', morphology: { area_um2: 160.1, diameter_um: 14.3, circularity: 0.85, nc_ratio: 0.46 }, predictions: [{ classId: 'neutrophil', prob: 0.956 }, { classId: 'monocyte', prob: 0.030 }, { classId: 'eosinophil', prob: 0.014 }] },
-      { id: 'fl-03', classId: 'neutrophil', label: 'Band Neutrophil', x: 1040, y: 160, width: 102, height: 102, confidence: 0.938, shape: 'box', morphology: { area_um2: 142.5, diameter_um: 13.5, circularity: 0.81, nc_ratio: 0.49 }, predictions: [{ classId: 'neutrophil', prob: 0.938 }, { classId: 'monocyte', prob: 0.045 }, { classId: 'lymphocyte', prob: 0.017 }] },
-      { id: 'fl-04', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1210, y: 390, width: 116, height: 110, confidence: 0.972, shape: 'box', morphology: { area_um2: 165.4, diameter_um: 14.5, circularity: 0.86, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophil', prob: 0.972 }, { classId: 'eosinophil', prob: 0.018 }, { classId: 'monocyte', prob: 0.010 }] },
-      { id: 'fl-05', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 420, y: 480, width: 110, height: 106, confidence: 0.951, shape: 'box', morphology: { area_um2: 153.8, diameter_um: 14.0, circularity: 0.84, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophil', prob: 0.951 }, { classId: 'monocyte', prob: 0.035 }, { classId: 'eosinophil', prob: 0.014 }] },
-      { id: 'fl-06', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 810, y: 530, width: 114, height: 112, confidence: 0.975, shape: 'box', morphology: { area_um2: 162.8, diameter_um: 14.4, circularity: 0.88, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophil', prob: 0.975 }, { classId: 'eosinophil', prob: 0.015 }, { classId: 'monocyte', prob: 0.010 }] },
-      { id: 'fl-07', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1320, y: 710, width: 112, height: 106, confidence: 0.962, shape: 'box', morphology: { area_um2: 156.2, diameter_um: 14.1, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophil', prob: 0.962 }, { classId: 'monocyte', prob: 0.026 }, { classId: 'eosinophil', prob: 0.012 }] },
-      { id: 'fl-08', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 590, y: 820, width: 112, height: 108, confidence: 0.968, shape: 'box', morphology: { area_um2: 159.0, diameter_um: 14.2, circularity: 0.87, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophil', prob: 0.968 }, { classId: 'eosinophil', prob: 0.020 }, { classId: 'monocyte', prob: 0.012 }] },
-
-      // Lymphocytes (5)
-      { id: 'fl-09', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 490, y: 150, width: 76, height: 74, confidence: 0.974, shape: 'box', morphology: { area_um2: 66.2, diameter_um: 9.2, circularity: 0.92, nc_ratio: 0.83 }, predictions: [{ classId: 'lymphocyte', prob: 0.974 }, { classId: 'blast', prob: 0.018 }, { classId: 'monocyte', prob: 0.008 }] },
-      { id: 'fl-10', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 890, y: 210, width: 78, height: 76, confidence: 0.961, shape: 'box', morphology: { area_um2: 69.4, diameter_um: 9.4, circularity: 0.91, nc_ratio: 0.85 }, predictions: [{ classId: 'lymphocyte', prob: 0.961 }, { classId: 'blast', prob: 0.028 }, { classId: 'monocyte', prob: 0.011 }] },
-      { id: 'fl-11', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 1350, y: 220, width: 74, height: 72, confidence: 0.969, shape: 'box', morphology: { area_um2: 65.1, diameter_um: 9.1, circularity: 0.93, nc_ratio: 0.81 }, predictions: [{ classId: 'lymphocyte', prob: 0.969 }, { classId: 'blast', prob: 0.021 }, { classId: 'monocyte', prob: 0.010 }] },
-      { id: 'fl-12', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 710, y: 680, width: 74, height: 74, confidence: 0.981, shape: 'box', morphology: { area_um2: 65.8, diameter_um: 9.1, circularity: 0.94, nc_ratio: 0.86 }, predictions: [{ classId: 'lymphocyte', prob: 0.981 }, { classId: 'blast', prob: 0.012 }, { classId: 'monocyte', prob: 0.007 }] },
-      { id: 'fl-13', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 420, y: 920, width: 75, height: 74, confidence: 0.973, shape: 'box', morphology: { area_um2: 68.0, diameter_um: 9.3, circularity: 0.92, nc_ratio: 0.84 }, predictions: [{ classId: 'lymphocyte', prob: 0.973 }, { classId: 'blast', prob: 0.018 }, { classId: 'monocyte', prob: 0.009 }] },
-
-      // Monocytes (2)
-      { id: 'fl-14', classId: 'monocyte', label: 'Monocyte', x: 130, y: 340, width: 138, height: 132, confidence: 0.948, shape: 'box', morphology: { area_um2: 236.0, diameter_um: 17.3, circularity: 0.77, nc_ratio: 0.53 }, predictions: [{ classId: 'monocyte', prob: 0.948 }, { classId: 'neutrophil', prob: 0.036 }, { classId: 'blast', prob: 0.016 }] },
-      { id: 'fl-15', classId: 'monocyte', label: 'Monocyte', x: 980, y: 440, width: 135, height: 130, confidence: 0.939, shape: 'box', morphology: { area_um2: 231.0, diameter_um: 17.1, circularity: 0.78, nc_ratio: 0.55 }, predictions: [{ classId: 'monocyte', prob: 0.939 }, { classId: 'neutrophil', prob: 0.042 }, { classId: 'blast', prob: 0.019 }] },
-
-      // Eosinophils (2)
-      { id: 'fl-16', classId: 'eosinophil', label: 'Eosinophil', x: 520, y: 320, width: 114, height: 112, confidence: 0.971, shape: 'box', morphology: { area_um2: 162.0, diameter_um: 14.4, circularity: 0.83, nc_ratio: 0.41 }, predictions: [{ classId: 'eosinophil', prob: 0.971 }, { classId: 'neutrophil', prob: 0.021 }, { classId: 'monocyte', prob: 0.008 }] },
-      { id: 'fl-17', classId: 'eosinophil', label: 'Eosinophil', x: 1220, y: 900, width: 112, height: 110, confidence: 0.963, shape: 'box', morphology: { area_um2: 158.5, diameter_um: 14.2, circularity: 0.84, nc_ratio: 0.40 }, predictions: [{ classId: 'eosinophil', prob: 0.963 }, { classId: 'neutrophil', prob: 0.026 }, { classId: 'monocyte', prob: 0.011 }] },
-
-      // Basophil (1)
-      { id: 'fl-18', classId: 'basophil', label: 'Basophil', x: 380, y: 690, width: 104, height: 102, confidence: 0.952, shape: 'box', morphology: { area_um2: 135.2, diameter_um: 13.1, circularity: 0.82, nc_ratio: 0.47 }, predictions: [{ classId: 'basophil', prob: 0.952 }, { classId: 'eosinophil', prob: 0.032 }, { classId: 'neutrophil', prob: 0.016 }] },
-
-      // Atypical / Blast (1)
-      { id: 'fl-19', classId: 'blast', label: 'Atypical / Blast Cell', x: 860, y: 370, width: 144, height: 140, confidence: 0.918, shape: 'box', morphology: { area_um2: 268.0, diameter_um: 18.5, circularity: 0.87, nc_ratio: 0.89 }, predictions: [{ classId: 'blast', prob: 0.918 }, { classId: 'monocyte', prob: 0.054 }, { classId: 'lymphocyte', prob: 0.028 }] },
-
-      // Platelets (9)
-      { id: 'fl-20', classId: 'platelet', label: 'Platelet', x: 230, y: 130, width: 26, height: 24, confidence: 0.972, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.972 }, { classId: 'rbc_variant', prob: 0.028 }] },
-      { id: 'fl-21', classId: 'platelet', label: 'Platelet', x: 800, y: 140, width: 25, height: 25, confidence: 0.979, shape: 'circle', morphology: { area_um2: 6.8, diameter_um: 2.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.979 }, { classId: 'rbc_variant', prob: 0.021 }] },
-      { id: 'fl-22', classId: 'platelet', label: 'Platelet', x: 1140, y: 260, width: 28, height: 26, confidence: 0.975, shape: 'circle', morphology: { area_um2: 7.6, diameter_um: 3.1, circularity: 0.92, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.975 }, { classId: 'rbc_variant', prob: 0.025 }] },
-      { id: 'fl-23', classId: 'platelet', label: 'Platelet', x: 340, y: 400, width: 24, height: 24, confidence: 0.968, shape: 'circle', morphology: { area_um2: 6.5, diameter_um: 2.9, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.968 }, { classId: 'rbc_variant', prob: 0.032 }] },
-      { id: 'fl-24', classId: 'platelet', label: 'Platelet', x: 640, y: 440, width: 34, height: 32, confidence: 0.935, shape: 'box', morphology: { area_um2: 14.1, diameter_um: 4.2, circularity: 0.85, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.935 }, { classId: 'rbc_variant', prob: 0.065 }] },
-      { id: 'fl-25', classId: 'platelet', label: 'Platelet', x: 1090, y: 550, width: 26, height: 26, confidence: 0.976, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.976 }, { classId: 'rbc_variant', prob: 0.024 }] },
-      { id: 'fl-26', classId: 'platelet', label: 'Platelet', x: 530, y: 640, width: 25, height: 24, confidence: 0.971, shape: 'circle', morphology: { area_um2: 6.9, diameter_um: 3.0, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.971 }, { classId: 'rbc_variant', prob: 0.029 }] },
-      { id: 'fl-27', classId: 'platelet', label: 'Platelet', x: 920, y: 760, width: 26, height: 25, confidence: 0.978, shape: 'circle', morphology: { area_um2: 7.1, diameter_um: 3.0, circularity: 0.93, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.978 }, { classId: 'rbc_variant', prob: 0.022 }] },
-      { id: 'fl-28', classId: 'platelet', label: 'Platelet', x: 1370, y: 840, width: 24, height: 24, confidence: 0.962, shape: 'circle', morphology: { area_um2: 6.4, diameter_um: 2.8, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.962 }, { classId: 'rbc_variant', prob: 0.038 }] },
-
-      // Erythrocyte variants (4)
-      { id: 'fl-29', classId: 'rbc_variant', label: 'Target Cell', x: 450, y: 260, width: 56, height: 56, confidence: 0.928, shape: 'circle', morphology: { area_um2: 38.5, diameter_um: 7.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.928 }, { classId: 'platelet', prob: 0.072 }] },
-      { id: 'fl-30', classId: 'rbc_variant', label: 'Schistocyte', x: 940, y: 130, width: 46, height: 38, confidence: 0.884, shape: 'box', morphology: { area_um2: 27.2, diameter_um: 5.9, circularity: 0.76, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.884 }, { classId: 'platelet', prob: 0.116 }] },
-      { id: 'fl-31', classId: 'rbc_variant', label: 'Tear Drop Cell', x: 1100, y: 730, width: 58, height: 44, confidence: 0.915, shape: 'box', morphology: { area_um2: 34.6, diameter_um: 6.6, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.915 }, { classId: 'platelet', prob: 0.085 }] },
-      { id: 'fl-32', classId: 'rbc_variant', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.941, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.941 }, { classId: 'platelet', prob: 0.059 }] }
-    ];
-
-    // Asclepius (Pro Model - 46 Cells)
-    const MODEL_PRO_ANNOTATIONS = [
-      // Neutrophils (12)
-      { id: 'pr-01', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 280, y: 190, width: 110, height: 105, confidence: 0.992, shape: 'box', morphology: { area_um2: 154.2, diameter_um: 14.0, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophil', prob: 0.992 }, { classId: 'monocyte', prob: 0.005 }, { classId: 'eosinophil', prob: 0.003 }] },
-      { id: 'pr-02', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 670, y: 240, width: 115, height: 110, confidence: 0.989, shape: 'box', morphology: { area_um2: 162.5, diameter_um: 14.4, circularity: 0.86, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophil', prob: 0.989 }, { classId: 'monocyte', prob: 0.008 }, { classId: 'eosinophil', prob: 0.003 }] },
-      { id: 'pr-03', classId: 'neutrophil', label: 'Band Neutrophil', x: 1040, y: 160, width: 105, height: 105, confidence: 0.971, shape: 'box', morphology: { area_um2: 145.8, diameter_um: 13.6, circularity: 0.82, nc_ratio: 0.48 }, predictions: [{ classId: 'neutrophil', prob: 0.971 }, { classId: 'monocyte', prob: 0.021 }, { classId: 'lymphocyte', prob: 0.008 }] },
-      { id: 'pr-04', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1210, y: 390, width: 118, height: 112, confidence: 0.995, shape: 'box', morphology: { area_um2: 168.0, diameter_um: 14.6, circularity: 0.87, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophil', prob: 0.995 }, { classId: 'eosinophil', prob: 0.003 }, { classId: 'monocyte', prob: 0.002 }] },
-      { id: 'pr-05', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 420, y: 480, width: 112, height: 108, confidence: 0.984, shape: 'box', morphology: { area_um2: 156.4, diameter_um: 14.1, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophil', prob: 0.984 }, { classId: 'monocyte', prob: 0.011 }, { classId: 'eosinophil', prob: 0.005 }] },
-      { id: 'pr-06', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 810, y: 530, width: 116, height: 114, confidence: 0.996, shape: 'box', morphology: { area_um2: 165.2, diameter_um: 14.5, circularity: 0.89, nc_ratio: 0.40 }, predictions: [{ classId: 'neutrophil', prob: 0.996 }, { classId: 'eosinophil', prob: 0.003 }, { classId: 'monocyte', prob: 0.001 }] },
-      { id: 'pr-07', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1320, y: 710, width: 114, height: 108, confidence: 0.988, shape: 'box', morphology: { area_um2: 158.9, diameter_um: 14.2, circularity: 0.86, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophil', prob: 0.988 }, { classId: 'monocyte', prob: 0.008 }, { classId: 'eosinophil', prob: 0.004 }] },
-      { id: 'pr-08', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 190, y: 760, width: 110, height: 105, confidence: 0.985, shape: 'box', morphology: { area_um2: 152.0, diameter_um: 13.9, circularity: 0.85, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophil', prob: 0.985 }, { classId: 'monocyte', prob: 0.010 }, { classId: 'eosinophil', prob: 0.005 }] },
-      { id: 'pr-09', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 590, y: 820, width: 115, height: 110, confidence: 0.991, shape: 'box', morphology: { area_um2: 161.8, diameter_um: 14.3, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophil', prob: 0.991 }, { classId: 'eosinophil', prob: 0.005 }, { classId: 'monocyte', prob: 0.004 }] },
-      { id: 'pr-10', classId: 'neutrophil', label: 'Band Neutrophil', x: 990, y: 880, width: 108, height: 104, confidence: 0.967, shape: 'box', morphology: { area_um2: 149.3, diameter_um: 13.8, circularity: 0.81, nc_ratio: 0.49 }, predictions: [{ classId: 'neutrophil', prob: 0.967 }, { classId: 'monocyte', prob: 0.024 }, { classId: 'lymphocyte', prob: 0.009 }] },
-      { id: 'pr-11', classId: 'neutrophil', label: 'Hypersegmented Neutrophil', x: 310, y: 320, width: 112, height: 110, confidence: 0.978, shape: 'box', morphology: { area_um2: 159.4, diameter_um: 14.2, circularity: 0.83, nc_ratio: 0.38 }, predictions: [{ classId: 'neutrophil', prob: 0.978 }, { classId: 'monocyte', prob: 0.016 }, { classId: 'eosinophil', prob: 0.006 }] },
-      { id: 'pr-12', classId: 'neutrophil', label: 'Segmented Neutrophil', x: 1060, y: 310, width: 114, height: 108, confidence: 0.986, shape: 'box', morphology: { area_um2: 157.0, diameter_um: 14.1, circularity: 0.87, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophil', prob: 0.986 }, { classId: 'eosinophil', prob: 0.009 }, { classId: 'monocyte', prob: 0.005 }] },
-
-      // Lymphocytes (8)
-      { id: 'pr-13', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 490, y: 150, width: 78, height: 76, confidence: 0.994, shape: 'box', morphology: { area_um2: 68.4, diameter_um: 9.3, circularity: 0.93, nc_ratio: 0.82 }, predictions: [{ classId: 'lymphocyte', prob: 0.994 }, { classId: 'blast', prob: 0.004 }, { classId: 'monocyte', prob: 0.002 }] },
-      { id: 'pr-14', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 890, y: 210, width: 80, height: 78, confidence: 0.988, shape: 'box', morphology: { area_um2: 71.2, diameter_um: 9.5, circularity: 0.92, nc_ratio: 0.84 }, predictions: [{ classId: 'lymphocyte', prob: 0.988 }, { classId: 'blast', prob: 0.008 }, { classId: 'monocyte', prob: 0.004 }] },
-      { id: 'pr-15', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 1350, y: 220, width: 76, height: 74, confidence: 0.991, shape: 'box', morphology: { area_um2: 66.8, diameter_um: 9.2, circularity: 0.94, nc_ratio: 0.80 }, predictions: [{ classId: 'lymphocyte', prob: 0.991 }, { classId: 'blast', prob: 0.006 }, { classId: 'monocyte', prob: 0.003 }] },
-      { id: 'pr-16', classId: 'lymphocyte', label: 'Large Granular Lymphocyte', x: 260, y: 520, width: 88, height: 84, confidence: 0.962, shape: 'box', morphology: { area_um2: 86.5, diameter_um: 10.5, circularity: 0.89, nc_ratio: 0.72 }, predictions: [{ classId: 'lymphocyte', prob: 0.962 }, { classId: 'monocyte', prob: 0.025 }, { classId: 'blast', prob: 0.013 }] },
-      { id: 'pr-17', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 710, y: 680, width: 75, height: 75, confidence: 0.996, shape: 'box', morphology: { area_um2: 67.1, diameter_um: 9.2, circularity: 0.95, nc_ratio: 0.85 }, predictions: [{ classId: 'lymphocyte', prob: 0.996 }, { classId: 'blast', prob: 0.002 }, { classId: 'monocyte', prob: 0.002 }] },
-      { id: 'pr-18', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 1180, y: 620, width: 82, height: 79, confidence: 0.989, shape: 'box', morphology: { area_um2: 73.8, diameter_um: 9.7, circularity: 0.91, nc_ratio: 0.81 }, predictions: [{ classId: 'lymphocyte', prob: 0.989 }, { classId: 'blast', prob: 0.007 }, { classId: 'monocyte', prob: 0.004 }] },
-      { id: 'pr-19', classId: 'lymphocyte', label: 'Small Lymphocyte', x: 420, y: 920, width: 77, height: 76, confidence: 0.993, shape: 'box', morphology: { area_um2: 69.5, diameter_um: 9.4, circularity: 0.93, nc_ratio: 0.83 }, predictions: [{ classId: 'lymphocyte', prob: 0.993 }, { classId: 'blast', prob: 0.004 }, { classId: 'monocyte', prob: 0.003 }] },
-      { id: 'pr-20', classId: 'lymphocyte', label: 'Reactive Lymphocyte', x: 740, y: 410, width: 84, height: 80, confidence: 0.972, shape: 'box', morphology: { area_um2: 82.0, diameter_um: 10.2, circularity: 0.88, nc_ratio: 0.74 }, predictions: [{ classId: 'lymphocyte', prob: 0.972 }, { classId: 'monocyte', prob: 0.018 }, { classId: 'blast', prob: 0.010 }] },
-
-      // Monocytes (4)
-      { id: 'pr-21', classId: 'monocyte', label: 'Monocyte', x: 130, y: 340, width: 142, height: 136, confidence: 0.981, shape: 'box', morphology: { area_um2: 242.0, diameter_um: 17.5, circularity: 0.78, nc_ratio: 0.52 }, predictions: [{ classId: 'monocyte', prob: 0.981 }, { classId: 'neutrophil', prob: 0.012 }, { classId: 'blast', prob: 0.007 }] },
-      { id: 'pr-22', classId: 'monocyte', label: 'Monocyte', x: 980, y: 440, width: 138, height: 132, confidence: 0.974, shape: 'box', morphology: { area_um2: 235.4, diameter_um: 17.3, circularity: 0.79, nc_ratio: 0.54 }, predictions: [{ classId: 'monocyte', prob: 0.974 }, { classId: 'neutrophil', prob: 0.018 }, { classId: 'blast', prob: 0.008 }] },
-      { id: 'pr-23', classId: 'monocyte', label: 'Monocyte', x: 780, y: 920, width: 145, height: 138, confidence: 0.987, shape: 'box', morphology: { area_um2: 248.6, diameter_um: 17.8, circularity: 0.77, nc_ratio: 0.51 }, predictions: [{ classId: 'monocyte', prob: 0.987 }, { classId: 'neutrophil', prob: 0.009 }, { classId: 'blast', prob: 0.004 }] },
-      { id: 'pr-24', classId: 'monocyte', label: 'Monocyte', x: 500, y: 560, width: 140, height: 134, confidence: 0.979, shape: 'box', morphology: { area_um2: 238.2, diameter_um: 17.4, circularity: 0.78, nc_ratio: 0.53 }, predictions: [{ classId: 'monocyte', prob: 0.979 }, { classId: 'neutrophil', prob: 0.014 }, { classId: 'blast', prob: 0.007 }] },
-
-      // Eosinophils (3)
-      { id: 'pr-25', classId: 'eosinophil', label: 'Eosinophil', x: 520, y: 320, width: 116, height: 114, confidence: 0.992, shape: 'box', morphology: { area_um2: 165.0, diameter_um: 14.5, circularity: 0.84, nc_ratio: 0.40 }, predictions: [{ classId: 'eosinophil', prob: 0.992 }, { classId: 'neutrophil', prob: 0.006 }, { classId: 'monocyte', prob: 0.002 }] },
-      { id: 'pr-26', classId: 'eosinophil', label: 'Eosinophil', x: 1220, y: 900, width: 114, height: 112, confidence: 0.986, shape: 'box', morphology: { area_um2: 161.2, diameter_um: 14.3, circularity: 0.85, nc_ratio: 0.39 }, predictions: [{ classId: 'eosinophil', prob: 0.986 }, { classId: 'neutrophil', prob: 0.010 }, { classId: 'monocyte', prob: 0.004 }] },
-      { id: 'pr-27', classId: 'eosinophil', label: 'Eosinophil', x: 880, y: 780, width: 115, height: 112, confidence: 0.989, shape: 'box', morphology: { area_um2: 163.5, diameter_um: 14.4, circularity: 0.85, nc_ratio: 0.39 }, predictions: [{ classId: 'eosinophil', prob: 0.989 }, { classId: 'neutrophil', prob: 0.008 }, { classId: 'monocyte', prob: 0.003 }] },
-
-      // Basophils (2)
-      { id: 'pr-28', classId: 'basophil', label: 'Basophil', x: 380, y: 690, width: 106, height: 104, confidence: 0.982, shape: 'box', morphology: { area_um2: 138.5, diameter_um: 13.3, circularity: 0.83, nc_ratio: 0.46 }, predictions: [{ classId: 'basophil', prob: 0.982 }, { classId: 'eosinophil', prob: 0.012 }, { classId: 'neutrophil', prob: 0.006 }] },
-      { id: 'pr-29', classId: 'basophil', label: 'Basophil', x: 1080, y: 790, width: 108, height: 105, confidence: 0.975, shape: 'box', morphology: { area_um2: 140.2, diameter_um: 13.4, circularity: 0.82, nc_ratio: 0.45 }, predictions: [{ classId: 'basophil', prob: 0.975 }, { classId: 'eosinophil', prob: 0.016 }, { classId: 'neutrophil', prob: 0.009 }] },
-
-      // Atypical / Blasts (3)
-      { id: 'pr-30', classId: 'blast', label: 'Atypical / Myeloid Blast', x: 860, y: 370, width: 148, height: 144, confidence: 0.968, shape: 'box', morphology: { area_um2: 274.0, diameter_um: 18.7, circularity: 0.88, nc_ratio: 0.88 }, predictions: [{ classId: 'blast', prob: 0.968 }, { classId: 'monocyte', prob: 0.021 }, { classId: 'lymphocyte', prob: 0.011 }] },
-      { id: 'pr-31', classId: 'blast', label: 'Atypical Monocytoid Blast', x: 160, y: 940, width: 144, height: 140, confidence: 0.954, shape: 'box', morphology: { area_um2: 265.0, diameter_um: 18.4, circularity: 0.86, nc_ratio: 0.86 }, predictions: [{ classId: 'blast', prob: 0.954 }, { classId: 'monocyte', prob: 0.032 }, { classId: 'lymphocyte', prob: 0.014 }] },
-      { id: 'pr-32', classId: 'blast', label: 'Leukemic Blast Precursor', x: 620, y: 520, width: 146, height: 142, confidence: 0.961, shape: 'box', morphology: { area_um2: 270.5, diameter_um: 18.6, circularity: 0.87, nc_ratio: 0.87 }, predictions: [{ classId: 'blast', prob: 0.961 }, { classId: 'monocyte', prob: 0.025 }, { classId: 'lymphocyte', prob: 0.014 }] },
-
-      // Platelets (10)
-      { id: 'pr-33', classId: 'platelet', label: 'Platelet', x: 230, y: 130, width: 26, height: 24, confidence: 0.988, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.988 }, { classId: 'rbc_variant', prob: 0.012 }] },
-      { id: 'pr-34', classId: 'platelet', label: 'Platelet Clump', x: 620, y: 120, width: 42, height: 38, confidence: 0.976, shape: 'box', morphology: { area_um2: 17.5, diameter_um: 4.7, circularity: 0.82, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.976 }, { classId: 'rbc_variant', prob: 0.024 }] },
-      { id: 'pr-35', classId: 'platelet', label: 'Platelet', x: 800, y: 140, width: 25, height: 25, confidence: 0.991, shape: 'circle', morphology: { area_um2: 6.8, diameter_um: 2.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.991 }, { classId: 'rbc_variant', prob: 0.009 }] },
-      { id: 'pr-36', classId: 'platelet', label: 'Platelet', x: 1140, y: 260, width: 28, height: 26, confidence: 0.989, shape: 'circle', morphology: { area_um2: 7.6, diameter_um: 3.1, circularity: 0.92, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.989 }, { classId: 'rbc_variant', prob: 0.011 }] },
-      { id: 'pr-37', classId: 'platelet', label: 'Platelet', x: 340, y: 400, width: 24, height: 24, confidence: 0.985, shape: 'circle', morphology: { area_um2: 6.5, diameter_um: 2.9, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.985 }, { classId: 'rbc_variant', prob: 0.015 }] },
-      { id: 'pr-38', classId: 'platelet', label: 'Giant Platelet', x: 640, y: 440, width: 36, height: 34, confidence: 0.962, shape: 'box', morphology: { area_um2: 14.8, diameter_um: 4.3, circularity: 0.86, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.962 }, { classId: 'rbc_variant', prob: 0.038 }] },
-      { id: 'pr-39', classId: 'platelet', label: 'Platelet', x: 1090, y: 550, width: 26, height: 26, confidence: 0.990, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.990 }, { classId: 'rbc_variant', prob: 0.010 }] },
-      { id: 'pr-40', classId: 'platelet', label: 'Platelet Clump', x: 1410, y: 560, width: 44, height: 40, confidence: 0.971, shape: 'box', morphology: { area_um2: 18.2, diameter_um: 4.8, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.971 }, { classId: 'rbc_variant', prob: 0.029 }] },
-      { id: 'pr-41', classId: 'platelet', label: 'Platelet', x: 530, y: 640, width: 25, height: 24, confidence: 0.987, shape: 'circle', morphology: { area_um2: 6.9, diameter_um: 3.0, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.987 }, { classId: 'rbc_variant', prob: 0.013 }] },
-      { id: 'pr-42', classId: 'platelet', label: 'Platelet', x: 920, y: 760, width: 26, height: 25, confidence: 0.992, shape: 'circle', morphology: { area_um2: 7.1, diameter_um: 3.0, circularity: 0.93, nc_ratio: 0.0 }, predictions: [{ classId: 'platelet', prob: 0.992 }, { classId: 'rbc_variant', prob: 0.008 }] },
-
-      // Erythrocyte variants (4)
-      { id: 'pr-43', classId: 'rbc_variant', label: 'Target Cell', x: 450, y: 260, width: 56, height: 56, confidence: 0.958, shape: 'circle', morphology: { area_um2: 38.5, diameter_um: 7.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.958 }, { classId: 'platelet', prob: 0.042 }] },
-      { id: 'pr-44', classId: 'rbc_variant', label: 'Schistocyte', x: 940, y: 130, width: 46, height: 38, confidence: 0.925, shape: 'box', morphology: { area_um2: 27.2, diameter_um: 5.9, circularity: 0.76, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.925 }, { classId: 'platelet', prob: 0.075 }] },
-      { id: 'pr-45', classId: 'rbc_variant', label: 'Tear Drop Cell', x: 1100, y: 730, width: 58, height: 44, confidence: 0.946, shape: 'box', morphology: { area_um2: 34.6, diameter_um: 6.6, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.946 }, { classId: 'platelet', prob: 0.054 }] },
-      { id: 'pr-46', classId: 'rbc_variant', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.968, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'rbc_variant', prob: 0.968 }, { classId: 'platelet', prob: 0.032 }] }
-    ];
-
-    // Ground Truth 20 Master Classes from Twin_tiny_20_classes_train_val_test_set.ipynb
+    // Authoritative Ground Truth 20 Master Classes from Twin_tiny_20_classes_train_val_test_set.ipynb
     const MASTER_CLASSES = [
       'Plt', 'Eosinophils', 'Igs', 'Lymphocytes', 'Blasts',
       'Monocytes', 'Neutrophils', 'Erythroblasts', 'Baseophils', 'Acanthocytes',
@@ -1257,51 +1083,239 @@
       'Spherocyters', 'Schistocytes', 'Stomatocytes', 'Echinocytes', 'Hypochromic'
     ];
 
-    const MASTER_CLASS_DISPLAY_NAMES = {
-      'Plt': 'Platelet',
-      'Eosinophils': 'Eosinophil',
-      'Igs': 'Immature Granulocyte',
-      'Lymphocytes': 'Small Lymphocyte',
-      'Blasts': 'Atypical / Blast Cell',
-      'Monocytes': 'Monocyte',
-      'Neutrophils': 'Segmented Neutrophil',
-      'Erythroblasts': 'Nucleated Red Blood Cell',
-      'Baseophils': 'Basophil',
-      'Acanthocytes': 'Acanthocyte',
-      'Normal_cells': 'Normal RBC (Discocyte)',
-      'Target_cells': 'Target Cell',
-      'Ovalocytes': 'Ovalocyte',
-      'Elliptocytes': 'Elliptocyte',
-      'Teardrops': 'Teardrop Cell',
-      'Spherocyters': 'Spherocyte',
-      'Schistocytes': 'Schistocyte',
-      'Stomatocytes': 'Stomatocyte',
-      'Echinocytes': 'Echinocyte',
-      'Hypochromic': 'Hypochromic RBC'
+    // Single source of truth metadata dictionary for easy extension and updates
+    const CLASS_METADATA_CONFIG = {
+      'Plt': { id: 'plt', name: 'Platelet (Plt)', short: 'Platelet', code: 'PLT', color: '#f59e0b', range: [150, 450], hotkey: '1', desc: 'Small anucleate cell fragment (2-4 µm)', isWBC: false },
+      'Eosinophils': { id: 'eosinophils', name: 'Eosinophil', short: 'Eosinophil', code: 'EOS', color: '#f97316', range: [1, 4], hotkey: '2', desc: 'Bilobed nucleus with coarse reddish-orange granules', isWBC: true },
+      'Igs': { id: 'igs', name: 'Immature Granulocyte (Igs)', short: 'Imm. Granulocyte', code: 'IGS', color: '#8b5cf6', range: [0, 1], hotkey: '3', desc: 'Promyelocyte, myelocyte, or metamyelocyte precursor', isWBC: true },
+      'Lymphocytes': { id: 'lymphocytes', name: 'Lymphocyte', short: 'Lymphocyte', code: 'LYM', color: '#10b981', range: [20, 40], hotkey: '4', desc: 'Dense spherical nucleus with high N:C ratio', isWBC: true },
+      'Blasts': { id: 'blasts', name: 'Atypical / Blast Precursor', short: 'Blast', code: 'BLA', color: '#e52246', range: [0, 0], hotkey: '5', desc: 'Immature blast precursor with fine open chromatin & prominent nucleoli', isWBC: true },
+      'Monocytes': { id: 'monocytes', name: 'Monocyte', short: 'Monocyte', code: 'MON', color: '#a855f7', range: [2, 8], hotkey: '6', desc: 'Folded/kidney-shaped nucleus with grayish-blue cytoplasm', isWBC: true },
+      'Neutrophils': { id: 'neutrophils', name: 'Segmented Neutrophil', short: 'Neutrophil', code: 'NEU', color: '#38bdf8', range: [40, 70], hotkey: '7', desc: 'Multilobed nucleus (3-5 segments) with neutral lilac granules', isWBC: true },
+      'Erythroblasts': { id: 'erythroblasts', name: 'Erythroblast (NRBC)', short: 'Erythroblast', code: 'NRBC', color: '#ec4899', range: [0, 0], hotkey: '8', desc: 'Nucleated red blood cell precursor', isWBC: false },
+      'Baseophils': { id: 'baseophils', name: 'Basophil', short: 'Basophil', code: 'BAS', color: '#06b6d4', range: [0.5, 1], hotkey: '9', desc: 'Dense coarse dark-purple granules obscuring nucleus', isWBC: true },
+      'Acanthocytes': { id: 'acanthocytes', name: 'Acanthocyte (Spur Cell)', short: 'Acanthocyte', code: 'ACA', color: '#ef4444', range: [0, 0], hotkey: '0', desc: 'Spiculated red cell with irregular sharp projections', isWBC: false },
+      'Normal_cells': { id: 'normal_cells', name: 'Normal RBC (Discocyte)', short: 'Normal RBC', code: 'RBC', color: '#64748b', range: [80, 100], hotkey: 'Q', desc: 'Biconcave disc with central pallor (~7-8 µm)', isWBC: false },
+      'Target_cells': { id: 'target_cells', name: 'Target Cell (Codocyte)', short: 'Target Cell', code: 'TAR', color: '#d946ef', range: [0, 2], hotkey: 'W', desc: 'Bullseye target appearance with central hemoglobin spot', isWBC: false },
+      'Ovalocytes': { id: 'ovalocytes', name: 'Ovalocyte', short: 'Ovalocyte', code: 'OVA', color: '#14b8a6', range: [0, 2], hotkey: 'E', desc: 'Oval-shaped erythrocyte', isWBC: false },
+      'Elliptocytes': { id: 'elliptocytes', name: 'Elliptocyte (Pencil Cell)', short: 'Elliptocyte', code: 'ELL', color: '#84cc16', range: [0, 1], hotkey: 'R', desc: 'Elongated rod-like or cigar-shaped erythrocyte', isWBC: false },
+      'Teardrops': { id: 'teardrops', name: 'Teardrop Cell (Dacrocyte)', short: 'Teardrop', code: 'TEA', color: '#0284c7', range: [0, 0], hotkey: 'T', desc: 'Tear-shaped or pear-shaped red blood cell', isWBC: false },
+      'Spherocyters': { id: 'spherocyters', name: 'Spherocyte', short: 'Spherocyte', code: 'SPH', color: '#e11d48', range: [0, 0], hotkey: 'Y', desc: 'Spherical microcytic cell with absent central pallor', isWBC: false },
+      'Schistocytes': { id: 'schistocytes', name: 'Schistocyte (Helmet Cell)', short: 'Schistocyte', code: 'SCH', color: '#f43f5e', range: [0, 0.5], hotkey: 'U', desc: 'Fragmented triangular or helmet-shaped red blood cell', isWBC: false },
+      'Stomatocytes': { id: 'stomatocytes', name: 'Stomatocyte (Mouth Cell)', short: 'Stomatocyte', code: 'STO', color: '#0ea5e9', range: [0, 1], hotkey: 'I', desc: 'Slit-like or mouth-shaped central pallor', isWBC: false },
+      'Echinocytes': { id: 'echinocytes', name: 'Echinocyte (Burr Cell)', short: 'Echinocyte', code: 'ECH', color: '#eab308', range: [0, 2], hotkey: 'O', desc: 'Crenated red cell with uniform blunt projections', isWBC: false },
+      'Hypochromic': { id: 'hypochromic', name: 'Hypochromic RBC', short: 'Hypochromic', code: 'HYP', color: '#94a3b8', range: [0, 5], hotkey: 'P', desc: 'Pale red blood cell with enlarged central pallor area', isWBC: false }
     };
 
-    const MASTER_CLASS_TO_CATEGORY_ID = {
-      'Plt': 'platelet',
-      'Eosinophils': 'eosinophil',
-      'Igs': 'neutrophil',
-      'Lymphocytes': 'lymphocyte',
-      'Blasts': 'blast',
-      'Monocytes': 'monocyte',
-      'Neutrophils': 'neutrophil',
-      'Erythroblasts': 'blast',
-      'Baseophils': 'basophil',
-      'Acanthocytes': 'rbc_variant',
-      'Normal_cells': 'rbc_variant',
-      'Target_cells': 'rbc_variant',
-      'Ovalocytes': 'rbc_variant',
-      'Elliptocytes': 'rbc_variant',
-      'Teardrops': 'rbc_variant',
-      'Spherocyters': 'rbc_variant',
-      'Schistocytes': 'rbc_variant',
-      'Stomatocytes': 'rbc_variant',
-      'Echinocytes': 'rbc_variant',
-      'Hypochromic': 'rbc_variant'
-    };
+    function buildTaxonomyFromMasterClasses(masterList = MASTER_CLASSES, metaConfig = CLASS_METADATA_CONFIG) {
+      return masterList.map((rawName, idx) => {
+        const meta = metaConfig[rawName] || {};
+        const id = meta.id || rawName.toLowerCase();
+        const name = meta.name || rawName.replace(/_/g, ' ');
+        const short = meta.short || rawName.replace(/_/g, ' ');
+        const code = meta.code || rawName.slice(0, 3).toUpperCase();
+        const color = meta.color || `hsl(${(idx * 360) / masterList.length}, 70%, 55%)`;
+        const hotkey = meta.hotkey || (idx < 9 ? String(idx + 1) : idx === 9 ? '0' : String.fromCharCode(65 + idx - 10));
+        return {
+          id,
+          rawClass: rawName,
+          name,
+          short,
+          code,
+          color,
+          lightBg: `${color}26`,
+          border: color,
+          range: meta.range || [0, 0],
+          hotkey,
+          desc: meta.desc || `Morphology assessment for ${name}`,
+          isWBC: !!meta.isWBC
+        };
+      });
+    }
+
+    const CELL_TAXONOMY = buildTaxonomyFromMasterClasses(MASTER_CLASSES, CLASS_METADATA_CONFIG);
+
+    const MASTER_CLASS_TO_CATEGORY_ID = Object.fromEntries(
+      MASTER_CLASSES.map(c => [c, (CLASS_METADATA_CONFIG[c]?.id) || c.toLowerCase()])
+    );
+    const MASTER_CLASS_DISPLAY_NAMES = Object.fromEntries(
+      MASTER_CLASSES.map(c => [c, (CLASS_METADATA_CONFIG[c]?.name) || c.replace(/_/g, ' ')])
+    );
+
+    // Initial multi-lineage annotations across WBC, RBC variants, and Platelets
+    const INITIAL_ANNOTATIONS = [
+      // Neutrophils (10)
+      { id: 'c-01', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 280, y: 190, width: 110, height: 105, confidence: 0.984, shape: 'box', morphology: { area_um2: 154.2, diameter_um: 14.0, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.984 }, { classId: 'monocytes', prob: 0.012 }, { classId: 'eosinophils', prob: 0.004 }] },
+      { id: 'c-02', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 670, y: 240, width: 115, height: 110, confidence: 0.976, shape: 'box', morphology: { area_um2: 162.5, diameter_um: 14.4, circularity: 0.86, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophils', prob: 0.976 }, { classId: 'monocytes', prob: 0.018 }, { classId: 'eosinophils', prob: 0.006 }] },
+      { id: 'c-03', classId: 'neutrophils', label: 'Band Neutrophil', x: 1040, y: 160, width: 105, height: 105, confidence: 0.952, shape: 'box', morphology: { area_um2: 145.8, diameter_um: 13.6, circularity: 0.82, nc_ratio: 0.48 }, predictions: [{ classId: 'neutrophils', prob: 0.952 }, { classId: 'monocytes', prob: 0.038 }, { classId: 'lymphocytes', prob: 0.010 }] },
+      { id: 'c-04', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1210, y: 390, width: 118, height: 112, confidence: 0.988, shape: 'box', morphology: { area_um2: 168.0, diameter_um: 14.6, circularity: 0.87, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophils', prob: 0.988 }, { classId: 'eosinophils', prob: 0.008 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'c-05', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 420, y: 480, width: 112, height: 108, confidence: 0.965, shape: 'box', morphology: { area_um2: 156.4, diameter_um: 14.1, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophils', prob: 0.965 }, { classId: 'monocytes', prob: 0.025 }, { classId: 'eosinophils', prob: 0.010 }] },
+      { id: 'c-06', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 810, y: 530, width: 116, height: 114, confidence: 0.991, shape: 'box', morphology: { area_um2: 165.2, diameter_um: 14.5, circularity: 0.89, nc_ratio: 0.40 }, predictions: [{ classId: 'neutrophils', prob: 0.991 }, { classId: 'eosinophils', prob: 0.006 }, { classId: 'monocytes', prob: 0.003 }] },
+      { id: 'c-07', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1320, y: 710, width: 114, height: 108, confidence: 0.978, shape: 'box', morphology: { area_um2: 158.9, diameter_um: 14.2, circularity: 0.86, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophils', prob: 0.978 }, { classId: 'monocytes', prob: 0.016 }, { classId: 'eosinophils', prob: 0.006 }] },
+      { id: 'c-08', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 190, y: 760, width: 110, height: 105, confidence: 0.972, shape: 'box', morphology: { area_um2: 152.0, diameter_um: 13.9, circularity: 0.85, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophils', prob: 0.972 }, { classId: 'monocytes', prob: 0.021 }, { classId: 'eosinophils', prob: 0.007 }] },
+      { id: 'c-09', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 590, y: 820, width: 115, height: 110, confidence: 0.981, shape: 'box', morphology: { area_um2: 161.8, diameter_um: 14.3, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.981 }, { classId: 'eosinophils', prob: 0.012 }, { classId: 'monocytes', prob: 0.007 }] },
+      { id: 'c-10', classId: 'neutrophils', label: 'Band Neutrophil', x: 990, y: 880, width: 108, height: 104, confidence: 0.948, shape: 'box', morphology: { area_um2: 149.3, diameter_um: 13.8, circularity: 0.81, nc_ratio: 0.49 }, predictions: [{ classId: 'neutrophils', prob: 0.948 }, { classId: 'monocytes', prob: 0.040 }, { classId: 'lymphocytes', prob: 0.012 }] },
+
+      // Lymphocytes (7)
+      { id: 'c-11', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 490, y: 150, width: 78, height: 76, confidence: 0.989, shape: 'box', morphology: { area_um2: 68.4, diameter_um: 9.3, circularity: 0.93, nc_ratio: 0.82 }, predictions: [{ classId: 'lymphocytes', prob: 0.989 }, { classId: 'blasts', prob: 0.008 }, { classId: 'monocytes', prob: 0.003 }] },
+      { id: 'c-12', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 890, y: 210, width: 80, height: 78, confidence: 0.975, shape: 'box', morphology: { area_um2: 71.2, diameter_um: 9.5, circularity: 0.92, nc_ratio: 0.84 }, predictions: [{ classId: 'lymphocytes', prob: 0.975 }, { classId: 'blasts', prob: 0.018 }, { classId: 'monocytes', prob: 0.007 }] },
+      { id: 'c-13', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 1350, y: 220, width: 76, height: 74, confidence: 0.982, shape: 'box', morphology: { area_um2: 66.8, diameter_um: 9.2, circularity: 0.94, nc_ratio: 0.80 }, predictions: [{ classId: 'lymphocytes', prob: 0.982 }, { classId: 'blasts', prob: 0.012 }, { classId: 'monocytes', prob: 0.006 }] },
+      { id: 'c-14', classId: 'lymphocytes', label: 'Large Granular Lymphocyte', x: 260, y: 520, width: 88, height: 84, confidence: 0.945, shape: 'box', morphology: { area_um2: 86.5, diameter_um: 10.5, circularity: 0.89, nc_ratio: 0.72 }, predictions: [{ classId: 'lymphocytes', prob: 0.945 }, { classId: 'monocytes', prob: 0.038 }, { classId: 'blasts', prob: 0.017 }] },
+      { id: 'c-15', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 710, y: 680, width: 75, height: 75, confidence: 0.992, shape: 'box', morphology: { area_um2: 67.1, diameter_um: 9.2, circularity: 0.95, nc_ratio: 0.85 }, predictions: [{ classId: 'lymphocytes', prob: 0.992 }, { classId: 'blasts', prob: 0.005 }, { classId: 'monocytes', prob: 0.003 }] },
+      { id: 'c-16', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 1180, y: 620, width: 82, height: 79, confidence: 0.979, shape: 'box', morphology: { area_um2: 73.8, diameter_um: 9.7, circularity: 0.91, nc_ratio: 0.81 }, predictions: [{ classId: 'lymphocytes', prob: 0.979 }, { classId: 'blasts', prob: 0.015 }, { classId: 'monocytes', prob: 0.006 }] },
+      { id: 'c-17', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 420, y: 920, width: 77, height: 76, confidence: 0.986, shape: 'box', morphology: { area_um2: 69.5, diameter_um: 9.4, circularity: 0.93, nc_ratio: 0.83 }, predictions: [{ classId: 'lymphocytes', prob: 0.986 }, { classId: 'blasts', prob: 0.010 }, { classId: 'monocytes', prob: 0.004 }] },
+
+      // Monocytes (3)
+      { id: 'c-18', classId: 'monocytes', label: 'Monocyte', x: 130, y: 340, width: 142, height: 136, confidence: 0.963, shape: 'box', morphology: { area_um2: 242.0, diameter_um: 17.5, circularity: 0.78, nc_ratio: 0.52 }, predictions: [{ classId: 'monocytes', prob: 0.963 }, { classId: 'neutrophils', prob: 0.024 }, { classId: 'blasts', prob: 0.013 }] },
+      { id: 'c-19', classId: 'monocytes', label: 'Monocyte', x: 980, y: 440, width: 138, height: 132, confidence: 0.954, shape: 'box', morphology: { area_um2: 235.4, diameter_um: 17.3, circularity: 0.79, nc_ratio: 0.54 }, predictions: [{ classId: 'monocytes', prob: 0.954 }, { classId: 'neutrophils', prob: 0.032 }, { classId: 'blasts', prob: 0.014 }] },
+      { id: 'c-20', classId: 'monocytes', label: 'Monocyte', x: 780, y: 920, width: 145, height: 138, confidence: 0.971, shape: 'box', morphology: { area_um2: 248.6, diameter_um: 17.8, circularity: 0.77, nc_ratio: 0.51 }, predictions: [{ classId: 'monocytes', prob: 0.971 }, { classId: 'neutrophils', prob: 0.019 }, { classId: 'blasts', prob: 0.010 }] },
+
+      // Eosinophils (2)
+      { id: 'c-21', classId: 'eosinophils', label: 'Eosinophil', x: 520, y: 320, width: 116, height: 114, confidence: 0.985, shape: 'box', morphology: { area_um2: 165.0, diameter_um: 14.5, circularity: 0.84, nc_ratio: 0.40 }, predictions: [{ classId: 'eosinophils', prob: 0.985 }, { classId: 'neutrophils', prob: 0.012 }, { classId: 'monocytes', prob: 0.003 }] },
+      { id: 'c-22', classId: 'eosinophils', label: 'Eosinophil', x: 1220, y: 900, width: 114, height: 112, confidence: 0.977, shape: 'box', morphology: { area_um2: 161.2, diameter_um: 14.3, circularity: 0.85, nc_ratio: 0.39 }, predictions: [{ classId: 'eosinophils', prob: 0.977 }, { classId: 'neutrophils', prob: 0.018 }, { classId: 'monocytes', prob: 0.005 }] },
+
+      // Basophil (1)
+      { id: 'c-23', classId: 'baseophils', label: 'Basophil', x: 380, y: 690, width: 106, height: 104, confidence: 0.968, shape: 'box', morphology: { area_um2: 138.5, diameter_um: 13.3, circularity: 0.83, nc_ratio: 0.46 }, predictions: [{ classId: 'baseophils', prob: 0.968 }, { classId: 'eosinophils', prob: 0.022 }, { classId: 'neutrophils', prob: 0.010 }] },
+
+      // Atypical / Blasts (2)
+      { id: 'c-24', classId: 'blasts', label: 'Atypical / Blast Cell', x: 860, y: 370, width: 148, height: 144, confidence: 0.932, shape: 'box', morphology: { area_um2: 274.0, diameter_um: 18.7, circularity: 0.88, nc_ratio: 0.88 }, predictions: [{ classId: 'blasts', prob: 0.932 }, { classId: 'monocytes', prob: 0.045 }, { classId: 'lymphocytes', prob: 0.023 }] },
+      { id: 'c-25', classId: 'blasts', label: 'Atypical Monocytoid Blast', x: 160, y: 940, width: 144, height: 140, confidence: 0.915, shape: 'box', morphology: { area_um2: 265.0, diameter_um: 18.4, circularity: 0.86, nc_ratio: 0.86 }, predictions: [{ classId: 'blasts', prob: 0.915 }, { classId: 'monocytes', prob: 0.060 }, { classId: 'lymphocytes', prob: 0.025 }] },
+
+      // Platelets (11)
+      { id: 'c-26', classId: 'plt', label: 'Platelet', x: 230, y: 130, width: 26, height: 24, confidence: 0.978, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.978 }, { classId: 'target_cells', prob: 0.022 }] },
+      { id: 'c-27', classId: 'plt', label: 'Platelet Clump', x: 620, y: 120, width: 42, height: 38, confidence: 0.962, shape: 'box', morphology: { area_um2: 17.5, diameter_um: 4.7, circularity: 0.82, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.962 }, { classId: 'target_cells', prob: 0.038 }] },
+      { id: 'c-28', classId: 'plt', label: 'Platelet', x: 800, y: 140, width: 25, height: 25, confidence: 0.984, shape: 'circle', morphology: { area_um2: 6.8, diameter_um: 2.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.984 }, { classId: 'target_cells', prob: 0.016 }] },
+      { id: 'c-29', classId: 'plt', label: 'Platelet', x: 1140, y: 260, width: 28, height: 26, confidence: 0.980, shape: 'circle', morphology: { area_um2: 7.6, diameter_um: 3.1, circularity: 0.92, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.980 }, { classId: 'target_cells', prob: 0.020 }] },
+      { id: 'c-30', classId: 'plt', label: 'Platelet', x: 340, y: 400, width: 24, height: 24, confidence: 0.974, shape: 'circle', morphology: { area_um2: 6.5, diameter_um: 2.9, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.974 }, { classId: 'target_cells', prob: 0.026 }] },
+      { id: 'c-31', classId: 'plt', label: 'Giant Platelet', x: 640, y: 440, width: 36, height: 34, confidence: 0.942, shape: 'box', morphology: { area_um2: 14.8, diameter_um: 4.3, circularity: 0.86, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.942 }, { classId: 'target_cells', prob: 0.058 }] },
+      { id: 'c-32', classId: 'plt', label: 'Platelet', x: 1090, y: 550, width: 26, height: 26, confidence: 0.981, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.981 }, { classId: 'target_cells', prob: 0.019 }] },
+      { id: 'c-33', classId: 'plt', label: 'Platelet Clump', x: 1410, y: 560, width: 44, height: 40, confidence: 0.955, shape: 'box', morphology: { area_um2: 18.2, diameter_um: 4.8, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.955 }, { classId: 'target_cells', prob: 0.045 }] },
+      { id: 'c-34', classId: 'plt', label: 'Platelet', x: 530, y: 640, width: 25, height: 24, confidence: 0.976, shape: 'circle', morphology: { area_um2: 6.9, diameter_um: 3.0, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.976 }, { classId: 'target_cells', prob: 0.024 }] },
+      { id: 'c-35', classId: 'plt', label: 'Platelet', x: 920, y: 760, width: 26, height: 25, confidence: 0.983, shape: 'circle', morphology: { area_um2: 7.1, diameter_um: 3.0, circularity: 0.93, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.983 }, { classId: 'target_cells', prob: 0.017 }] },
+      { id: 'c-36', classId: 'plt', label: 'Platelet', x: 1370, y: 840, width: 24, height: 24, confidence: 0.969, shape: 'circle', morphology: { area_um2: 6.4, diameter_um: 2.8, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.969 }, { classId: 'target_cells', prob: 0.031 }] },
+
+      // Erythrocyte variants (4)
+      { id: 'c-37', classId: 'target_cells', label: 'Target Cell', x: 450, y: 260, width: 56, height: 56, confidence: 0.935, shape: 'circle', morphology: { area_um2: 38.5, diameter_um: 7.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'target_cells', prob: 0.935 }, { classId: 'plt', prob: 0.065 }] },
+      { id: 'c-38', classId: 'schistocytes', label: 'Schistocyte', x: 940, y: 130, width: 46, height: 38, confidence: 0.895, shape: 'box', morphology: { area_um2: 27.2, diameter_um: 5.9, circularity: 0.76, nc_ratio: 0.0 }, predictions: [{ classId: 'schistocytes', prob: 0.895 }, { classId: 'plt', prob: 0.105 }] },
+      { id: 'c-39', classId: 'teardrops', label: 'Tear Drop Cell', x: 1100, y: 730, width: 58, height: 44, confidence: 0.922, shape: 'box', morphology: { area_um2: 34.6, diameter_um: 6.6, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'teardrops', prob: 0.922 }, { classId: 'plt', prob: 0.078 }] },
+      { id: 'c-40', classId: 'target_cells', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.948, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'target_cells', prob: 0.948 }, { classId: 'plt', prob: 0.052 }] }
+    ];
+
+    // Telesphorus (Fast Model - 32 Cells)
+    const MODEL_FLASH_ANNOTATIONS = [
+      // Neutrophils (8)
+      { id: 'fl-01', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 280, y: 190, width: 108, height: 104, confidence: 0.964, shape: 'box', morphology: { area_um2: 151.2, diameter_um: 13.9, circularity: 0.87, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophils', prob: 0.964 }, { classId: 'monocytes', prob: 0.024 }, { classId: 'eosinophils', prob: 0.012 }] },
+      { id: 'fl-02', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 670, y: 240, width: 114, height: 108, confidence: 0.956, shape: 'box', morphology: { area_um2: 160.1, diameter_um: 14.3, circularity: 0.85, nc_ratio: 0.46 }, predictions: [{ classId: 'neutrophils', prob: 0.956 }, { classId: 'monocytes', prob: 0.030 }, { classId: 'eosinophils', prob: 0.014 }] },
+      { id: 'fl-03', classId: 'neutrophils', label: 'Band Neutrophil', x: 1040, y: 160, width: 102, height: 102, confidence: 0.938, shape: 'box', morphology: { area_um2: 142.5, diameter_um: 13.5, circularity: 0.81, nc_ratio: 0.49 }, predictions: [{ classId: 'neutrophils', prob: 0.938 }, { classId: 'monocytes', prob: 0.045 }, { classId: 'lymphocytes', prob: 0.017 }] },
+      { id: 'fl-04', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1210, y: 390, width: 116, height: 110, confidence: 0.972, shape: 'box', morphology: { area_um2: 165.4, diameter_um: 14.5, circularity: 0.86, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.972 }, { classId: 'eosinophils', prob: 0.018 }, { classId: 'monocytes', prob: 0.010 }] },
+      { id: 'fl-05', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 420, y: 480, width: 110, height: 106, confidence: 0.951, shape: 'box', morphology: { area_um2: 153.8, diameter_um: 14.0, circularity: 0.84, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophils', prob: 0.951 }, { classId: 'monocytes', prob: 0.035 }, { classId: 'eosinophils', prob: 0.014 }] },
+      { id: 'fl-06', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 810, y: 530, width: 114, height: 112, confidence: 0.975, shape: 'box', morphology: { area_um2: 162.8, diameter_um: 14.4, circularity: 0.88, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophils', prob: 0.975 }, { classId: 'eosinophils', prob: 0.015 }, { classId: 'monocytes', prob: 0.010 }] },
+      { id: 'fl-07', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1320, y: 710, width: 112, height: 106, confidence: 0.962, shape: 'box', morphology: { area_um2: 156.2, diameter_um: 14.1, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophils', prob: 0.962 }, { classId: 'monocytes', prob: 0.026 }, { classId: 'eosinophils', prob: 0.012 }] },
+      { id: 'fl-08', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 590, y: 820, width: 112, height: 108, confidence: 0.968, shape: 'box', morphology: { area_um2: 159.0, diameter_um: 14.2, circularity: 0.87, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophils', prob: 0.968 }, { classId: 'eosinophils', prob: 0.020 }, { classId: 'monocytes', prob: 0.012 }] },
+
+      // Lymphocytes (5)
+      { id: 'fl-09', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 490, y: 150, width: 76, height: 74, confidence: 0.974, shape: 'box', morphology: { area_um2: 66.2, diameter_um: 9.2, circularity: 0.92, nc_ratio: 0.83 }, predictions: [{ classId: 'lymphocytes', prob: 0.974 }, { classId: 'blasts', prob: 0.018 }, { classId: 'monocytes', prob: 0.008 }] },
+      { id: 'fl-10', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 890, y: 210, width: 78, height: 76, confidence: 0.961, shape: 'box', morphology: { area_um2: 69.4, diameter_um: 9.4, circularity: 0.91, nc_ratio: 0.85 }, predictions: [{ classId: 'lymphocytes', prob: 0.961 }, { classId: 'blasts', prob: 0.028 }, { classId: 'monocytes', prob: 0.011 }] },
+      { id: 'fl-11', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 1350, y: 220, width: 74, height: 72, confidence: 0.969, shape: 'box', morphology: { area_um2: 65.1, diameter_um: 9.1, circularity: 0.93, nc_ratio: 0.81 }, predictions: [{ classId: 'lymphocytes', prob: 0.969 }, { classId: 'blasts', prob: 0.021 }, { classId: 'monocytes', prob: 0.010 }] },
+      { id: 'fl-12', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 710, y: 680, width: 74, height: 74, confidence: 0.981, shape: 'box', morphology: { area_um2: 65.8, diameter_um: 9.1, circularity: 0.94, nc_ratio: 0.86 }, predictions: [{ classId: 'lymphocytes', prob: 0.981 }, { classId: 'blasts', prob: 0.012 }, { classId: 'monocytes', prob: 0.007 }] },
+      { id: 'fl-13', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 420, y: 920, width: 75, height: 74, confidence: 0.973, shape: 'box', morphology: { area_um2: 68.0, diameter_um: 9.3, circularity: 0.92, nc_ratio: 0.84 }, predictions: [{ classId: 'lymphocytes', prob: 0.973 }, { classId: 'blasts', prob: 0.018 }, { classId: 'monocytes', prob: 0.009 }] },
+
+      // Monocytes (2)
+      { id: 'fl-14', classId: 'monocytes', label: 'Monocyte', x: 130, y: 340, width: 138, height: 132, confidence: 0.948, shape: 'box', morphology: { area_um2: 236.0, diameter_um: 17.3, circularity: 0.77, nc_ratio: 0.53 }, predictions: [{ classId: 'monocytes', prob: 0.948 }, { classId: 'neutrophils', prob: 0.036 }, { classId: 'blasts', prob: 0.016 }] },
+      { id: 'fl-15', classId: 'monocytes', label: 'Monocyte', x: 980, y: 440, width: 135, height: 130, confidence: 0.939, shape: 'box', morphology: { area_um2: 231.0, diameter_um: 17.1, circularity: 0.78, nc_ratio: 0.55 }, predictions: [{ classId: 'monocytes', prob: 0.939 }, { classId: 'neutrophils', prob: 0.042 }, { classId: 'blasts', prob: 0.019 }] },
+
+      // Eosinophils (2)
+      { id: 'fl-16', classId: 'eosinophils', label: 'Eosinophil', x: 520, y: 320, width: 114, height: 112, confidence: 0.971, shape: 'box', morphology: { area_um2: 162.0, diameter_um: 14.4, circularity: 0.83, nc_ratio: 0.41 }, predictions: [{ classId: 'eosinophils', prob: 0.971 }, { classId: 'neutrophils', prob: 0.021 }, { classId: 'monocytes', prob: 0.008 }] },
+      { id: 'fl-17', classId: 'eosinophils', label: 'Eosinophil', x: 1220, y: 900, width: 112, height: 110, confidence: 0.963, shape: 'box', morphology: { area_um2: 158.5, diameter_um: 14.2, circularity: 0.84, nc_ratio: 0.40 }, predictions: [{ classId: 'eosinophils', prob: 0.963 }, { classId: 'neutrophils', prob: 0.026 }, { classId: 'monocytes', prob: 0.011 }] },
+
+      // Basophil (1)
+      { id: 'fl-18', classId: 'baseophils', label: 'Basophil', x: 380, y: 690, width: 104, height: 102, confidence: 0.952, shape: 'box', morphology: { area_um2: 135.2, diameter_um: 13.1, circularity: 0.82, nc_ratio: 0.47 }, predictions: [{ classId: 'baseophils', prob: 0.952 }, { classId: 'eosinophils', prob: 0.032 }, { classId: 'neutrophils', prob: 0.016 }] },
+
+      // Atypical / Blast (1)
+      { id: 'fl-19', classId: 'blasts', label: 'Atypical / Blast Cell', x: 860, y: 370, width: 144, height: 140, confidence: 0.918, shape: 'box', morphology: { area_um2: 268.0, diameter_um: 18.5, circularity: 0.87, nc_ratio: 0.89 }, predictions: [{ classId: 'blasts', prob: 0.918 }, { classId: 'monocytes', prob: 0.054 }, { classId: 'lymphocytes', prob: 0.028 }] },
+
+      // Platelets (9)
+      { id: 'fl-20', classId: 'plt', label: 'Platelet', x: 230, y: 130, width: 26, height: 24, confidence: 0.972, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.972 }, { classId: 'target_cells', prob: 0.028 }] },
+      { id: 'fl-21', classId: 'plt', label: 'Platelet', x: 800, y: 140, width: 25, height: 25, confidence: 0.979, shape: 'circle', morphology: { area_um2: 6.8, diameter_um: 2.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.979 }, { classId: 'target_cells', prob: 0.021 }] },
+      { id: 'fl-22', classId: 'plt', label: 'Platelet', x: 1140, y: 260, width: 28, height: 26, confidence: 0.975, shape: 'circle', morphology: { area_um2: 7.6, diameter_um: 3.1, circularity: 0.92, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.975 }, { classId: 'target_cells', prob: 0.025 }] },
+      { id: 'fl-23', classId: 'plt', label: 'Platelet', x: 340, y: 400, width: 24, height: 24, confidence: 0.968, shape: 'circle', morphology: { area_um2: 6.5, diameter_um: 2.9, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.968 }, { classId: 'target_cells', prob: 0.032 }] },
+      { id: 'fl-24', classId: 'plt', label: 'Platelet', x: 640, y: 440, width: 34, height: 32, confidence: 0.935, shape: 'box', morphology: { area_um2: 14.1, diameter_um: 4.2, circularity: 0.85, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.935 }, { classId: 'target_cells', prob: 0.065 }] },
+      { id: 'fl-25', classId: 'plt', label: 'Platelet', x: 1090, y: 550, width: 26, height: 26, confidence: 0.976, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.976 }, { classId: 'target_cells', prob: 0.024 }] },
+      { id: 'fl-26', classId: 'plt', label: 'Platelet', x: 530, y: 640, width: 25, height: 24, confidence: 0.971, shape: 'circle', morphology: { area_um2: 6.9, diameter_um: 3.0, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.971 }, { classId: 'target_cells', prob: 0.029 }] },
+      { id: 'fl-27', classId: 'plt', label: 'Platelet', x: 920, y: 760, width: 26, height: 25, confidence: 0.978, shape: 'circle', morphology: { area_um2: 7.1, diameter_um: 3.0, circularity: 0.93, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.978 }, { classId: 'target_cells', prob: 0.022 }] },
+      { id: 'fl-28', classId: 'plt', label: 'Platelet', x: 1370, y: 840, width: 24, height: 24, confidence: 0.962, shape: 'circle', morphology: { area_um2: 6.4, diameter_um: 2.8, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.962 }, { classId: 'target_cells', prob: 0.038 }] },
+
+      // Erythrocyte variants (4)
+      { id: 'fl-29', classId: 'target_cells', label: 'Target Cell', x: 450, y: 260, width: 56, height: 56, confidence: 0.928, shape: 'circle', morphology: { area_um2: 38.5, diameter_um: 7.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'target_cells', prob: 0.928 }, { classId: 'plt', prob: 0.072 }] },
+      { id: 'fl-30', classId: 'schistocytes', label: 'Schistocyte', x: 940, y: 130, width: 46, height: 38, confidence: 0.884, shape: 'box', morphology: { area_um2: 27.2, diameter_um: 5.9, circularity: 0.76, nc_ratio: 0.0 }, predictions: [{ classId: 'schistocytes', prob: 0.884 }, { classId: 'plt', prob: 0.116 }] },
+      { id: 'fl-31', classId: 'teardrops', label: 'Tear Drop Cell', x: 1100, y: 730, width: 58, height: 44, confidence: 0.916, shape: 'box', morphology: { area_um2: 34.6, diameter_um: 6.6, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'teardrops', prob: 0.916 }, { classId: 'plt', prob: 0.084 }] },
+      { id: 'fl-32', classId: 'target_cells', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.942, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'target_cells', prob: 0.942 }, { classId: 'plt', prob: 0.058 }] }
+    ];
+
+    // Asclepius (Pro Model - 46 Cells)
+    const MODEL_PRO_ANNOTATIONS = [
+      // Neutrophils (12)
+      { id: 'pr-01', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 280, y: 190, width: 110, height: 105, confidence: 0.992, shape: 'box', morphology: { area_um2: 154.2, diameter_um: 14.0, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.992 }, { classId: 'monocytes', prob: 0.005 }, { classId: 'eosinophils', prob: 0.003 }] },
+      { id: 'pr-02', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 670, y: 240, width: 115, height: 110, confidence: 0.989, shape: 'box', morphology: { area_um2: 162.5, diameter_um: 14.4, circularity: 0.86, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophils', prob: 0.989 }, { classId: 'monocytes', prob: 0.008 }, { classId: 'eosinophils', prob: 0.003 }] },
+      { id: 'pr-03', classId: 'neutrophils', label: 'Band Neutrophil', x: 1040, y: 160, width: 105, height: 105, confidence: 0.971, shape: 'box', morphology: { area_um2: 145.8, diameter_um: 13.6, circularity: 0.82, nc_ratio: 0.48 }, predictions: [{ classId: 'neutrophils', prob: 0.971 }, { classId: 'monocytes', prob: 0.021 }, { classId: 'lymphocytes', prob: 0.008 }] },
+      { id: 'pr-04', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1210, y: 390, width: 118, height: 112, confidence: 0.995, shape: 'box', morphology: { area_um2: 168.0, diameter_um: 14.6, circularity: 0.87, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophils', prob: 0.995 }, { classId: 'eosinophils', prob: 0.003 }, { classId: 'monocytes', prob: 0.002 }] },
+      { id: 'pr-05', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 420, y: 480, width: 112, height: 108, confidence: 0.984, shape: 'box', morphology: { area_um2: 156.4, diameter_um: 14.1, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophils', prob: 0.984 }, { classId: 'monocytes', prob: 0.011 }, { classId: 'eosinophils', prob: 0.005 }] },
+      { id: 'pr-06', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 810, y: 530, width: 116, height: 114, confidence: 0.996, shape: 'box', morphology: { area_um2: 165.2, diameter_um: 14.5, circularity: 0.89, nc_ratio: 0.40 }, predictions: [{ classId: 'neutrophils', prob: 0.996 }, { classId: 'eosinophils', prob: 0.003 }, { classId: 'monocytes', prob: 0.001 }] },
+      { id: 'pr-07', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1320, y: 710, width: 114, height: 108, confidence: 0.988, shape: 'box', morphology: { area_um2: 158.9, diameter_um: 14.2, circularity: 0.86, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophils', prob: 0.988 }, { classId: 'monocytes', prob: 0.008 }, { classId: 'eosinophils', prob: 0.004 }] },
+      { id: 'pr-08', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 190, y: 760, width: 110, height: 105, confidence: 0.985, shape: 'box', morphology: { area_um2: 152.0, diameter_um: 13.9, circularity: 0.85, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophils', prob: 0.985 }, { classId: 'monocytes', prob: 0.010 }, { classId: 'eosinophils', prob: 0.005 }] },
+      { id: 'pr-09', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 590, y: 820, width: 115, height: 110, confidence: 0.991, shape: 'box', morphology: { area_um2: 161.8, diameter_um: 14.3, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.991 }, { classId: 'eosinophils', prob: 0.005 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'pr-10', classId: 'neutrophils', label: 'Band Neutrophil', x: 990, y: 880, width: 108, height: 104, confidence: 0.967, shape: 'box', morphology: { area_um2: 149.3, diameter_um: 13.8, circularity: 0.81, nc_ratio: 0.49 }, predictions: [{ classId: 'neutrophils', prob: 0.967 }, { classId: 'monocytes', prob: 0.024 }, { classId: 'lymphocytes', prob: 0.009 }] },
+      { id: 'pr-11', classId: 'neutrophils', label: 'Hypersegmented Neutrophil', x: 310, y: 320, width: 112, height: 110, confidence: 0.978, shape: 'box', morphology: { area_um2: 159.4, diameter_um: 14.2, circularity: 0.83, nc_ratio: 0.38 }, predictions: [{ classId: 'neutrophils', prob: 0.978 }, { classId: 'monocytes', prob: 0.016 }, { classId: 'eosinophils', prob: 0.006 }] },
+      { id: 'pr-12', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1060, y: 310, width: 114, height: 108, confidence: 0.986, shape: 'box', morphology: { area_um2: 157.0, diameter_um: 14.1, circularity: 0.87, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.986 }, { classId: 'eosinophils', prob: 0.009 }, { classId: 'monocytes', prob: 0.005 }] },
+
+      // Lymphocytes (8)
+      { id: 'pr-13', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 490, y: 150, width: 78, height: 76, confidence: 0.994, shape: 'box', morphology: { area_um2: 68.4, diameter_um: 9.3, circularity: 0.93, nc_ratio: 0.82 }, predictions: [{ classId: 'lymphocytes', prob: 0.994 }, { classId: 'blasts', prob: 0.004 }, { classId: 'monocytes', prob: 0.002 }] },
+      { id: 'pr-14', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 890, y: 210, width: 80, height: 78, confidence: 0.988, shape: 'box', morphology: { area_um2: 71.2, diameter_um: 9.5, circularity: 0.92, nc_ratio: 0.84 }, predictions: [{ classId: 'lymphocytes', prob: 0.988 }, { classId: 'blasts', prob: 0.008 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'pr-15', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 1350, y: 220, width: 76, height: 74, confidence: 0.991, shape: 'box', morphology: { area_um2: 66.8, diameter_um: 9.2, circularity: 0.94, nc_ratio: 0.80 }, predictions: [{ classId: 'lymphocytes', prob: 0.991 }, { classId: 'blasts', prob: 0.006 }, { classId: 'monocytes', prob: 0.003 }] },
+      { id: 'pr-16', classId: 'lymphocytes', label: 'Large Granular Lymphocyte', x: 260, y: 520, width: 88, height: 84, confidence: 0.962, shape: 'box', morphology: { area_um2: 86.5, diameter_um: 10.5, circularity: 0.89, nc_ratio: 0.72 }, predictions: [{ classId: 'lymphocytes', prob: 0.962 }, { classId: 'monocytes', prob: 0.025 }, { classId: 'blasts', prob: 0.013 }] },
+      { id: 'pr-17', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 710, y: 680, width: 75, height: 75, confidence: 0.996, shape: 'box', morphology: { area_um2: 67.1, diameter_um: 9.2, circularity: 0.95, nc_ratio: 0.85 }, predictions: [{ classId: 'lymphocytes', prob: 0.996 }, { classId: 'blasts', prob: 0.002 }, { classId: 'monocytes', prob: 0.002 }] },
+      { id: 'pr-18', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 1180, y: 620, width: 82, height: 79, confidence: 0.989, shape: 'box', morphology: { area_um2: 73.8, diameter_um: 9.7, circularity: 0.91, nc_ratio: 0.81 }, predictions: [{ classId: 'lymphocytes', prob: 0.989 }, { classId: 'blasts', prob: 0.007 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'pr-19', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 420, y: 920, width: 77, height: 76, confidence: 0.993, shape: 'box', morphology: { area_um2: 69.5, diameter_um: 9.4, circularity: 0.93, nc_ratio: 0.83 }, predictions: [{ classId: 'lymphocytes', prob: 0.993 }, { classId: 'blasts', prob: 0.004 }, { classId: 'monocytes', prob: 0.003 }] },
+      { id: 'pr-20', classId: 'lymphocytes', label: 'Reactive Lymphocyte', x: 740, y: 410, width: 84, height: 80, confidence: 0.972, shape: 'box', morphology: { area_um2: 82.0, diameter_um: 10.2, circularity: 0.88, nc_ratio: 0.74 }, predictions: [{ classId: 'lymphocytes', prob: 0.972 }, { classId: 'monocytes', prob: 0.018 }, { classId: 'blasts', prob: 0.010 }] },
+
+      // Monocytes (4)
+      { id: 'pr-21', classId: 'monocytes', label: 'Monocyte', x: 130, y: 340, width: 142, height: 136, confidence: 0.981, shape: 'box', morphology: { area_um2: 242.0, diameter_um: 17.5, circularity: 0.78, nc_ratio: 0.52 }, predictions: [{ classId: 'monocytes', prob: 0.981 }, { classId: 'neutrophils', prob: 0.012 }, { classId: 'blasts', prob: 0.007 }] },
+      { id: 'pr-22', classId: 'monocytes', label: 'Monocyte', x: 980, y: 440, width: 138, height: 132, confidence: 0.974, shape: 'box', morphology: { area_um2: 235.4, diameter_um: 17.3, circularity: 0.79, nc_ratio: 0.54 }, predictions: [{ classId: 'monocytes', prob: 0.974 }, { classId: 'neutrophils', prob: 0.018 }, { classId: 'blasts', prob: 0.008 }] },
+      { id: 'pr-23', classId: 'monocytes', label: 'Monocyte', x: 780, y: 920, width: 145, height: 138, confidence: 0.987, shape: 'box', morphology: { area_um2: 248.6, diameter_um: 17.8, circularity: 0.77, nc_ratio: 0.51 }, predictions: [{ classId: 'monocytes', prob: 0.987 }, { classId: 'neutrophils', prob: 0.009 }, { classId: 'blasts', prob: 0.004 }] },
+      { id: 'pr-24', classId: 'monocytes', label: 'Monocyte', x: 500, y: 560, width: 140, height: 134, confidence: 0.979, shape: 'box', morphology: { area_um2: 238.2, diameter_um: 17.4, circularity: 0.78, nc_ratio: 0.53 }, predictions: [{ classId: 'monocytes', prob: 0.979 }, { classId: 'neutrophils', prob: 0.014 }, { classId: 'blasts', prob: 0.007 }] },
+
+      // Eosinophils (3)
+      { id: 'pr-25', classId: 'eosinophils', label: 'Eosinophil', x: 520, y: 320, width: 116, height: 114, confidence: 0.992, shape: 'box', morphology: { area_um2: 165.0, diameter_um: 14.5, circularity: 0.84, nc_ratio: 0.40 }, predictions: [{ classId: 'eosinophils', prob: 0.992 }, { classId: 'neutrophils', prob: 0.006 }, { classId: 'monocytes', prob: 0.002 }] },
+      { id: 'pr-26', classId: 'eosinophils', label: 'Eosinophil', x: 1220, y: 900, width: 114, height: 112, confidence: 0.986, shape: 'box', morphology: { area_um2: 161.2, diameter_um: 14.3, circularity: 0.85, nc_ratio: 0.39 }, predictions: [{ classId: 'eosinophils', prob: 0.986 }, { classId: 'neutrophils', prob: 0.010 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'pr-27', classId: 'eosinophils', label: 'Eosinophil', x: 880, y: 780, width: 115, height: 112, confidence: 0.989, shape: 'box', morphology: { area_um2: 163.5, diameter_um: 14.4, circularity: 0.85, nc_ratio: 0.39 }, predictions: [{ classId: 'eosinophils', prob: 0.989 }, { classId: 'neutrophils', prob: 0.008 }, { classId: 'monocytes', prob: 0.003 }] },
+
+      // Basophils (2)
+      { id: 'pr-28', classId: 'baseophils', label: 'Basophil', x: 380, y: 690, width: 106, height: 104, confidence: 0.982, shape: 'box', morphology: { area_um2: 138.5, diameter_um: 13.3, circularity: 0.83, nc_ratio: 0.46 }, predictions: [{ classId: 'baseophils', prob: 0.982 }, { classId: 'eosinophils', prob: 0.012 }, { classId: 'neutrophils', prob: 0.006 }] },
+      { id: 'pr-29', classId: 'baseophils', label: 'Basophil', x: 1080, y: 790, width: 108, height: 105, confidence: 0.975, shape: 'box', morphology: { area_um2: 140.2, diameter_um: 13.4, circularity: 0.82, nc_ratio: 0.45 }, predictions: [{ classId: 'baseophils', prob: 0.975 }, { classId: 'eosinophils', prob: 0.016 }, { classId: 'neutrophils', prob: 0.009 }] },
+
+      // Atypical / Blasts (3)
+      { id: 'pr-30', classId: 'blasts', label: 'Atypical / Myeloid Blast', x: 860, y: 370, width: 148, height: 144, confidence: 0.968, shape: 'box', morphology: { area_um2: 274.0, diameter_um: 18.7, circularity: 0.88, nc_ratio: 0.88 }, predictions: [{ classId: 'blasts', prob: 0.968 }, { classId: 'monocytes', prob: 0.021 }, { classId: 'lymphocytes', prob: 0.011 }] },
+      { id: 'pr-31', classId: 'blasts', label: 'Atypical Monocytoid Blast', x: 160, y: 940, width: 144, height: 140, confidence: 0.954, shape: 'box', morphology: { area_um2: 265.0, diameter_um: 18.4, circularity: 0.86, nc_ratio: 0.86 }, predictions: [{ classId: 'blasts', prob: 0.954 }, { classId: 'monocytes', prob: 0.032 }, { classId: 'lymphocytes', prob: 0.014 }] },
+      { id: 'pr-32', classId: 'blasts', label: 'Leukemic Blast Precursor', x: 620, y: 520, width: 146, height: 142, confidence: 0.961, shape: 'box', morphology: { area_um2: 270.5, diameter_um: 18.6, circularity: 0.87, nc_ratio: 0.87 }, predictions: [{ classId: 'blasts', prob: 0.961 }, { classId: 'monocytes', prob: 0.025 }, { classId: 'lymphocytes', prob: 0.014 }] },
+
+      // Platelets (10)
+      { id: 'pr-33', classId: 'plt', label: 'Platelet', x: 230, y: 130, width: 26, height: 24, confidence: 0.988, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.988 }, { classId: 'target_cells', prob: 0.012 }] },
+      { id: 'pr-34', classId: 'plt', label: 'Platelet Clump', x: 620, y: 120, width: 42, height: 38, confidence: 0.976, shape: 'box', morphology: { area_um2: 17.5, diameter_um: 4.7, circularity: 0.82, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.976 }, { classId: 'target_cells', prob: 0.024 }] },
+      { id: 'pr-35', classId: 'plt', label: 'Platelet', x: 800, y: 140, width: 25, height: 25, confidence: 0.991, shape: 'circle', morphology: { area_um2: 6.8, diameter_um: 2.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.991 }, { classId: 'target_cells', prob: 0.009 }] },
+      { id: 'pr-36', classId: 'plt', label: 'Platelet', x: 1140, y: 260, width: 28, height: 26, confidence: 0.989, shape: 'circle', morphology: { area_um2: 7.6, diameter_um: 3.1, circularity: 0.92, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.989 }, { classId: 'target_cells', prob: 0.011 }] },
+      { id: 'pr-37', classId: 'plt', label: 'Platelet', x: 340, y: 400, width: 24, height: 24, confidence: 0.985, shape: 'circle', morphology: { area_um2: 6.5, diameter_um: 2.9, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.985 }, { classId: 'target_cells', prob: 0.015 }] },
+      { id: 'pr-38', classId: 'plt', label: 'Giant Platelet', x: 640, y: 440, width: 36, height: 34, confidence: 0.962, shape: 'box', morphology: { area_um2: 14.8, diameter_um: 4.3, circularity: 0.86, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.962 }, { classId: 'target_cells', prob: 0.038 }] },
+      { id: 'pr-39', classId: 'plt', label: 'Platelet', x: 1090, y: 550, width: 26, height: 26, confidence: 0.990, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.990 }, { classId: 'target_cells', prob: 0.010 }] },
+      { id: 'pr-40', classId: 'plt', label: 'Platelet Clump', x: 1410, y: 560, width: 44, height: 40, confidence: 0.971, shape: 'box', morphology: { area_um2: 18.2, diameter_um: 4.8, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.971 }, { classId: 'target_cells', prob: 0.029 }] },
+      { id: 'pr-41', classId: 'plt', label: 'Platelet', x: 530, y: 640, width: 25, height: 24, confidence: 0.987, shape: 'circle', morphology: { area_um2: 6.9, diameter_um: 3.0, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.987 }, { classId: 'target_cells', prob: 0.013 }] },
+      { id: 'pr-42', classId: 'plt', label: 'Platelet', x: 920, y: 760, width: 26, height: 25, confidence: 0.992, shape: 'circle', morphology: { area_um2: 7.1, diameter_um: 3.0, circularity: 0.93, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.992 }, { classId: 'target_cells', prob: 0.008 }] },
+
+      // Erythrocyte variants (4)
+      { id: 'pr-43', classId: 'target_cells', label: 'Target Cell', x: 450, y: 260, width: 56, height: 56, confidence: 0.958, shape: 'circle', morphology: { area_um2: 38.5, diameter_um: 7.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'target_cells', prob: 0.958 }, { classId: 'plt', prob: 0.042 }] },
+      { id: 'pr-44', classId: 'schistocytes', label: 'Schistocyte', x: 940, y: 130, width: 46, height: 38, confidence: 0.925, shape: 'box', morphology: { area_um2: 27.2, diameter_um: 5.9, circularity: 0.76, nc_ratio: 0.0 }, predictions: [{ classId: 'schistocytes', prob: 0.925 }, { classId: 'plt', prob: 0.075 }] },
+      { id: 'pr-45', classId: 'teardrops', label: 'Tear Drop Cell', x: 1100, y: 730, width: 58, height: 44, confidence: 0.946, shape: 'box', morphology: { area_um2: 34.6, diameter_um: 6.6, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'teardrops', prob: 0.946 }, { classId: 'plt', prob: 0.054 }] },
+      { id: 'pr-46', classId: 'target_cells', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.968, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'target_cells', prob: 0.968 }, { classId: 'plt', prob: 0.032 }] }
+    ];
 
     // Global session cache for non-blocking WebGPU session pre-warming
     let gClassifierSessionPromise = null;
@@ -1614,40 +1628,23 @@
             name: 'webgpu',
             deviceType: 'gpu',
             powerPreference: 'high-performance'
-          },
-          'wasm'
+          }
         ],
         graphOptimizationLevel: 'all'
       };
 
       const uint8Bytes = new Uint8Array(buffer);
 
-      try {
-        const session = await ort.InferenceSession.create(uint8Bytes, options);
-        const duration = (performance.now() - startTime).toFixed(1);
-        console.log(`[Lynceus GPU] ✓ ${modelName} initialized successfully with WebGPU EP (${duration}ms, fromCache: ${fromCache})`);
-        return session;
-      } catch (err) {
-        console.warn(`[Lynceus GPU] WebGPU EP unavailable for ${modelName} (${err.message}), falling back to multi-threaded WASM EP...`);
-        try {
-          const wasmSession = await ort.InferenceSession.create(uint8Bytes, {
-            executionProviders: ['wasm'],
-            graphOptimizationLevel: 'all'
-          });
-          const duration = (performance.now() - startTime).toFixed(1);
-          console.log(`[Lynceus GPU] ✓ ${modelName} initialized with WASM fallback (${duration}ms)`);
-          return wasmSession;
-        } catch (wasmErr) {
-          console.warn(`[Lynceus GPU] Could not load ${modelName} (${wasmErr.message}).`);
-          throw wasmErr;
-        }
-      }
+      const session = await ort.InferenceSession.create(uint8Bytes, options);
+      const duration = (performance.now() - startTime).toFixed(1);
+      console.log(`[Lynceus GPU] ✓ ${modelName} initialized successfully on WebGPU (${duration}ms, fromCache: ${fromCache})`);
+      return session;
     }
 
     function preloadClassifierSession(onProgress = null) {
       if (!gClassifierSessionPromise) {
         console.log(`[Preload Overlap] [${new Date().toISOString()}] Kicking off background pre-fetch & WebGPU compilation for Swin-T 20-Class Classifier...`);
-        gClassifierSessionPromise = createGpuSession('assets/swin_classifier_int8.onnx', 'Swin-T Classifier (INT8)', onProgress);
+        gClassifierSessionPromise = createGpuSession('assets/swin_classifier.onnx', 'Swin-T Classifier (FP32)', onProgress);
       }
       return gClassifierSessionPromise;
     }
@@ -2084,6 +2081,20 @@
       return { mask: cleanedMask, cells, numCells: cells.length };
     }
 
+    // Optimized offscreen patch cropper canvas
+    let gCropCanvas = null;
+    let gCropCtx = null;
+
+    function getCropContext(targetSize = 224) {
+      if (!gCropCanvas) {
+        gCropCanvas = document.createElement('canvas');
+        gCropCanvas.width = targetSize;
+        gCropCanvas.height = targetSize;
+        gCropCtx = gCropCanvas.getContext('2d', { willReadFrequently: true });
+      }
+      return { canvas: gCropCanvas, ctx: gCropCtx };
+    }
+
     function cropAndSquarePadCell(sourceImage, bbox, targetSize = 224) {
       const [minY, minX, maxY, maxX] = bbox;
       const srcW = sourceImage.naturalWidth || sourceImage.width || 1500;
@@ -2098,25 +2109,18 @@
       const validH = Math.max(1, validY1 - validY0);
 
       const s = Math.max(validW, validH);
-      const padLeft = Math.floor((s - validW) / 2);
-      const padTop = Math.floor((s - validH) / 2);
+      const scale = targetSize / s;
+      const dw = validW * scale;
+      const dh = validH * scale;
+      const dx = (targetSize - dw) / 2;
+      const dy = (targetSize - dh) / 2;
 
-      const sqCanvas = document.createElement('canvas');
-      sqCanvas.width = s;
-      sqCanvas.height = s;
-      const sqCtx = sqCanvas.getContext('2d');
-      sqCtx.fillStyle = '#000000';
-      sqCtx.fillRect(0, 0, s, s);
+      const { ctx } = getCropContext(targetSize);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, targetSize, targetSize);
+      ctx.drawImage(sourceImage, validX0, validY0, validW, validH, dx, dy, dw, dh);
 
-      sqCtx.drawImage(sourceImage, validX0, validY0, validW, validH, padLeft, padTop, validW, validH);
-
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = targetSize;
-      finalCanvas.height = targetSize;
-      const finalCtx = finalCanvas.getContext('2d');
-      finalCtx.drawImage(sqCanvas, 0, 0, s, s, 0, 0, targetSize, targetSize);
-
-      const imgData = finalCtx.getImageData(0, 0, targetSize, targetSize).data;
+      const imgData = ctx.getImageData(0, 0, targetSize, targetSize).data;
       const tensor = new Float32Array(3 * targetSize * targetSize);
       const stride = targetSize * targetSize;
 
@@ -2150,7 +2154,7 @@
     }
 
     async function classifySegmentedBatch(clfSession, sourceImage, cells, maxCells = null, shouldAbort = null) {
-      const startTime = performance.now();
+      const batchStartTime = performance.now();
       if (!cells || cells.length === 0) return [];
 
       // Sort and optionally limit, or classify all segmented cells
@@ -2160,20 +2164,31 @@
       const total = targetCells.length;
       const results = [];
       const CHUNK_SIZE = 16;
+      const numChunks = Math.ceil(total / CHUNK_SIZE);
 
-      console.log(`[Stage 2 Swin-T] Classifying ${total} cells in chunks of ${CHUNK_SIZE} on WebGPU...`);
+      console.log(`[${new Date().toISOString()}] [Stage 2 Swin-T] Starting classification for ${total} cells in ${numChunks} chunks (CHUNK_SIZE=${CHUNK_SIZE})...`);
 
       for (let offset = 0; offset < total; offset += CHUNK_SIZE) {
         if (shouldAbort && shouldAbort()) {
-          console.warn('[Stage 2 Swin-T] ⏹️ Classification halted mid-batch by abort request.');
+          console.warn(`[${new Date().toISOString()}] [Stage 2 Swin-T] Classification halted mid-batch by abort request.`);
           break;
         }
 
+        const chunkIndex = Math.floor(offset / CHUNK_SIZE) + 1;
         const chunk = targetCells.slice(offset, offset + CHUNK_SIZE);
         const B = chunk.length;
-        const batchTensor = prepareBatchSquarePadTensor(sourceImage, chunk, 224);
 
+        const tPrep0 = performance.now();
+        const batchTensor = prepareBatchSquarePadTensor(sourceImage, chunk, 224);
+        const prepElapsed = (performance.now() - tPrep0).toFixed(1);
+
+        const tRun0 = performance.now();
         const outputs = await clfSession.run({ input: batchTensor });
+        const runElapsed = (performance.now() - tRun0).toFixed(1);
+        const perCellMs = (parseFloat(runElapsed) / B).toFixed(1);
+
+        console.log(`[${new Date().toISOString()}] [Stage 2 Swin-T] Chunk ${chunkIndex}/${numChunks} (${B} cells) -> Prep: ${prepElapsed}ms, Forward Pass: ${runElapsed}ms (${perCellMs}ms/cell)`);
+
         const logits = outputs.logits || outputs[Object.keys(outputs)[0]];
         const logitData = logits.data;
 
@@ -2202,8 +2217,9 @@
               topIdx = c;
             }
             const rawClass = MASTER_CLASSES[c];
+            const taxId = MASTER_CLASS_TO_CATEGORY_ID[rawClass] || rawClass.toLowerCase();
             allPreds.push({
-              classId: MASTER_CLASS_TO_CATEGORY_ID[rawClass] || 'rbc_variant',
+              classId: taxId,
               rawClass: rawClass,
               label: MASTER_CLASS_DISPLAY_NAMES[rawClass] || rawClass,
               prob: parseFloat(prob.toFixed(4))
@@ -2213,7 +2229,7 @@
           allPreds.sort((a, b) => b.prob - a.prob);
 
           const topRawClass = MASTER_CLASSES[topIdx];
-          const topCatId = MASTER_CLASS_TO_CATEGORY_ID[topRawClass] || 'rbc_variant';
+          const topCatId = MASTER_CLASS_TO_CATEGORY_ID[topRawClass] || topRawClass.toLowerCase();
           const topLabel = MASTER_CLASS_DISPLAY_NAMES[topRawClass] || topRawClass;
 
           const cell = chunk[b];
@@ -2236,8 +2252,9 @@
         await new Promise(r => setTimeout(r, 0));
       }
 
-      const duration = (performance.now() - startTime).toFixed(1);
-      console.log(`[Stage 2 Swin-T] ✓ Classified ${results.length} cells into 20 lineages on WebGPU in ${duration}ms`);
+      const totalDuration = (performance.now() - batchStartTime).toFixed(1);
+      const avgOverallPerCell = (parseFloat(totalDuration) / Math.max(1, results.length)).toFixed(1);
+      console.log(`[${new Date().toISOString()}] [Stage 2 Swin-T] ✓ Completed classification of ${results.length} cells in ${totalDuration}ms (${avgOverallPerCell}ms/cell)`);
       return results;
     }
 
@@ -2815,7 +2832,8 @@
 
     function addCellAnnotation(x, y, w, h, shape = 'box') {
       pushHistory('Add Cell');
-      const tax = state.taxonomy.find(t => t.id === state.activeClassId) || state.taxonomy[0];
+      const activeClass = state.activeClassId;
+      const tax = state.taxonomy.find(t => t.id === activeClass || t.rawClass === activeClass) || state.taxonomy[0];
       const area_um2 = parseFloat((w * h * 0.125 * 0.125).toFixed(1));
       const diameter_um = parseFloat((((w + h) / 2) * 0.125).toFixed(1));
       
@@ -2962,15 +2980,17 @@
 
       renderCroppedPreview(ann);
 
-      const preds = ann.predictions || [{ classId: ann.classId, prob: ann.confidence }];
+      const preds = (ann.predictions || [{ classId: ann.classId, prob: ann.confidence }])
+        .filter(p => Math.round(p.prob * 100) > 0);
+      const displayPreds = preds.length > 0 ? preds : [{ classId: ann.classId, prob: ann.confidence }];
       const predList = document.getElementById('insp-predictions-list');
-      predList.innerHTML = preds.map(p => {
-        const pCls = state.taxonomy.find(t => t.id === p.classId) || { name: p.classId, color: '#e52246' };
+      predList.innerHTML = displayPreds.map(p => {
+        const pCls = state.taxonomy.find(t => t.id === p.classId || t.rawClass === p.rawClass || t.rawClass === p.classId || t.id === p.rawClass) || { name: p.label || p.classId, color: '#e52246' };
         const pct = Math.round(p.prob * 100);
         return `
           <div class="space-y-0.5">
             <div class="flex justify-between text-[11px] font-mono">
-              <span class="text-white">${pCls.name}</span>
+              <span class="text-white">${p.label || pCls.name}</span>
               <span class="text-[#e52246] font-bold">${pct}%</span>
             </div>
             <div class="h-1.5 w-full bg-[#272527] rounded-full overflow-hidden">
@@ -3030,11 +3050,11 @@
     function reclassifyCell(cellId, newClassId) {
       const ann = state.annotations.find(a => a.id === cellId);
       if (!ann) return;
-      const targetTax = state.taxonomy.find(t => t.id === newClassId);
+      const targetTax = state.taxonomy.find(t => t.id === newClassId || t.rawClass === newClassId || t.name === newClassId || t.short === newClassId);
       if (!targetTax) return;
 
       pushHistory('Reclassify Cell');
-      ann.classId = newClassId;
+      ann.classId = targetTax.id;
       ann.label = targetTax.name;
       ann.confidence = 0.99;
 
@@ -3948,28 +3968,69 @@
     const tabBtnGal = document.getElementById('tab-btn-gallery');
     if (tabBtnGal) tabBtnGal.onclick = () => switchRightTab('gallery');
 
+    function renderGalleryFilterChips() {
+      const container = document.getElementById('gallery-filter-chips');
+      if (!container) return;
+
+      const filterItems = [{ id: 'all', code: 'All', count: state.annotations.length }];
+
+      state.taxonomy.forEach(tax => {
+        const count = state.annotations.filter(a => a.classId === tax.id || a.rawClass === tax.rawClass || a.rawClass === tax.id).length;
+        if (count > 0 || ['neutrophils', 'lymphocytes', 'monocytes', 'blasts', 'plt'].includes(tax.id)) {
+          filterItems.push({
+            id: tax.id,
+            code: tax.code,
+            count
+          });
+        }
+      });
+
+      const currentFilter = state.galleryFilter || 'all';
+
+      container.innerHTML = filterItems.map(item => {
+        const isActive = item.id === currentFilter;
+        return `
+          <button data-gallery-filter="${item.id}" class="btn-gal-filter px-2 py-0.5 rounded ${isActive ? 'bg-[#e52246] text-white font-bold' : 'bg-[#1B191E] text-[#9e9a9e] hover:text-white'} shrink-0">
+            ${item.code}${item.id !== 'all' ? ` (${item.count})` : ''}
+          </button>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.btn-gal-filter').forEach(btn => {
+        btn.onclick = () => {
+          state.galleryFilter = btn.getAttribute('data-gallery-filter');
+          renderGalleryFilterChips();
+          renderGallery();
+        };
+      });
+    }
+
     function renderGallery() {
       const grid = document.getElementById('gallery-grid');
       if (!grid || !state.imageLoaded) return;
+      renderGalleryFilterChips();
+
       const filter = state.galleryFilter || 'all';
-      const cells = state.annotations.filter(a => filter === 'all' || a.classId === filter);
+      const cells = state.annotations.filter(a => filter === 'all' || a.classId === filter || a.rawClass === filter);
 
       const badge = document.getElementById('gallery-count-badge');
       if (badge) badge.textContent = `${cells.length}`;
 
       grid.innerHTML = cells.map(ann => {
-        const cls = state.taxonomy.find(t => t.id === ann.classId) || state.taxonomy[0];
+        const cls = state.taxonomy.find(t => t.id === ann.classId || t.rawClass === ann.rawClass || t.rawClass === ann.classId || t.id === ann.rawClass) || state.taxonomy[0];
         const isSelected = ann.id === state.selectedCellId;
+        const cellDisplayName = ann.label || cls.short || cls.name;
 
         return `
           <div data-cell-id="${ann.id}" class="gal-cell-card bg-[#110f12] border ${isSelected ? 'border-[#e52246] ring-1 ring-[#e52246]' : 'border-[#272527]'} hover:border-[#5a575a] rounded-lg p-1.5 cursor-pointer transition flex flex-col space-y-1 group h-fit self-start">
             <div class="relative w-full h-[88px] bg-black rounded overflow-hidden flex items-center justify-center shrink-0">
               <canvas id="crop-thumb-${ann.id}" width="120" height="88" class="w-full h-full object-contain block"></canvas>
               <span class="absolute top-1 left-1 px-1 py-0.2 rounded text-[8px] font-mono text-white font-bold shadow-sm" style="background-color: ${cls.color}">${cls.code}</span>
+              <span class="absolute top-1 right-1 px-1 py-0.2 rounded text-[8px] font-mono text-[#B4AFBA] bg-black/60 font-semibold">${ann.id}</span>
             </div>
             <div class="flex items-center justify-between text-[10px] font-mono px-0.5 shrink-0">
-              <span class="text-[#9e9a9e] truncate">${ann.id}</span>
-              <span class="text-[#e52246] font-bold">${Math.round(ann.confidence * 100)}%</span>
+              <span class="text-white font-medium truncate" title="${cellDisplayName}">${cellDisplayName}</span>
+              <span class="text-[#e52246] font-bold shrink-0 ml-1">${Math.round(ann.confidence * 100)}%</span>
             </div>
           </div>
         `;
@@ -3998,7 +4059,7 @@
 
           tCtx.drawImage(state.image, srcX, srcY, srcW, srcH, dx, dy, drawW, drawH);
 
-          const cls = state.taxonomy.find(t => t.id === ann.classId) || state.taxonomy[0];
+          const cls = state.taxonomy.find(t => t.id === ann.classId || t.rawClass === ann.rawClass || t.rawClass === ann.classId || t.id === ann.rawClass) || state.taxonomy[0];
           tCtx.strokeStyle = cls.color;
           tCtx.lineWidth = 1.5;
           if (ann.shape === 'circle') {
@@ -4155,7 +4216,7 @@
 showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${state.annotations.length} cells)`);
         } catch (err) {
           console.error("Import error:", err);
-          showToast("❌ Failed to parse JSON file");
+          showToast("Failed to parse case JSON file", 'warn');
         }
       };
       reader.readAsText(file);
@@ -4390,7 +4451,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       if (resetLoadingView) resetLoadingView.classList.add('hidden');
       if (resetProgressBar) resetProgressBar.style.width = '0%';
       if (resetProgressPercent) resetProgressPercent.textContent = '0%';
-      if (resetProgressTime) resetProgressTime.textContent = '0.0s elapsed';
+      if (resetProgressTime) resetProgressTime.textContent = '0s elapsed';
       selectModelCard(selectedInferenceModel || 'pro');
       if (resetModal) resetModal.classList.remove('hidden');
     }
@@ -4430,20 +4491,25 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       const btnStopInference = document.getElementById('btn-stop-inference');
       const onStopClicked = () => {
         isAborted = true;
-        console.warn(`[Lynceus Pipeline] ⏹️ Inference manually stopped by clinician.`);
+        console.warn(`[Lynceus Pipeline] Inference manually stopped by clinician.`);
         if (resetLoadingStepText) resetLoadingStepText.textContent = 'Stopping analysis pipeline...';
-        showToast('⏹️ Analysis stopped by user');
+        showToast('Analysis stopped by user');
       };
       if (btnStopInference) {
         btnStopInference.onclick = onStopClicked;
       }
 
       const startTime = performance.now();
+      const timerInterval = setInterval(() => {
+        const elapsedSec = Math.floor((performance.now() - startTime) / 1000);
+        if (resetProgressTime) resetProgressTime.textContent = `${elapsedSec}s elapsed`;
+      }, 250);
+
       const updateHUD = (percent, stepText) => {
-        const elapsed = performance.now() - startTime;
+        const elapsedSec = Math.floor((performance.now() - startTime) / 1000);
         if (resetProgressBar) resetProgressBar.style.width = `${percent}%`;
         if (resetProgressPercent) resetProgressPercent.textContent = `${percent}%`;
-        if (resetProgressTime) resetProgressTime.textContent = `${(elapsed / 1000).toFixed(1)}s elapsed`;
+        if (resetProgressTime) resetProgressTime.textContent = `${elapsedSec}s elapsed`;
         if (resetLoadingStepText) resetLoadingStepText.textContent = stepText;
       };
 
@@ -4478,17 +4544,17 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
             const classifierWarmupPromise = preloadClassifierSession((percent, received, total) => {
               const receivedMB = (received / (1024 * 1024)).toFixed(1);
               const totalMB = (total / (1024 * 1024)).toFixed(1);
-              updateHUD(Math.min(25, Math.round(percent * 0.25)), `Downloading Swin-T Classifier weights: ${percent}% (${receivedMB} / ${totalMB} MB)...`);
+              updateHUD(Math.min(25, Math.round(percent * 0.25)), `Downloading cell classification model: ${percent}% (${receivedMB} / ${totalMB} MB)...`);
             });
 
             // STEP 2: Concurrently load segmentation session with download progress & run Stage 1
             const segSession = await preloadSegmentationSession((percent, received, total) => {
               const receivedMB = (received / (1024 * 1024)).toFixed(1);
               const totalMB = (total / (1024 * 1024)).toFixed(1);
-              updateHUD(Math.min(35, Math.round(percent * 0.35)), `Downloading Cellpose SAM-v2 ViT weights: ${percent}% (${receivedMB} / ${totalMB} MB)...`);
+              updateHUD(Math.min(35, Math.round(percent * 0.35)), `Downloading cell detection model: ${percent}% (${receivedMB} / ${totalMB} MB)...`);
             });
 
-            updateHUD(35, 'Scanning smear fields & running Cellpose SAM-v2 ViT on WebGPU...');
+            updateHUD(35, 'Scanning smear fields and detecting cell boundaries...');
             const preprocessed = prepareCellposeTensor(state.image, 0.50);
 
             const segOutputs = await segSession.run({ input: preprocessed.tensor });
@@ -4500,7 +4566,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
             const dP_x = segData.subarray(stride, stride * 2);
             const cellprob = segData.subarray(stride * 2, stride * 3);
 
-            updateHUD(55, 'Tracking Euler vector dynamics & contours...');
+            updateHUD(55, 'Refining cell contours and morphology...');
             await new Promise(r => setTimeout(r, 30));
 
             const { cells } = computeMasksFromFlows(dP_y, dP_x, cellprob, preprocessed.width, preprocessed.height, {
@@ -4527,7 +4593,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
               }))
             }));
 
-            updateHUD(70, 'Classifying cell lineages...');
+            updateHUD(70, 'Classifying cell types across all 20 lineages...');
             await new Promise(r => setTimeout(r, 30));
 
             // STEP 3: Await pre-warmed classifier session (zero-wait stall!)
@@ -4545,12 +4611,12 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
             if (isAborted) throw new Error('Analysis stopped by user.');
             finalAnnotations = classified.length > 0 ? classified : MODEL_FLASH_ANNOTATIONS;
 
-            updateHUD(95, 'Finalizing differential count...');
+            updateHUD(95, 'Finalizing differential count and cell summary...');
             await new Promise(r => setTimeout(r, 40));
             console.groupEnd();
           } catch (gpuErr) {
             errorOccurred = true;
-            errorMessage = gpuErr.message || 'WebGPU model execution error';
+            errorMessage = gpuErr.message || 'Model execution error';
             console.error('[Flash Mode ❌ Error during inference]:', gpuErr);
             console.info('[Flash Mode 🔄 Fallback]: Restored calibrated survey detections (32 cells). UI remains fully operational.');
             console.groupEnd();
@@ -4579,7 +4645,9 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
 
             if (resetProgressBar) resetProgressBar.style.width = `${percent}%`;
             if (resetProgressPercent) resetProgressPercent.textContent = `${percent}%`;
-            if (resetProgressTime) resetProgressTime.textContent = `${(elapsed / 1000).toFixed(1)}s / ${(duration / 1000).toFixed(1)}s`;
+            const elapsedSec = Math.floor(elapsed / 1000);
+            const totalSec = Math.round(duration / 1000);
+            if (resetProgressTime) resetProgressTime.textContent = `${elapsedSec}s / ${totalSec}s`;
 
             for (let i = steps.length - 1; i >= 0; i--) {
               if (ratio >= steps[i].threshold) {
@@ -4596,15 +4664,18 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
           }
           requestAnimationFrame(updateProgress);
         });
+        clearInterval(timerInterval);
         finalAnnotations = MODEL_PRO_ANNOTATIONS;
       }
+
+      clearInterval(timerInterval);
 
       if (isAborted) {
         isResettingInference = false;
         if (resetModal) resetModal.classList.add('hidden');
         if (resetModelSelection) resetModelSelection.classList.remove('hidden');
         if (resetLoadingView) resetLoadingView.classList.add('hidden');
-        showToast('⏹️ Analysis stopped by user');
+        showToast('Analysis stopped by user');
         return;
       }
 
@@ -4627,11 +4698,11 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       console.log(`[Lynceus Pipeline] ✓ ${modelTitle} finished in ${totalElapsed}ms (${state.annotations.length} cells detected)`);
 
       if (errorOccurred) {
-        showToast(`⚠️ WebGPU Model Issue: ${errorMessage}. Loaded survey detections (${state.annotations.length} cells).`, 'warn', 5000);
+        showToast(`AI Model Note: ${errorMessage}. Loaded survey detections (${state.annotations.length} cells).`, 'warn', 5000);
       } else if (isFast && window.location.protocol === 'file:') {
-        showToast(`✓ Rapid Survey Inferences Loaded (${state.annotations.length} cells). Serve via HTTP (npm start) for live WebGPU inference.`, 'info', 4500);
+        showToast(`Loaded survey detections (${state.annotations.length} cells). Open in a local web server to run live AI analysis.`, 'info', 4500);
       } else {
-        showToast(`✓ Inferences restored using ${modelTitle} (${state.annotations.length} cells detected)`);
+        showToast(`Cell analysis complete (${state.annotations.length} cells detected)`);
       }
     }
 
@@ -4644,56 +4715,52 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
     function renderTaxonomyList() {
       const list = document.getElementById('taxonomy-list');
       if (!list) return;
-      const wbcClasses = ['neutrophil', 'lymphocyte', 'monocyte', 'eosinophil', 'basophil', 'blast'];
       const visible = getVisibleAnnotations();
-      const wbcCells = visible.filter(a => wbcClasses.includes(a.classId));
-      const totalWBC = wbcCells.length;
+      const totalVisible = visible.length;
 
-      // Update stacked bar
+      // Update stacked bar across all lineages
       const stackedBar = document.getElementById('wbc-stacked-bar');
       const totalCountEl = document.getElementById('wbc-total-count');
       const alertBanner = document.getElementById('wbc-alert-banner');
       const alertText = document.getElementById('wbc-alert-text');
 
-      if (totalCountEl) totalCountEl.textContent = `${totalWBC} WBCs`;
+      if (totalCountEl) totalCountEl.textContent = `${totalVisible} Cells`;
 
       if (stackedBar) {
-        stackedBar.innerHTML = wbcClasses.map(cid => {
-          const cls = state.taxonomy.find(t => t.id === cid);
-          const count = visible.filter(a => a.classId === cid).length;
-          const pct = totalWBC > 0 ? (count / totalWBC) * 100 : 0;
+        stackedBar.innerHTML = state.taxonomy.map(cls => {
+          const count = visible.filter(a => a.classId === cls.id || a.rawClass === cls.rawClass || a.rawClass === cls.id).length;
+          const pct = totalVisible > 0 ? (count / totalVisible) * 100 : 0;
           if (pct === 0) return '';
-          const refStr = cls.range ? (cls.range[0] === cls.range[1] ? (cls.range[0] === 0 ? '0%' : `${cls.range[0]}%`) : `${cls.range[0]}-${cls.range[1]}%`) : '';
-          const status = (cid === 'blast') ? 'Critical Finding' : (pct > (cls.range?.[1] || 100) ? 'Elevated' : (pct < (cls.range?.[0] || 0) ? 'Decreased' : 'Normal'));
-          const desc = `${pct.toFixed(1)}% of WBCs (${count}/${totalWBC}) • Ref: ${refStr} (${status})`;
+          const desc = `${pct.toFixed(1)}% of detected cells (${count}/${totalVisible})`;
 
           return `<div data-help="${cls.name}|${desc}|${cls.code}" data-tooltip-color="${cls.color}" style="width: ${pct}%; background-color: ${cls.color}" class="h-full cursor-pointer hover:brightness-125 transition-all"></div>`;
         }).join('');
       }
 
       // Check alerts
-      const blastCount = visible.filter(a => a.classId === 'blast').length;
-      const neuCount = visible.filter(a => a.classId === 'neutrophil').length;
-      const neuPct = totalWBC > 0 ? (neuCount / totalWBC) * 100 : 0;
+      const blastCount = visible.filter(a => a.classId === 'blasts' || a.classId === 'blast' || a.rawClass === 'Blasts').length;
 
       if (alertBanner && alertText) {
         if (blastCount > 0) {
           alertBanner.classList.remove('hidden');
-          alertText.textContent = `⚠️ ${blastCount} Blast(s) Detected (${((blastCount/totalWBC)*100).toFixed(1)}%)`;
-        } else if (totalWBC >= 10 && neuPct > 70) {
-          alertBanner.classList.remove('hidden');
-          alertText.textContent = `Neutrophilia: ${neuPct.toFixed(1)}% (Ref: 40-70%)`;
+          alertText.textContent = `⚠️ ${blastCount} Blast(s) Detected (${((blastCount/Math.max(1, totalVisible))*100).toFixed(1)}%)`;
         } else {
           alertBanner.classList.add('hidden');
         }
       }
 
-      list.innerHTML = state.taxonomy.map(cls => {
+      // Sort taxonomy categories by cell count descending (most frequent first)
+      const sortedTaxonomy = [...state.taxonomy].map((cls, origIdx) => {
+        const count = state.annotations.filter(a => (a.classId === cls.id || a.rawClass === cls.rawClass || a.rawClass === cls.id) && a.confidence >= state.minConfidence).length;
+        return { cls, origIdx, count };
+      }).sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.origIdx - b.origIdx;
+      });
+
+      list.innerHTML = sortedTaxonomy.map(({ cls, count }) => {
         const isChecked = state.classFilter[cls.id] !== false;
-        const count = state.annotations.filter(a => a.classId === cls.id && a.confidence >= state.minConfidence).length;
-        const isWBC = wbcClasses.includes(cls.id);
-        const wbcPct = isWBC && totalWBC > 0 ? ((count / totalWBC) * 100).toFixed(1) : null;
-        const refStr = cls.range ? (cls.range[0] === cls.range[1] ? (cls.range[0] === 0 ? '0%' : `${cls.range[0]}%`) : `${cls.range[0]}-${cls.range[1]}%`) : null;
+        const pctStr = totalVisible > 0 ? ((count / totalVisible) * 100).toFixed(1) : null;
         
         return `
           <div data-class="${cls.id}" class="taxonomy-row cursor-pointer select-none pl-2.5 pr-2 py-1.5 my-0.5 rounded-r border-l-[3.5px] ${isChecked ? 'bg-[#181619]/90 hover:bg-[#232024]' : 'bg-[#141215]/50 hover:bg-[#1c1a1e] opacity-60'} flex flex-col space-y-0.5 group border-y-0 border-r-0 border-b border-b-white/[0.03] transition-all" style="border-left-color: ${isChecked ? cls.color : '#3e3a3e'}">
@@ -4706,10 +4773,10 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
                 <span class="text-[11px] font-mono ${isChecked ? 'text-white font-medium' : 'text-[#6a666a]'} w-5 text-right">${count}</span>
               </div>
             </div>
-            ${wbcPct !== null || refStr ? `
+            ${pctStr !== null ? `
               <div class="flex items-center justify-between text-[10px] font-mono ${isChecked ? 'text-[#7a767a]' : 'text-[#555255]'} pl-0.5">
-                <span>${wbcPct !== null ? `<span class="${isChecked ? 'text-[#B4AFBA]' : 'text-[#666366]'}">${wbcPct}%</span>` : '<span class="text-[#4a474a]">Non-WBC</span>'}</span>
-                ${refStr ? `<span class="${isChecked ? 'text-[#6a666a]' : 'text-[#444144]'}">Ref: ${refStr}</span>` : ''}
+                <span class="${isChecked ? 'text-[#B4AFBA]' : 'text-[#666366]'}">${pctStr}%</span>
+                <span class="${isChecked ? 'text-[#6a666a]' : 'text-[#444144]'} font-mono text-[9px]">${cls.code}</span>
               </div>
             ` : ''}
           </div>

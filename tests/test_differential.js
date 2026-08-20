@@ -21,10 +21,10 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     await page.goto(indexPath, { waitUntil: 'load' });
     await page.waitForFunction(() => window.__CYTO_APP__ && window.__CYTO_APP__.state.imageLoaded);
 
-    // 1. Verify WBC Total Count Display
+    // 1. Verify Total Count Display
     const wbcTotalText = await page.$eval('#wbc-total-count', el => el.textContent.trim());
-    console.log('  ✓ Initial WBC Total Count:', wbcTotalText);
-    assert(wbcTotalText.includes('WBC'), 'WBC total count should be displayed');
+    console.log('  ✓ Initial Cell Total Count:', wbcTotalText);
+    assert(wbcTotalText.includes('Cell') || wbcTotalText.includes('WBC'), 'Total cell count should be displayed');
 
     // 2. Verify Stacked WBC Progress Bar Rendered
     const stackedBarSegments = await page.$$eval('#wbc-stacked-bar > div', els => els.length);
@@ -41,10 +41,10 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     // 4. Test Differential Updates upon Reclassification
     // Select both blasts and reclassify them to neutrophils
     const blastCells = await page.evaluate(() => 
-      window.__CYTO_APP__.state.annotations.filter(a => a.classId === 'blast').map(a => a.id)
+      window.__CYTO_APP__.state.annotations.filter(a => a.classId === 'blasts' || a.classId === 'blast').map(a => a.id)
     );
     for (const bId of blastCells) {
-      await page.evaluate(id => window.__CYTO_APP__.reclassifyCell(id, 'neutrophil'), bId);
+      await page.evaluate(id => window.__CYTO_APP__.reclassifyCell(id, 'neutrophils'), bId);
     }
 
     const isAlertHiddenAfterReclass = await page.$eval('#wbc-alert-banner', el => el.classList.contains('hidden'));

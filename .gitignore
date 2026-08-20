@@ -4,4 +4,7 @@ node_modules/
 *.onnx.data
 *.pth
 *.bin
-*.part*
+
+# Allow chunked model parts and manifests (under 25MB each)
+!assets/*.part*
+!assets/*.manifest.json
