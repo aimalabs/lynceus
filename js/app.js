@@ -1522,7 +1522,7 @@
       annotations: [...INITIAL_ANNOTATIONS],
       taxonomy: CELL_TAXONOMY,
       metadata: { ...DEFAULT_METADATA },
-      activeFilter: 'raw',
+      activeFilters: [],
       filterCache: {}
     };
 
@@ -2567,60 +2567,135 @@
       };
     }
 
-    // Filter Dropdown & Preprocessing Canvas Setup
+    // Filter Configuration & Multi-Select Preprocessing Engine
     const FILTER_CONFIG = {
       raw: {
         label: 'Raw RGB',
+        shortLabel: 'Raw',
         color: '#38bdf8',
         icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a7 7 0 0 0 0 14v6"></path><path d="M12 2v20"></path></svg>'
       },
       clahe: {
         label: 'Chromatin CLAHE',
+        shortLabel: 'CLAHE',
         color: '#f59e0b',
         icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18"></path><path d="m4.93 4.93 14.14 14.14"></path><path d="M3 12h18"></path></svg>'
       },
-      cellpose_invert: {
-        label: 'Cellpose Invert',
-        color: '#a855f7',
-        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>'
+      fov_crop: {
+        label: 'FOV Aperture Crop',
+        shortLabel: 'FOV',
+        color: '#ef4444',
+        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v18"></path></svg>'
       },
       sharpen: {
         label: 'Membrane Sharpen',
+        shortLabel: 'Sharpen',
         color: '#10b981',
         icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5z"></path><path d="m2 17 10 5 10-5"></path><path d="m2 12 10 5 10-5"></path></svg>'
       },
       green_contrast: {
         label: 'Green Contrast',
+        shortLabel: 'Green',
         color: '#22c55e',
         icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m4.9 4.9 14.2 14.2"></path></svg>'
       },
-      fov_crop: {
-        label: 'FOV Aperture',
-        color: '#ef4444',
-        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v18"></path></svg>'
+      cellpose_invert: {
+        label: 'Cellpose Invert',
+        shortLabel: 'Invert',
+        color: '#a855f7',
+        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>'
       }
     };
 
-    function generateFilteredCanvas(filterId) {
+    function getActiveFilterKey(filters = state.activeFilters) {
+      if (!filters || filters.length === 0) return 'raw';
+      return [...filters].filter(f => f && f !== 'raw').sort().join('+') || 'raw';
+    }
+
+    function getActiveImageSource() {
+      if (!state.imageLoaded) return state.image;
+      const key = getActiveFilterKey();
+      if (key === 'raw') return state.image;
+
+      if (!state.filterCache[key]) {
+        state.filterCache[key] = generateCompositeFilteredCanvas(state.activeFilters);
+      }
+      return state.filterCache[key] || state.image;
+    }
+
+    function generateCompositeFilteredCanvas(filterList) {
       if (!state.imageLoaded) return null;
-      const srcW = state.image.naturalWidth || state.image.width;
-      const srcH = state.image.naturalHeight || state.image.height;
+      const srcW = state.image.naturalWidth || state.image.width || 1500;
+      const srcH = state.image.naturalHeight || state.image.height || 1125;
       
       const offCanvas = document.createElement('canvas');
       offCanvas.width = srcW;
       offCanvas.height = srcH;
       const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
-      offCtx.drawImage(state.image, 0, 0);
+      offCtx.drawImage(state.image, 0, 0, srcW, srcH);
 
-      if (filterId === 'raw') {
-        return offCanvas;
-      }
+      const activeSet = new Set((filterList || []).filter(f => f && f !== 'raw'));
+      if (activeSet.size === 0) return offCanvas;
 
       const imgData = offCtx.getImageData(0, 0, srcW, srcH);
       const data = imgData.data;
       const total = srcW * srcH;
 
-      if (filterId === 'cellpose_invert') {
+      // 1. FOV Aperture Crop (Microscope aperture vignette mask)
+      if (activeSet.has('fov_crop')) {
+        let minX = srcW, maxX = 0, minY = srcH, maxY = 0;
+        let countBright = 0, sumX = 0, sumY = 0;
+        for (let y = 0; y < srcH; y++) {
+          const rOff = y * srcW * 4;
+          for (let x = 0; x < srcW; x++) {
+            const idx = rOff + x * 4;
+            const gray = (data[idx] * 77 + data[idx + 1] * 150 + data[idx + 2] * 29) >> 8;
+            if (gray > 40) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+              sumX += x; sumY += y;
+              countBright++;
+            }
+          }
+        }
+        if (countBright > 0.05 * total) {
+          const cx = sumX / countBright;
+          const cy = sumY / countBright;
+          const r = Math.max(maxX - minX + 1, maxY - minY + 1) * 0.5 * 0.97;
+          const r2 = r * r;
+          for (let y = 0; y < srcH; y++) {
+            const dy = y - cy;
+            const dy2 = dy * dy;
+            const rOff = y * srcW * 4;
+            for (let x = 0; x < srcW; x++) {
+              const dx = x - cx;
+              if (dx * dx + dy2 > r2) {
+                const idx = rOff + x * 4;
+                data[idx] = 16;
+                data[idx + 1] = 14;
+                data[idx + 2] = 18;
+              }
+            }
+          }
+        }
+      }
+
+      // 2. Cytology Green Contrast (Romanowski/Giemsa stain channel optimization)
+      if (activeSet.has('green_contrast')) {
+        for (let i = 0; i < total; i++) {
+          const idx = i * 4;
+          const g = data[idx + 1];
+          const val = Math.max(0, Math.min(255, Math.round((g - 30) * 1.25)));
+          data[idx] = Math.round(val * 0.7);
+          data[idx + 1] = val;
+          data[idx + 2] = Math.round(val * 0.9);
+        }
+      }
+
+      // 3. Cellpose Inverted Grayscale (Inverted flow preparation)
+      if (activeSet.has('cellpose_invert')) {
         const gray = new Float32Array(total);
         const hist = new Int32Array(256);
         for (let i = 0; i < total; i++) {
@@ -2646,8 +2721,10 @@
           data[idx + 1] = val;
           data[idx + 2] = val;
         }
-        offCtx.putImageData(imgData, 0, 0);
-      } else if (filterId === 'clahe') {
+      }
+
+      // 4. Chromatin CLAHE (4x4 tile adaptive histogram equalization)
+      if (activeSet.has('clahe')) {
         const NUM_TILES_X = 8, NUM_TILES_Y = 6;
         const tileW = Math.ceil(srcW / NUM_TILES_X);
         const tileH = Math.ceil(srcH / NUM_TILES_Y);
@@ -2719,8 +2796,10 @@
             data[idx + 2] = Math.min(255, Math.round(b * factor));
           }
         }
-        offCtx.putImageData(imgData, 0, 0);
-      } else if (filterId === 'sharpen') {
+      }
+
+      // 5. Membrane Sharpening (Laplacian edge convolution boost)
+      if (activeSet.has('sharpen')) {
         const copy = new Uint8ClampedArray(data);
         for (let y = 1; y < srcH - 1; y++) {
           const rOff = y * srcW * 4;
@@ -2741,92 +2820,119 @@
             }
           }
         }
-        offCtx.putImageData(imgData, 0, 0);
-      } else if (filterId === 'green_contrast') {
-        for (let i = 0; i < total; i++) {
-          const idx = i * 4;
-          const g = data[idx + 1];
-          const val = Math.max(0, Math.min(255, Math.round((g - 30) * 1.25)));
-          data[idx] = Math.round(val * 0.7);
-          data[idx + 1] = val;
-          data[idx + 2] = Math.round(val * 0.9);
-        }
-        offCtx.putImageData(imgData, 0, 0);
-      } else if (filterId === 'fov_crop') {
-        let minX = srcW, maxX = 0, minY = srcH, maxY = 0;
-        let countBright = 0, sumX = 0, sumY = 0;
-        for (let y = 0; y < srcH; y++) {
-          const rOff = y * srcW * 4;
-          for (let x = 0; x < srcW; x++) {
-            const idx = rOff + x * 4;
-            const gray = (data[idx] * 77 + data[idx + 1] * 150 + data[idx + 2] * 29) >> 8;
-            if (gray > 40) {
-              if (x < minX) minX = x;
-              if (x > maxX) maxX = x;
-              if (y < minY) minY = y;
-              if (y > maxY) maxY = y;
-              sumX += x; sumY += y;
-              countBright++;
-            }
-          }
-        }
-        if (countBright > 0.05 * total) {
-          const cx = sumX / countBright;
-          const cy = sumY / countBright;
-          const r = Math.max(maxX - minX + 1, maxY - minY + 1) * 0.5 * 0.97;
-          const r2 = r * r;
-          for (let y = 0; y < srcH; y++) {
-            const dy = y - cy;
-            const dy2 = dy * dy;
-            const rOff = y * srcW * 4;
-            for (let x = 0; x < srcW; x++) {
-              const dx = x - cx;
-              if (dx * dx + dy2 > r2) {
-                const idx = rOff + x * 4;
-                data[idx] = 16;
-                data[idx + 1] = 14;
-                data[idx + 2] = 18;
-              }
-            }
-          }
-        }
-        offCtx.putImageData(imgData, 0, 0);
       }
 
+      offCtx.putImageData(imgData, 0, 0);
       return offCanvas;
     }
 
-    function setCanvasFilter(filterId) {
-      if (!FILTER_CONFIG[filterId]) return;
-      state.activeFilter = filterId;
-
-      if (filterId !== 'raw' && !state.filterCache[filterId]) {
-        state.filterCache[filterId] = generateFilteredCanvas(filterId);
-      }
-
-      const cfg = FILTER_CONFIG[filterId];
+    function updateFilterUI() {
+      const activeCount = (state.activeFilters || []).length;
       const lbl = document.getElementById('active-filter-label');
       const icon = document.getElementById('active-filter-icon');
-      if (lbl) lbl.textContent = cfg.label;
-      if (icon) {
-        icon.style.color = cfg.color;
-        icon.innerHTML = cfg.icon;
+      const countBadge = document.getElementById('filter-count-badge');
+      const summaryText = document.getElementById('active-filters-summary');
+
+      if (activeCount === 0) {
+        if (lbl) lbl.textContent = 'Raw RGB';
+        if (icon) {
+          icon.style.color = '#38bdf8';
+          icon.innerHTML = FILTER_CONFIG.raw.icon;
+        }
+        if (countBadge) countBadge.classList.add('hidden');
+        if (summaryText) summaryText.textContent = 'Raw RGB';
+      } else if (activeCount === 1) {
+        const f = state.activeFilters[0];
+        const cfg = FILTER_CONFIG[f] || FILTER_CONFIG.raw;
+        if (lbl) lbl.textContent = cfg.label;
+        if (icon) {
+          icon.style.color = cfg.color;
+          icon.innerHTML = cfg.icon;
+        }
+        if (countBadge) countBadge.classList.add('hidden');
+        if (summaryText) summaryText.textContent = cfg.label;
+      } else if (activeCount === 2) {
+        const labels = state.activeFilters.map(f => FILTER_CONFIG[f]?.shortLabel || f).join(' + ');
+        if (lbl) lbl.textContent = labels;
+        if (icon) {
+          icon.style.color = '#38bdf8';
+          icon.innerHTML = '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18"></path><path d="m4.93 4.93 14.14 14.14"></path><path d="M3 12h18"></path></svg>';
+        }
+        if (countBadge) {
+          countBadge.textContent = '2';
+          countBadge.classList.remove('hidden');
+        }
+        if (summaryText) summaryText.textContent = labels;
+      } else {
+        if (lbl) lbl.textContent = `${activeCount} Filters`;
+        if (icon) {
+          icon.style.color = '#38bdf8';
+          icon.innerHTML = '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18"></path><path d="m4.93 4.93 14.14 14.14"></path><path d="M3 12h18"></path></svg>';
+        }
+        if (countBadge) {
+          countBadge.textContent = activeCount.toString();
+          countBadge.classList.remove('hidden');
+        }
+        if (summaryText) summaryText.textContent = `${activeCount} Active`;
       }
 
       document.querySelectorAll('.filter-btn').forEach(btn => {
-        const isCur = btn.getAttribute('data-filter') === filterId;
-        btn.className = `filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded text-left transition ${isCur ? 'bg-[#272527] text-white' : 'text-[#9e9a9e] hover:text-white hover:bg-[#272527]'}`;
+        const fid = btn.getAttribute('data-filter');
+        const checkEl = btn.querySelector('.filter-check');
+        if (fid === 'raw') {
+          const isRaw = activeCount === 0;
+          btn.className = `filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition ${isRaw ? 'bg-[#272527] text-white font-semibold' : 'text-[#9e9a9e] hover:text-white hover:bg-[#272527]'}`;
+          if (checkEl) checkEl.textContent = isRaw ? '●' : '○';
+        } else {
+          const isActive = (state.activeFilters || []).includes(fid);
+          btn.className = `filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition ${isActive ? 'bg-[#272527] text-white font-semibold' : 'text-[#9e9a9e] hover:text-white hover:bg-[#272527]'}`;
+          if (checkEl) {
+            checkEl.textContent = isActive ? '●' : '○';
+            checkEl.style.color = isActive ? (FILTER_CONFIG[fid]?.color || '#38bdf8') : '#7a767a';
+          }
+        }
       });
+    }
 
-      const filterMenu = document.getElementById('filter-dropdown-menu');
-      if (filterMenu) filterMenu.classList.add('hidden');
+    function toggleCanvasFilter(filterId) {
+      if (!state.activeFilters) state.activeFilters = [];
+      if (filterId === 'raw') {
+        state.activeFilters = [];
+      } else if (FILTER_CONFIG[filterId]) {
+        const idx = state.activeFilters.indexOf(filterId);
+        if (idx >= 0) {
+          state.activeFilters.splice(idx, 1);
+        } else {
+          state.activeFilters.push(filterId);
+        }
+      }
 
+      updateFilterUI();
       render();
       updateMinimapBg();
     }
 
+    function setCanvasFilters(filterArray) {
+      state.activeFilters = (filterArray || []).filter(f => FILTER_CONFIG[f] && f !== 'raw');
+      updateFilterUI();
+      render();
+      updateMinimapBg();
+    }
+
+    // Filter dropdown trigger & click handler
     const filterTrigger = document.getElementById('filter-dropdown-trigger');
     const filterMenu = document.getElementById('filter-dropdown-menu');
+    const btnPresetAiFilters = document.getElementById('btn-preset-ai-filters');
+
+    if (btnPresetAiFilters) {
+      btnPresetAiFilters.onclick = (e) => {
+        e.stopPropagation();
+        hideHelpTooltip();
+        setCanvasFilters(['clahe', 'fov_crop']);
+        showToast('Activated AI Optimal Preset: CLAHE + FOV Crop');
+      };
+    }
+
     if (filterTrigger && filterMenu) {
       filterTrigger.onclick = (e) => {
         e.stopPropagation();
@@ -2838,7 +2944,7 @@
         btn.onclick = (e) => {
           e.stopPropagation();
           hideHelpTooltip();
-          setCanvasFilter(btn.getAttribute('data-filter'));
+          toggleCanvasFilter(btn.getAttribute('data-filter'));
         };
       });
       window.addEventListener('click', (e) => {
@@ -3152,9 +3258,7 @@
       minimapBgCanvas.width = minimapCanvas.width;
       minimapBgCanvas.height = minimapCanvas.height;
       const bgCtx = minimapBgCanvas.getContext('2d');
-      const renderSource = (state.activeFilter && state.activeFilter !== 'raw' && state.filterCache[state.activeFilter])
-        ? state.filterCache[state.activeFilter]
-        : state.image;
+      const renderSource = getActiveImageSource();
       bgCtx.drawImage(renderSource, 0, 0, minimapCanvas.width, minimapCanvas.height);
       bgCtx.fillStyle = 'rgba(17, 15, 18, 0.45)';
       bgCtx.fillRect(0, 0, minimapCanvas.width, minimapCanvas.height);
@@ -3227,10 +3331,8 @@
       ctx.translate(state.view.x, state.view.y);
       ctx.scale(state.view.zoom, state.view.zoom);
 
-      // 1. Draw Slide Image (Raw or Preprocessed Filter)
-      const renderSource = (state.activeFilter && state.activeFilter !== 'raw' && state.filterCache[state.activeFilter])
-        ? state.filterCache[state.activeFilter]
-        : state.image;
+      // 1. Draw Slide Image (Raw or Multi-Filter Composite)
+      const renderSource = getActiveImageSource();
       ctx.drawImage(renderSource, 0, 0);
 
       // 2. Draw Visible Cell Annotations
@@ -4173,8 +4275,15 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
               onModelDownloadProgress();
             });
 
+            const activeSource = getActiveImageSource();
+            if (state.activeFilters && state.activeFilters.length > 0) {
+              console.log(`[Stage 1 & 2 AI Pipeline] 🎨 Ingesting filtered canvas: [${state.activeFilters.join(' + ')}]`);
+            } else {
+              console.log(`[Stage 1 & 2 AI Pipeline] 🔬 Ingesting raw true-color capture`);
+            }
+
             updateHUD(42, 'Scanning smear fields and detecting cell boundaries...');
-            const preprocessed = prepareCellposeTensor(state.image, 0.50);
+            const preprocessed = prepareCellposeTensor(activeSource, 0.50);
 
             const segOutputs = await segSession.run({ input: preprocessed.tensor });
             const segOut = segOutputs.output || segOutputs.flows_and_cellprob || segOutputs[Object.keys(segOutputs)[0]];
@@ -4228,7 +4337,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
 
             const classified = await classifySegmentedBatch(
               clfSession,
-              state.image,
+              activeSource,
               cellsToClassify,
               null,
               () => isAborted,
@@ -4444,9 +4553,6 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
     state.image.onload = () => {
       state.imageLoaded = true;
       state.filterCache = {};
-      if (state.activeFilter && state.activeFilter !== 'raw') {
-        state.filterCache[state.activeFilter] = generateFilteredCanvas(state.activeFilter);
-      }
       const resReadout = document.getElementById('meta-res-readout');
       if (resReadout) resReadout.textContent = `${state.image.naturalWidth} × ${state.image.naturalHeight} px`;
       updateMinimapBg();
@@ -4455,6 +4561,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       updateUI();
       updateDocumentTitle();
       updateCaseHeaderPill();
+      updateFilterUI();
     };
 
     state.image.onerror = () => {
@@ -4647,7 +4754,9 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       fitToScreen,
       setZoom,
       setTool,
-      setCanvasFilter,
+      toggleCanvasFilter,
+      setCanvasFilters,
+      getActiveImageSource,
       FILTER_CONFIG,
       addCellAnnotation,
       focusOnCell,
