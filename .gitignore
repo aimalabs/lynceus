@@ -1,10 +1,23 @@
 node_modules/
 .DS_Store
-*.onnx
-*.onnx.data
 *.pth
-*.bin
-*.part*
-assets/*.bin
-assets/*.onnx
-assets/*.part*
+*.onnx.data
+
+# Ignore legacy and monolithic models (>50MB)
+assets/cellpose_cpsam_v2_int8.onnx
+assets/cellpose_cpsam_v2_data_int8.bin
+assets/swin_classifier.onnx
+assets/swin_classifier_fp16.onnx
+assets/swin_classifier_int8.onnx
+assets/cellpose_cpsam_v2_int8.onnx.part*
+assets/cellpose_cpsam_v2_int8.onnx.manifest.json
+assets/swin_classifier.onnx.part*
+assets/swin_classifier.onnx.manifest.json
+
+# Allow lightweight and chunked model parts (<30MB each for GitHub Pages hosting)
+!assets/*.part*
+!assets/*.manifest.json
+!assets/cellpose_cpsam_v2_external.onnx
+!assets/cellpose_cpsam_v2_scales.bin
+!assets/cellpose_cpsam_v2_dequant_meta.json
+!assets/cellpose_cyto3_unet_*.onnx

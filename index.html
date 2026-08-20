@@ -3643,8 +3643,7 @@
       else if (k === 'e' || (k === '6' && !state.selectedCellId)) setTool('erase');
       else if (k === '+' || k === '=') setZoom(state.view.zoom * 1.25);
       else if (k === '-' || k === '_') setZoom(state.view.zoom / 1.25);
-      else if (k === '0') fitToScreen();
-      else if (k === 'r') toggleReticle();
+      else if (k === '0' || k === 'r') fitToScreen();
       else if (k === 'h') toggleOverlays();
       else if (e.key === 'Delete' || e.key === 'Backspace') {
         if (state.selectedMeasurementId) {
