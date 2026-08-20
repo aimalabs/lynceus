@@ -161,15 +161,20 @@
 
     #tool-dropdown-container svg,
     #tool-dropdown-menu svg,
+    #filter-dropdown-container svg,
+    #filter-dropdown-menu svg,
     #active-tool-icon svg,
-    .tool-btn svg {
+    #active-filter-icon svg,
+    .tool-btn svg,
+    .filter-btn svg {
       width: 14px !important;
       height: 14px !important;
       max-width: 14px !important;
       max-height: 14px !important;
       flex-shrink: 0 !important;
     }
-    #tool-dropdown-trigger svg:last-child {
+    #tool-dropdown-trigger svg:last-child,
+    #filter-dropdown-trigger svg:last-child {
       width: 12px !important;
       height: 12px !important;
     }
@@ -196,27 +201,6 @@
     svg.w-5 { width: 20px; height: 20px; }
     svg.w-6 { width: 24px; height: 24px; }
     svg.w-8 { width: 32px; height: 32px; }
-
-    #tool-dropdown-container svg,
-    #tool-dropdown-menu svg,
-    #active-tool-icon svg,
-    .tool-btn svg {
-      width: 14px !important;
-      height: 14px !important;
-      max-width: 14px !important;
-      max-height: 14px !important;
-      flex-shrink: 0 !important;
-    }
-    #tool-dropdown-trigger svg:last-child {
-      width: 12px !important;
-      height: 12px !important;
-    }
-    #draw-class-container svg,
-    #draw-class-menu svg {
-      width: 12px !important;
-      height: 12px !important;
-      max-width: 12px !important;
-      max-height: 12px !important;
       flex-shrink: 0 !important;
     }
 
@@ -259,6 +243,64 @@
           <span id="notes-badge-text">Notes</span>
         </span>
       </button>
+
+      <div class="h-3.5 w-px bg-[#373437] hidden md:block"></div>
+
+      <!-- Image Preprocessing & Diagnostic Filter Dropdown -->
+      <div class="relative shrink-0" id="filter-dropdown-container">
+        <button id="filter-dropdown-trigger" class="w-[146px] flex items-center justify-between bg-[#110f12] hover:bg-[#272527] px-2 py-1 rounded-lg border border-[#373437] text-xs font-mono text-white transition focus:outline-none focus:border-[#38bdf8] shrink-0" data-help="Cytology Diagnostic Filters|Toggle canvas view: Raw RGB, 4×4 CLAHE, Cellpose Inverted, Sharpened, or Green Contrast|FILTER">
+          <div class="flex items-center space-x-1.5 min-w-0 pr-1">
+            <span id="active-filter-icon" class="text-[#38bdf8] shrink-0">
+              <svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a7 7 0 0 0 0 14v6"></path><path d="M12 2v20"></path></svg>
+            </span>
+            <span id="active-filter-label" class="font-semibold text-xs truncate">Raw RGB</span>
+          </div>
+          <div class="flex items-center space-x-1 shrink-0">
+            <svg width="12" height="12" class="w-3 h-3 text-[#7a767a] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+        </button>
+
+        <!-- Filter Dropdown Menu -->
+        <div id="filter-dropdown-menu" class="hidden absolute left-0 top-full mt-1 w-52 bg-[#1B191E] border border-[#373437] rounded-xl shadow-2xl p-1 z-50 font-mono text-xs">
+          <div class="px-2 py-1 text-[10px] text-[#7a767a] uppercase tracking-wider font-semibold border-b border-[#373437] mb-1">Canvas Filters</div>
+          <button data-filter="raw" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-white transition" data-help="Raw RGB (True Color)|Original unmanipulated multi-spectral microscopy capture|RAW">
+            <span class="flex items-center space-x-2">
+              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#38bdf8] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a7 7 0 0 0 0 14v6"></path><path d="M12 2v20"></path></svg>
+              <span>Raw RGB (True Color)</span>
+            </span>
+          </button>
+          <button data-filter="clahe" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Chromatin CLAHE (4×4)|Adaptive histogram equalization amplifying nuclear chromatin patterns and granules|CLAHE">
+            <span class="flex items-center space-x-2">
+              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#f59e0b] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18"></path><path d="m4.93 4.93 14.14 14.14"></path><path d="M3 12h18"></path></svg>
+              <span>Chromatin CLAHE</span>
+            </span>
+          </button>
+          <button data-filter="cellpose_invert" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Cellpose Inverted Flow|Normalized brightfield inversion fed into Cellpose SAM-v2 segmentation graph|INVERT">
+            <span class="flex items-center space-x-2">
+              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#a855f7] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>
+              <span>Cellpose Inverted</span>
+            </span>
+          </button>
+          <button data-filter="sharpen" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Membrane Sharpening|Unsharp contrast boost accentuating RBC and WBC outer membranes|SHARPEN">
+            <span class="flex items-center space-x-2">
+              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#10b981] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5z"></path><path d="m2 17 10 5 10-5"></path><path d="m2 12 10 5 10-5"></path></svg>
+              <span>Membrane Sharpen</span>
+            </span>
+          </button>
+          <button data-filter="green_contrast" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="Cytology Green Channel|Maximum optical dye contrast for Romanowski/Giemsa stains|GREEN">
+            <span class="flex items-center space-x-2">
+              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#22c55e] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m4.9 4.9 14.2 14.2"></path></svg>
+              <span>Green Contrast</span>
+            </span>
+          </button>
+          <button data-filter="fov_crop" class="filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded hover:bg-[#272527] text-left text-[#9e9a9e] hover:text-white transition" data-help="FOV Aperture Mask|Trims unilluminated black microscope borders|APERTURE">
+            <span class="flex items-center space-x-2">
+              <svg width="14" height="14" class="w-3.5 h-3.5 text-[#ef4444] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v18"></path></svg>
+              <span>FOV Aperture Crop</span>
+            </span>
+          </button>
+        </div>
+      </div>
 
       <div class="h-3.5 w-px bg-[#373437] hidden md:block"></div>
 
@@ -2630,7 +2672,9 @@
       redoStack: [],
       annotations: [...INITIAL_ANNOTATIONS],
       taxonomy: CELL_TAXONOMY,
-      metadata: { ...DEFAULT_METADATA }
+      metadata: { ...DEFAULT_METADATA },
+      activeFilter: 'raw',
+      filterCache: {}
     };
 
     const canvas = document.getElementById('microscope-canvas');
@@ -3674,6 +3718,287 @@
       };
     }
 
+    // Filter Dropdown & Preprocessing Canvas Setup
+    const FILTER_CONFIG = {
+      raw: {
+        label: 'Raw RGB',
+        color: '#38bdf8',
+        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a7 7 0 0 0 0 14v6"></path><path d="M12 2v20"></path></svg>'
+      },
+      clahe: {
+        label: 'Chromatin CLAHE',
+        color: '#f59e0b',
+        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18"></path><path d="m4.93 4.93 14.14 14.14"></path><path d="M3 12h18"></path></svg>'
+      },
+      cellpose_invert: {
+        label: 'Cellpose Invert',
+        color: '#a855f7',
+        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>'
+      },
+      sharpen: {
+        label: 'Membrane Sharpen',
+        color: '#10b981',
+        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5z"></path><path d="m2 17 10 5 10-5"></path><path d="m2 12 10 5 10-5"></path></svg>'
+      },
+      green_contrast: {
+        label: 'Green Contrast',
+        color: '#22c55e',
+        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m4.9 4.9 14.2 14.2"></path></svg>'
+      },
+      fov_crop: {
+        label: 'FOV Aperture',
+        color: '#ef4444',
+        icon: '<svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v18"></path></svg>'
+      }
+    };
+
+    function generateFilteredCanvas(filterId) {
+      if (!state.imageLoaded) return null;
+      const srcW = state.image.naturalWidth || state.image.width;
+      const srcH = state.image.naturalHeight || state.image.height;
+      
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = srcW;
+      offCanvas.height = srcH;
+      const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+      offCtx.drawImage(state.image, 0, 0);
+
+      if (filterId === 'raw') {
+        return offCanvas;
+      }
+
+      const imgData = offCtx.getImageData(0, 0, srcW, srcH);
+      const data = imgData.data;
+      const total = srcW * srcH;
+
+      if (filterId === 'cellpose_invert') {
+        const gray = new Float32Array(total);
+        const hist = new Int32Array(256);
+        for (let i = 0; i < total; i++) {
+          const idx = i * 4;
+          const g = 255 - Math.round(0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2]);
+          const gClamped = Math.max(0, Math.min(255, g));
+          gray[i] = gClamped;
+          hist[gClamped]++;
+        }
+        const p1Thresh = Math.floor(total * 0.01);
+        const p99Thresh = Math.floor(total * 0.99);
+        let count = 0, p1 = 0, p99 = 255;
+        for (let i = 0; i < 256; i++) {
+          count += hist[i];
+          if (count >= p1Thresh && p1 === 0) p1 = i;
+          if (count >= p99Thresh) { p99 = i; break; }
+        }
+        const invRange = 255.0 / Math.max(1e-4, p99 - p1);
+        for (let i = 0; i < total; i++) {
+          const val = Math.max(0, Math.min(255, Math.round((gray[i] - p1) * invRange)));
+          const idx = i * 4;
+          data[idx] = val;
+          data[idx + 1] = val;
+          data[idx + 2] = val;
+        }
+        offCtx.putImageData(imgData, 0, 0);
+      } else if (filterId === 'clahe') {
+        const NUM_TILES_X = 8, NUM_TILES_Y = 6;
+        const tileW = Math.ceil(srcW / NUM_TILES_X);
+        const tileH = Math.ceil(srcH / NUM_TILES_Y);
+        const numTiles = NUM_TILES_X * NUM_TILES_Y;
+        const cdfs = new Float32Array(numTiles * 256);
+        const clip = Math.max(1, Math.round(1.5 * (tileW * tileH / 256)));
+
+        for (let ty = 0; ty < NUM_TILES_Y; ty++) {
+          const y0 = ty * tileH;
+          const y1 = Math.min(srcH, y0 + tileH);
+          for (let tx = 0; tx < NUM_TILES_X; tx++) {
+            const x0 = tx * tileW;
+            const x1 = Math.min(srcW, x0 + tileW);
+            const actualTilePixels = (y1 - y0) * (x1 - x0);
+            const hist = new Int32Array(256);
+
+            for (let y = y0; y < y1; y++) {
+              const rOff = y * srcW * 4;
+              for (let x = x0; x < x1; x++) {
+                const idx = rOff + x * 4;
+                const L = (data[idx] * 77 + data[idx + 1] * 150 + data[idx + 2] * 29) >> 8;
+                hist[L]++;
+              }
+            }
+
+            let excess = 0;
+            for (let i = 0; i < 256; i++) {
+              if (hist[i] > clip) { excess += hist[i] - clip; hist[i] = clip; }
+            }
+            const inc = Math.floor(excess / 256);
+            const remainder = excess % 256;
+            let cum = 0;
+            const cdfOffset = (ty * NUM_TILES_X + tx) * 256;
+            for (let i = 0; i < 256; i++) {
+              hist[i] += inc + (i < remainder ? 1 : 0);
+              cum += hist[i];
+              cdfs[cdfOffset + i] = (cum * 255) / Math.max(1, actualTilePixels);
+            }
+          }
+        }
+
+        for (let y = 0; y < srcH; y++) {
+          const gy = (y - tileH * 0.5) / tileH;
+          const ty0 = Math.max(0, Math.min(NUM_TILES_Y - 2, Math.floor(gy)));
+          const ty1 = ty0 + 1;
+          const wy = Math.max(0, Math.min(1, gy - ty0));
+          const rOff = y * srcW * 4;
+
+          for (let x = 0; x < srcW; x++) {
+            const gx = (x - tileW * 0.5) / tileW;
+            const tx0 = Math.max(0, Math.min(NUM_TILES_X - 2, Math.floor(gx)));
+            const tx1 = tx0 + 1;
+            const wx = Math.max(0, Math.min(1, gx - tx0));
+            const idx = rOff + x * 4;
+
+            const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+            const L = (r * 77 + g * 150 + b * 29) >> 8;
+
+            const v00 = cdfs[(ty0 * NUM_TILES_X + tx0) * 256 + L];
+            const v01 = cdfs[(ty0 * NUM_TILES_X + tx1) * 256 + L];
+            const v10 = cdfs[(ty1 * NUM_TILES_X + tx0) * 256 + L];
+            const v11 = cdfs[(ty1 * NUM_TILES_X + tx1) * 256 + L];
+
+            const lNew = (v00 * (1 - wx) + v01 * wx) * (1 - wy) + (v10 * (1 - wx) + v11 * wx) * wy;
+            const factor = L > 0 ? (lNew / L) : 1.0;
+
+            data[idx] = Math.min(255, Math.round(r * factor));
+            data[idx + 1] = Math.min(255, Math.round(g * factor));
+            data[idx + 2] = Math.min(255, Math.round(b * factor));
+          }
+        }
+        offCtx.putImageData(imgData, 0, 0);
+      } else if (filterId === 'sharpen') {
+        const copy = new Uint8ClampedArray(data);
+        for (let y = 1; y < srcH - 1; y++) {
+          const rOff = y * srcW * 4;
+          const rAbove = (y - 1) * srcW * 4;
+          const rBelow = (y + 1) * srcW * 4;
+          for (let x = 1; x < srcW - 1; x++) {
+            const idx = rOff + x * 4;
+            for (let c = 0; c < 3; c++) {
+              const center = copy[idx + c];
+              const laplacian = 5 * center - (
+                copy[rAbove + x * 4 + c] +
+                copy[rBelow + x * 4 + c] +
+                copy[rOff + (x - 1) * 4 + c] +
+                copy[rOff + (x + 1) * 4 + c]
+              );
+              const boosted = (laplacian - 128) * 1.05 + 128;
+              data[idx + c] = Math.max(0, Math.min(255, Math.round(boosted)));
+            }
+          }
+        }
+        offCtx.putImageData(imgData, 0, 0);
+      } else if (filterId === 'green_contrast') {
+        for (let i = 0; i < total; i++) {
+          const idx = i * 4;
+          const g = data[idx + 1];
+          const val = Math.max(0, Math.min(255, Math.round((g - 30) * 1.25)));
+          data[idx] = Math.round(val * 0.7);
+          data[idx + 1] = val;
+          data[idx + 2] = Math.round(val * 0.9);
+        }
+        offCtx.putImageData(imgData, 0, 0);
+      } else if (filterId === 'fov_crop') {
+        let minX = srcW, maxX = 0, minY = srcH, maxY = 0;
+        let countBright = 0, sumX = 0, sumY = 0;
+        for (let y = 0; y < srcH; y++) {
+          const rOff = y * srcW * 4;
+          for (let x = 0; x < srcW; x++) {
+            const idx = rOff + x * 4;
+            const gray = (data[idx] * 77 + data[idx + 1] * 150 + data[idx + 2] * 29) >> 8;
+            if (gray > 40) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+              sumX += x; sumY += y;
+              countBright++;
+            }
+          }
+        }
+        if (countBright > 0.05 * total) {
+          const cx = sumX / countBright;
+          const cy = sumY / countBright;
+          const r = Math.max(maxX - minX + 1, maxY - minY + 1) * 0.5 * 0.97;
+          const r2 = r * r;
+          for (let y = 0; y < srcH; y++) {
+            const dy = y - cy;
+            const dy2 = dy * dy;
+            const rOff = y * srcW * 4;
+            for (let x = 0; x < srcW; x++) {
+              const dx = x - cx;
+              if (dx * dx + dy2 > r2) {
+                const idx = rOff + x * 4;
+                data[idx] = 16;
+                data[idx + 1] = 14;
+                data[idx + 2] = 18;
+              }
+            }
+          }
+        }
+        offCtx.putImageData(imgData, 0, 0);
+      }
+
+      return offCanvas;
+    }
+
+    function setCanvasFilter(filterId) {
+      if (!FILTER_CONFIG[filterId]) return;
+      state.activeFilter = filterId;
+
+      if (filterId !== 'raw' && !state.filterCache[filterId]) {
+        state.filterCache[filterId] = generateFilteredCanvas(filterId);
+      }
+
+      const cfg = FILTER_CONFIG[filterId];
+      const lbl = document.getElementById('active-filter-label');
+      const icon = document.getElementById('active-filter-icon');
+      if (lbl) lbl.textContent = cfg.label;
+      if (icon) {
+        icon.style.color = cfg.color;
+        icon.innerHTML = cfg.icon;
+      }
+
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        const isCur = btn.getAttribute('data-filter') === filterId;
+        btn.className = `filter-btn w-full flex items-center justify-between px-2 py-1.5 rounded text-left transition ${isCur ? 'bg-[#272527] text-white' : 'text-[#9e9a9e] hover:text-white hover:bg-[#272527]'}`;
+      });
+
+      const filterMenu = document.getElementById('filter-dropdown-menu');
+      if (filterMenu) filterMenu.classList.add('hidden');
+
+      render();
+      updateMinimapBg();
+    }
+
+    const filterTrigger = document.getElementById('filter-dropdown-trigger');
+    const filterMenu = document.getElementById('filter-dropdown-menu');
+    if (filterTrigger && filterMenu) {
+      filterTrigger.onclick = (e) => {
+        e.stopPropagation();
+        hideHelpTooltip();
+        if (toolMenu) toolMenu.classList.add('hidden');
+        filterMenu.classList.toggle('hidden');
+      };
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          hideHelpTooltip();
+          setCanvasFilter(btn.getAttribute('data-filter'));
+        };
+      });
+      window.addEventListener('click', (e) => {
+        if (!filterMenu.contains(e.target) && e.target !== filterTrigger) {
+          filterMenu.classList.add('hidden');
+        }
+      });
+    }
+
     // Tool Dropdown Menu Setup
     const toolTrigger = document.getElementById('tool-dropdown-trigger');
     const toolMenu = document.getElementById('tool-dropdown-menu');
@@ -3978,7 +4303,10 @@
       minimapBgCanvas.width = minimapCanvas.width;
       minimapBgCanvas.height = minimapCanvas.height;
       const bgCtx = minimapBgCanvas.getContext('2d');
-      bgCtx.drawImage(state.image, 0, 0, minimapCanvas.width, minimapCanvas.height);
+      const renderSource = (state.activeFilter && state.activeFilter !== 'raw' && state.filterCache[state.activeFilter])
+        ? state.filterCache[state.activeFilter]
+        : state.image;
+      bgCtx.drawImage(renderSource, 0, 0, minimapCanvas.width, minimapCanvas.height);
       bgCtx.fillStyle = 'rgba(17, 15, 18, 0.45)';
       bgCtx.fillRect(0, 0, minimapCanvas.width, minimapCanvas.height);
     }
@@ -4050,8 +4378,11 @@
       ctx.translate(state.view.x, state.view.y);
       ctx.scale(state.view.zoom, state.view.zoom);
 
-      // 1. Draw Slide Image
-      ctx.drawImage(state.image, 0, 0);
+      // 1. Draw Slide Image (Raw or Preprocessed Filter)
+      const renderSource = (state.activeFilter && state.activeFilter !== 'raw' && state.filterCache[state.activeFilter])
+        ? state.filterCache[state.activeFilter]
+        : state.image;
+      ctx.drawImage(renderSource, 0, 0);
 
       // 2. Draw Visible Cell Annotations
       if (state.overlaysVisible) {
@@ -5263,6 +5594,10 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
     // Image loading
     state.image.onload = () => {
       state.imageLoaded = true;
+      state.filterCache = {};
+      if (state.activeFilter && state.activeFilter !== 'raw') {
+        state.filterCache[state.activeFilter] = generateFilteredCanvas(state.activeFilter);
+      }
       const resReadout = document.getElementById('meta-res-readout');
       if (resReadout) resReadout.textContent = `${state.image.naturalWidth} × ${state.image.naturalHeight} px`;
       updateMinimapBg();
@@ -5463,6 +5798,8 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       fitToScreen,
       setZoom,
       setTool,
+      setCanvasFilter,
+      FILTER_CONFIG,
       addCellAnnotation,
       focusOnCell,
       selectCell,
