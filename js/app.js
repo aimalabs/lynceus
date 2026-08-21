@@ -1312,12 +1312,17 @@
     let gCropCtx = null;
     let gSourceImageBufferCache = { image: null, src: null, data: null, width: 0, height: 0 };
 
+    function resetSourceImageBufferCache() {
+      gSourceImageBufferCache = { image: null, src: null, data: null, width: 0, height: 0 };
+    }
+
     function getSourceImageBuffer(sourceImage) {
+      if (!sourceImage) return null;
       const srcW = sourceImage.naturalWidth || sourceImage.width || 1500;
       const srcH = sourceImage.naturalHeight || sourceImage.height || 1125;
       const src = sourceImage.src || sourceImage;
 
-      if (gSourceImageBufferCache.image === sourceImage && gSourceImageBufferCache.src === src && gSourceImageBufferCache.width === srcW && gSourceImageBufferCache.height === srcH) {
+      if (gSourceImageBufferCache && gSourceImageBufferCache.image === sourceImage && gSourceImageBufferCache.src === src && gSourceImageBufferCache.width === srcW && gSourceImageBufferCache.height === srcH) {
         return gSourceImageBufferCache;
       }
 
@@ -1400,6 +1405,9 @@
       const stride = targetSize * targetSize;
 
       const srcBuf = getSourceImageBuffer(sourceImage);
+      if (!srcBuf || !srcBuf.data) {
+        throw new Error("Unable to extract image data buffer for batch classification");
+      }
       const srcData = srcBuf.data;
       const srcW = srcBuf.width;
       const srcH = srcBuf.height;
@@ -5182,7 +5190,7 @@
             targetCase.imageLoaded = true;
             targetCase.imageDataUri = null;
             state.filterCache = {};
-            gSourceImageBufferCache = null;
+            resetSourceImageBufferCache();
           } else if (parsed.image && parsed.image.dataUri && typeof parsed.image.dataUri === 'string' && parsed.image.dataUri.startsWith('data:')) {
             const img = new Image();
             img.crossOrigin = 'anonymous';
@@ -5195,7 +5203,7 @@
                 targetCase.imageLoaded = true;
                 targetCase.imageDataUri = parsed.image.dataUri;
                 state.filterCache = {};
-                gSourceImageBufferCache = null;
+                resetSourceImageBufferCache();
                 resolve();
               };
               img.onerror = () => resolve();
@@ -5235,7 +5243,7 @@
 
           // Invalidate previous filter caches so new image filters recompute cleanly
           state.filterCache = {};
-          gSourceImageBufferCache = null;
+          resetSourceImageBufferCache();
 
           // Restore Preprocessing Filters & Preset if present
           if (parsed.preprocessing && typeof parsed.preprocessing === 'object') {
