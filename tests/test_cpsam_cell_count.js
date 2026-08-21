@@ -5,7 +5,7 @@ const http = require('http');
 const fs = require('fs');
 
 (async () => {
-  console.log('\n🧪 Running Test Suite: Cellpose SAM-v2 End-to-End Pipeline (>80 & ~110 Cells Target)');
+  console.log('\n🧪 Running Test Suite: Cellpose SAM-v2 End-to-End Pipeline (100–140 Cells Target)');
 
   const rootDir = path.resolve(__dirname, '..');
   const server = http.createServer((req, res) => {
@@ -83,10 +83,10 @@ const fs = require('fs');
   console.log(`  ✓ Total Detected Cell Instances: ${inferenceResult.totalCells} cells`);
   console.log(`  ✓ Lineage Breakdown: ${inferenceResult.leukocytesCount} WBCs, ${inferenceResult.plateletsCount} Platelets, ${inferenceResult.rbcVariantsCount} RBCs`);
 
-  // Assertion: Stage 1 + Postprocessing must detect cleanly segmented smear cells (>80 cells, ~110 cells with border margin exclusion)
+  // Assertion: Stage 1 + Postprocessing must detect cleanly segmented smear cells (strictly between 100 and 140 cells)
   assert(
-    inferenceResult.totalCells >= 80 && inferenceResult.totalCells <= 140,
-    `Expected SAM-v2 ViT + Postprocessing to detect between 80 and 140 cells (around ~110), but found ${inferenceResult.totalCells}`
+    inferenceResult.totalCells >= 100 && inferenceResult.totalCells <= 140,
+    `Expected SAM-v2 ViT + Postprocessing to detect between 100 and 140 cells, but found ${inferenceResult.totalCells}`
   );
 
   assert(inferenceResult.sampleCell !== null, 'Should have valid segmented sample cell');
