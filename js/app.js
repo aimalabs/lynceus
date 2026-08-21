@@ -1854,8 +1854,11 @@
       reviewStatus: 'in_review'
     };
 
+    const initialImg = new Image();
+    initialImg.crossOrigin = 'anonymous';
+
     const state = {
-      image: new Image(),
+      image: initialImg,
       imageLoaded: false,
       view: { x: 0, y: 0, zoom: 1.0, minZoom: 0.1, maxZoom: 16.0 },
       tool: 'select',
@@ -4221,12 +4224,71 @@
       });
     }
 
-    // Export & Import Handlers (Single full state JSON)
-    function exportAnnotationsJSON() {
+    // Helper to get base64 data URI of the smear image (with fetch blob fallback for tainted canvases)
+    function getImageDataUri() {
+      if (!state.image) return null;
+      if (state.imageDataUri && typeof state.imageDataUri === 'string' && state.imageDataUri.startsWith('data:')) {
+        return state.imageDataUri;
+      }
+      try {
+        const w = state.image.naturalWidth || state.image.width || 1500;
+        const h = state.image.naturalHeight || state.image.height || 1125;
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = w;
+        tempCanvas.height = h;
+        const ctx = tempCanvas.getContext('2d');
+        if (state.image.complete && (state.image.naturalWidth || state.image.width)) {
+          ctx.drawImage(state.image, 0, 0, w, h);
+          const uri = tempCanvas.toDataURL('image/jpeg', 0.92);
+          state.imageDataUri = uri;
+          return uri;
+        }
+      } catch (e) {
+        console.warn('[Export] Canvas tainted, attempting cached buffer / URI fallback');
+      }
+      return state.imageDataUri || null;
+    }
+
+    // Build complete self-contained Human-Supervised Dataset Export object
+    function buildDatasetExportPayload() {
+      const classDistribution = {};
+      const lineageDistribution = { WBC: 0, RBC: 0, PLT: 0 };
+      
+      state.annotations.forEach(ann => {
+        classDistribution[ann.classId] = (classDistribution[ann.classId] || 0) + 1;
+        const lineage = ann.lineage || 'WBC';
+        lineageDistribution[lineage] = (lineageDistribution[lineage] || 0) + 1;
+      });
+
       const fullState = {
         app: "AIMALABS Lynceus",
-        version: "1.0",
+        version: "1.1",
         exportedAt: new Date().toISOString(),
+        dataset: {
+          isHumanSupervised: true,
+          totalCells: state.annotations.length,
+          classDistribution: classDistribution,
+          lineageDistribution: lineageDistribution,
+          clinicianReviewStatus: state.metadata?.reviewStatus || 'reviewed'
+        },
+        image: {
+          fileName: state.metadata?.fileName || 'smear-02.jpeg',
+          smearId: state.metadata?.smearId || 'smear-02',
+          width: state.image?.naturalWidth || state.image?.width || 1500,
+          height: state.image?.naturalHeight || state.image?.height || 1125,
+          dimensions: `${state.image?.naturalWidth || 1500} × ${state.image?.naturalHeight || 1125} px`,
+          specimenType: state.metadata?.specimenType || 'Peripheral Blood Smear',
+          stainType: state.metadata?.stainType || 'Wright-Giemsa',
+          dataUri: getImageDataUri()
+        },
+        preprocessing: {
+          activeFilters: [...(state.activeFilters || [])],
+          filterDefinitions: Object.keys(FILTER_CONFIG).reduce((acc, k) => {
+            acc[k] = { name: FILTER_CONFIG[k].name, enabled: state.activeFilters ? state.activeFilters.includes(k) : false };
+            return acc;
+          }, {})
+        },
+        postprocessingConfig: { ...(state.postprocessingConfig || DEFAULT_POSTPROCESSING_CONFIG) },
         metadata: state.metadata || DEFAULT_METADATA,
         micronsPerPixel: state.micronsPerPixel,
         minConfidence: state.minConfidence,
@@ -4239,6 +4301,12 @@
         annotations: state.annotations,
         measurements: state.measurements
       };
+      return fullState;
+    }
+
+    // Export & Import Handlers (Single full state JSON)
+    function exportAnnotationsJSON() {
+      const fullState = buildDatasetExportPayload();
 
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullState, null, 2));
       const downloadAnchor = document.createElement('a');
@@ -4252,12 +4320,9 @@
       showToast(`✓ State exported as JSON (${state.annotations.length} annotations)`);
     }
 
-    function importAnnotationsJSON(file) {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
+    function importAnnotationsJSON(fileOrPayload) {
+      const applyPayload = (parsed) => {
         try {
-          const parsed = JSON.parse(e.target.result);
           if (!parsed || (typeof parsed !== 'object')) {
             throw new Error("Invalid JSON format");
           }
@@ -4286,6 +4351,34 @@
             state.classFilter = { ...state.classFilter, ...parsed.classFilter };
           }
 
+          // Restore Preprocessing Filters & Preset if present
+          if (parsed.preprocessing && typeof parsed.preprocessing === 'object') {
+            if (Array.isArray(parsed.preprocessing.activeFilters)) {
+              setCanvasFilters(parsed.preprocessing.activeFilters);
+            }
+          }
+
+          // Restore Postprocessing Heuristics if present
+          if (parsed.postprocessingConfig && typeof parsed.postprocessingConfig === 'object') {
+            state.postprocessingConfig = { ...state.postprocessingConfig, ...parsed.postprocessingConfig };
+            savePostprocessingConfig();
+            syncPostprocessingUI();
+          }
+
+          // Restore Image from dataUri if present and valid
+          if (parsed.image && parsed.image.dataUri && typeof parsed.image.dataUri === 'string' && parsed.image.dataUri.startsWith('data:')) {
+            const img = new Image();
+            img.onload = () => {
+              state.image = img;
+              state.imageLoaded = true;
+              state.imageDataUri = parsed.image.dataUri;
+              updateMinimapBg();
+              renderMinimap();
+              scheduleRender();
+            };
+            img.src = parsed.image.dataUri;
+          }
+
           state.selectedCellId = null;
           state.selectedMeasurementId = null;
           state.undoStack = [];
@@ -4293,14 +4386,33 @@
 
           updateDocumentTitle();
           updateCaseHeaderPill();
-    
-showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${state.annotations.length} cells)`);
+          refreshAppViews();
+          scheduleRender();
+
+          showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${state.annotations.length} cells)`);
         } catch (err) {
           console.error("Import error:", err);
           showToast("Failed to parse case JSON file", 'warn');
         }
       };
-      reader.readAsText(file);
+
+      if (fileOrPayload && typeof fileOrPayload === 'object' && !(fileOrPayload instanceof Blob)) {
+        applyPayload(fileOrPayload);
+        return;
+      }
+
+      if (!fileOrPayload) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          applyPayload(parsed);
+        } catch (err) {
+          console.error("Import error:", err);
+          showToast("Failed to parse case JSON file", 'warn');
+        }
+      };
+      reader.readAsText(fileOrPayload);
     }
 
     function loadSmearImage(file) {
@@ -4310,9 +4422,11 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
 
       const applyLoadedImage = (imgSrc) => {
         const img = new Image();
+        img.crossOrigin = 'anonymous';
         img.onload = () => {
           state.image = img;
           state.imageLoaded = true;
+          state.imageDataUri = (imgSrc && imgSrc.startsWith('data:')) ? imgSrc : null;
 
           const fileName = file.name ? file.name.replace(/\.[^/.]+$/, "") : "smear-image";
           if (state.metadata) {
@@ -5422,6 +5536,16 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
     state.image.onload = () => {
       state.imageLoaded = true;
       state.filterCache = {};
+      try {
+        if (!state.imageDataUri && state.image.complete && (state.image.naturalWidth || state.image.width)) {
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = state.image.naturalWidth || state.image.width;
+          tempCanvas.height = state.image.naturalHeight || state.image.height;
+          const ctx = tempCanvas.getContext('2d');
+          ctx.drawImage(state.image, 0, 0);
+          state.imageDataUri = tempCanvas.toDataURL('image/jpeg', 0.92);
+        }
+      } catch (e) {}
       const resReadout = document.getElementById('meta-res-readout');
       if (resReadout) resReadout.textContent = `${state.image.naturalWidth} × ${state.image.naturalHeight} px`;
       updateMinimapBg();
@@ -5460,6 +5584,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
     };
 
     const SMEAR_IMAGE_DATA = "assets/smear-02.jpg";
+    state.image.crossOrigin = "anonymous";
     state.image.src = SMEAR_IMAGE_DATA;
     if (state.image.complete && state.image.naturalWidth) { state.image.onload(); }
 
@@ -5647,6 +5772,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       updateDocumentTitle,
       updateCaseHeaderPill,
       exportAnnotationsJSON,
+      buildDatasetExportPayload,
       importAnnotationsJSON,
       openResetModal,
       closeResetModal,
