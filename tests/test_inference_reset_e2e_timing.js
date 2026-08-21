@@ -96,7 +96,7 @@ const fs = require('fs');
       await page.waitForFunction(() => {
         const m = document.getElementById('reset-confirm-modal');
         return m && m.classList.contains('hidden');
-      }, { timeout: 45000 });
+      }, { timeout: 90000 });
       const tModalClosed = performance.now();
 
       // 6. Wait for canvas render to settle

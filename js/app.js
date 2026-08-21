@@ -743,7 +743,7 @@
 
       if (onProgress) onProgress(90, 100, meta.int8Bytes);
       const fp16Buffer = fp16Out.buffer;
-      await saveModelBufferToCache(CACHE_KEY, 'cellpose_cpsam_v2_fp16_data.bin', 'v2', fp16Buffer);
+      saveModelBufferToCache(CACHE_KEY, 'cellpose_cpsam_v2_fp16_data.bin', 'v2', fp16Buffer).catch(e => console.warn('[Model Cache] FP16 save warning:', e.message));
 
       if (onProgress) onProgress(100, meta.int8Bytes, meta.int8Bytes);
       return {
@@ -788,19 +788,6 @@
         })();
       }
       return gSegmentationSessionPromise;
-    }
-
-    // Proactive background pre-warming of WebGPU neural sessions on startup
-    if (typeof window !== 'undefined' && window.location.protocol !== 'file:') {
-      const scheduleWarmup = () => {
-        preloadClassifierSession().catch(e => console.warn('[Background Warmup] Classifier:', e.message));
-        preloadSegmentationSession().catch(e => console.warn('[Background Warmup] Segmentation:', e.message));
-      };
-      if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(scheduleWarmup, { timeout: 2000 });
-      } else {
-        setTimeout(scheduleWarmup, 1000);
-      }
     }
 
     function extractCellContour(mask, targetLabel, width, height, minY, minX, maxY, maxX) {
