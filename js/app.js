@@ -1482,6 +1482,317 @@
       }
     }
 
+    const RBC_MASTER_CLASSES = new Set([
+      'Normal_cells', 'Target_cells', 'Ovalocytes', 'Elliptocytes', 'Teardrops',
+      'Spherocyters', 'Schistocytes', 'Stomatocytes', 'Echinocytes', 'Hypochromic',
+      'Acanthocytes', 'Erythroblasts'
+    ]);
+
+    const WBC_MASTER_CLASSES = new Set([
+      'Eosinophils', 'Igs', 'Lymphocytes', 'Blasts', 'Monocytes', 'Neutrophils', 'Baseophils'
+    ]);
+
+    const DEFAULT_POSTPROCESSING_CONFIG = {
+      rbcPltSizeFix: true,
+      borderExclusion: true,
+      duplicateSuppression: true,
+      wbcNuclearVeto: true,
+      wbcMultiLobeReassembly: true,
+      rbcWatershedSplitting: true
+    };
+
+    function loadPostprocessingConfig() {
+      try {
+        const saved = localStorage.getItem('lynceus_postprocessing_config');
+        if (saved) {
+          return { ...DEFAULT_POSTPROCESSING_CONFIG, ...JSON.parse(saved) };
+        }
+      } catch (e) {
+        console.warn('[PostProcessing] Could not load saved config from localStorage:', e);
+      }
+      return { ...DEFAULT_POSTPROCESSING_CONFIG };
+    }
+
+    function applyWbcMultiLobeReassembly(cells, medianArea) {
+      const t0 = performance.now();
+      if (!cells || cells.length <= 1 || medianArea <= 0) return cells;
+      const N = cells.length;
+      const parent = Array.from({ length: N }, (_, i) => i);
+      function find(i) {
+        while (parent[i] !== i) {
+          parent[i] = parent[parent[i]];
+          i = parent[i];
+        }
+        return i;
+      }
+      function union(i, j) {
+        const rootI = find(i);
+        const rootJ = find(j);
+        if (rootI !== rootJ) parent[rootI] = rootJ;
+      }
+
+      for (let i = 0; i < N; i++) {
+        const [iy0, ix0, iy1, ix1] = cells[i].bbox;
+        const areaI = (iy1 - iy0 + 1) * (ix1 - ix0 + 1);
+        for (let j = i + 1; j < N; j++) {
+          const [jy0, jx0, jy1, jx1] = cells[j].bbox;
+          const areaJ = (jy1 - jy0 + 1) * (jx1 - jx0 + 1);
+
+          // Only merge if they have bounding box intersection (overlap) and combined area is within leukocyte limits
+          const intY0 = Math.max(iy0, jy0);
+          const intX0 = Math.max(ix0, jx0);
+          const intY1 = Math.min(iy1, jy1);
+          const intX1 = Math.min(ix1, jx1);
+
+          if (intY1 >= intY0 && intX1 >= intX0) {
+            const intArea = (intY1 - intY0 + 1) * (intX1 - intX0 + 1);
+            const minArea = Math.min(areaI, areaJ);
+            if (intArea / minArea >= 0.15 && (areaI + areaJ) <= 6.0 * medianArea) {
+              union(i, j);
+            }
+          }
+        }
+      }
+
+      const groups = new Map();
+      for (let i = 0; i < N; i++) {
+        const root = find(i);
+        if (!groups.has(root)) groups.set(root, []);
+        groups.get(root).push(cells[i]);
+      }
+
+      const reassembled = [];
+      let mergeCount = 0;
+      for (const [root, members] of groups.entries()) {
+        if (members.length === 1) {
+          reassembled.push(members[0]);
+        } else {
+          mergeCount += (members.length - 1);
+          let minY = Infinity, minX = Infinity, maxY = -Infinity, maxX = -Infinity;
+          let combinedContour = [];
+          let totalArea = 0;
+          for (const m of members) {
+            minY = Math.min(minY, m.bbox[0]);
+            minX = Math.min(minX, m.bbox[1]);
+            maxY = Math.max(maxY, m.bbox[2]);
+            maxX = Math.max(maxX, m.bbox[3]);
+            if (m.contour) combinedContour = combinedContour.concat(m.contour);
+            if (m.morphology?.area_um2) totalArea += m.morphology.area_um2;
+          }
+          reassembled.push({
+            ...members[0],
+            bbox: [minY, minX, maxY, maxX],
+            contour: combinedContour,
+            morphology: {
+              ...members[0].morphology,
+              area_um2: parseFloat(totalArea.toFixed(1))
+            }
+          });
+        }
+      }
+      const elapsed = (performance.now() - t0).toFixed(2);
+      if (mergeCount > 0) {
+        console.log(`[Post-Processing] 🧩 WBC Multi-Lobe Reassembly: Unified ${mergeCount} segmented lobes into ${reassembled.length} cells in ${elapsed}ms`);
+      } else {
+        console.log(`[Post-Processing] 🧩 WBC Multi-Lobe Reassembly: Evaluated in ${elapsed}ms (no lobes to merge)`);
+      }
+      return reassembled;
+    }
+
+    function applyRbcWatershedSplitting(cells, medianArea) {
+      const t0 = performance.now();
+      if (!cells || cells.length === 0 || medianArea <= 0) return cells;
+      const splitCells = [];
+      let splitCount = 0;
+
+      for (let i = 0; i < cells.length; i++) {
+        const c = cells[i];
+        const [y0, x0, y1, x1] = c.bbox;
+        const w = x1 - x0 + 1;
+        const h = y1 - y0 + 1;
+        const area = w * h;
+
+        if (area > 1.8 * medianArea) {
+          if (w >= 1.4 * h) {
+            const midX = Math.floor((x0 + x1) / 2);
+            splitCells.push({ ...c, bbox: [y0, x0, y1, midX] });
+            splitCells.push({ ...c, bbox: [y0, midX + 1, y1, x1] });
+            splitCount++;
+          } else if (h >= 1.4 * w) {
+            const midY = Math.floor((y0 + y1) / 2);
+            splitCells.push({ ...c, bbox: [y0, x0, midY, x1] });
+            splitCells.push({ ...c, bbox: [midY + 1, x0, y1, x1] });
+            splitCount++;
+          } else {
+            splitCells.push(c);
+          }
+        } else {
+          splitCells.push(c);
+        }
+      }
+
+      const elapsed = (performance.now() - t0).toFixed(2);
+      if (splitCount > 0) {
+        console.log(`[Post-Processing] ✂️ Conjoined RBC Splitting: Partitioned ${splitCount} conjoined doublets in ${elapsed}ms`);
+      } else {
+        console.log(`[Post-Processing] ✂️ Conjoined RBC Splitting: Evaluated in ${elapsed}ms (no doublets to split)`);
+      }
+      return splitCells;
+    }
+
+    function applyDuplicateSuppression(cells, srcW, srcH, overlapTol = 0.70) {
+      const t0 = performance.now();
+      if (!cells || cells.length <= 1) return cells;
+      const claimed = new Uint8Array(srcW * srcH);
+      const kept = [];
+      let dupeCount = 0;
+
+      const sorted = [...cells].sort((a, b) => {
+        const areaA = (a.bbox[2] - a.bbox[0] + 1) * (a.bbox[3] - a.bbox[1] + 1);
+        const areaB = (b.bbox[2] - b.bbox[0] + 1) * (b.bbox[3] - b.bbox[1] + 1);
+        return areaB - areaA;
+      });
+
+      for (let i = 0; i < sorted.length; i++) {
+        const c = sorted[i];
+        const [y0, x0, y1, x1] = c.bbox;
+        const cy0 = Math.max(0, Math.min(srcH - 1, y0));
+        const cy1 = Math.max(0, Math.min(srcH - 1, y1));
+        const cx0 = Math.max(0, Math.min(srcW - 1, x0));
+        const cx1 = Math.max(0, Math.min(srcW - 1, x1));
+
+        const totalBoxPixels = Math.max(1, (cy1 - cy0 + 1) * (cx1 - cx0 + 1));
+        let claimedCount = 0;
+
+        for (let y = cy0; y <= cy1; y++) {
+          const rowOffset = y * srcW;
+          for (let x = cx0; x <= cx1; x++) {
+            if (claimed[rowOffset + x] === 1) claimedCount++;
+          }
+        }
+
+        if (claimedCount / totalBoxPixels > overlapTol) {
+          dupeCount++;
+          continue;
+        }
+
+        for (let y = cy0; y <= cy1; y++) {
+          const rowOffset = y * srcW;
+          for (let x = cx0; x <= cx1; x++) {
+            claimed[rowOffset + x] = 1;
+          }
+        }
+        kept.push(c);
+      }
+
+      const elapsed = (performance.now() - t0).toFixed(2);
+      if (dupeCount > 0) {
+        console.log(`[Post-Processing] 🚫 Duplicate Suppression: Suppressed ${dupeCount} overlapping detections in ${elapsed}ms`);
+      } else {
+        console.log(`[Post-Processing] 🚫 Duplicate Suppression: Evaluated in ${elapsed}ms (0 duplicates)`);
+      }
+      return kept;
+    }
+
+    function applyWbcNuclearVeto(classifiedResults, sourceImage) {
+      const t0 = performance.now();
+      if (!classifiedResults || classifiedResults.length === 0) return classifiedResults;
+      const srcBuf = getSourceImageBuffer(sourceImage);
+      const srcData = srcBuf.data;
+      const srcW = srcBuf.width;
+      const srcH = srcBuf.height;
+
+      const vetoTargetClasses = new Set(['monocytes', 'blasts', 'lymphocytes']);
+      let vetoCount = 0;
+
+      for (let i = 0; i < classifiedResults.length; i++) {
+        const res = classifiedResults[i];
+        if (!vetoTargetClasses.has(res.classId)) continue;
+
+        const y0 = Math.max(0, Math.min(srcH - 1, res.y));
+        const y1 = Math.max(0, Math.min(srcH - 1, res.y + res.height));
+        const x0 = Math.max(0, Math.min(srcW - 1, res.x));
+        const x1 = Math.max(0, Math.min(srcW - 1, res.x + res.width));
+
+        const totalPixels = Math.max(1, (y1 - y0 + 1) * (x1 - x0 + 1));
+        let nuclearPixels = 0;
+
+        for (let y = y0; y <= y1; y++) {
+          const rowOffset = y * srcW * 4;
+          for (let x = x0; x <= x1; x++) {
+            const idx = rowOffset + x * 4;
+            const g = srcData[idx + 1];
+            const b = srcData[idx + 2];
+            if (g < 135 && b > (g + 8)) {
+              nuclearPixels++;
+            }
+          }
+        }
+
+        const nucFrac = nuclearPixels / totalPixels;
+        if (nucFrac < 0.04) {
+          const topRbc = (res.predictions || []).find(p => RBC_MASTER_CLASSES.has(p.rawClass)) || {
+            rawClass: 'Normal_cells',
+            classId: 'normal_cells',
+            label: 'Normal RBC (Discocyte)',
+            prob: 0.88
+          };
+          res.rawClass = topRbc.rawClass;
+          res.classId = topRbc.classId;
+          res.label = topRbc.label;
+          vetoCount++;
+        }
+      }
+
+      const elapsed = (performance.now() - t0).toFixed(2);
+      if (vetoCount > 0) {
+        console.log(`[Post-Processing] 🔬 WBC Nuclear Veto: Reclassified ${vetoCount} un-nucleated stacked RBCs falsely labeled as Monocytes/Blasts in ${elapsed}ms`);
+      } else {
+        console.log(`[Post-Processing] 🔬 WBC Nuclear Veto: Evaluated in ${elapsed}ms`);
+      }
+      return classifiedResults;
+    }
+
+    function applyRbcPltSizeRules(classifiedResults, medianArea) {
+      const t0 = performance.now();
+      if (!classifiedResults || classifiedResults.length === 0 || medianArea <= 0) return classifiedResults;
+      const pltMax = 0.45 * medianArea;
+      const rbcMin = 0.55 * medianArea;
+
+      let rbcFixCount = 0;
+      let pltFixCount = 0;
+
+      for (let i = 0; i < classifiedResults.length; i++) {
+        const res = classifiedResults[i];
+        const area = res.width * res.height;
+
+        if (res.rawClass === 'Plt' && area > rbcMin) {
+          const topRbc = (res.predictions || []).find(p => RBC_MASTER_CLASSES.has(p.rawClass)) || {
+            rawClass: 'Normal_cells',
+            classId: 'normal_cells',
+            label: 'Normal RBC (Discocyte)'
+          };
+          res.rawClass = topRbc.rawClass;
+          res.classId = topRbc.classId;
+          res.label = topRbc.label;
+          rbcFixCount++;
+        } else if (RBC_MASTER_CLASSES.has(res.rawClass) && area < pltMax) {
+          res.rawClass = 'Plt';
+          res.classId = 'plt';
+          res.label = 'Platelet (Plt)';
+          pltFixCount++;
+        }
+      }
+
+      const elapsed = (performance.now() - t0).toFixed(2);
+      if (rbcFixCount > 0 || pltFixCount > 0) {
+        console.log(`[Post-Processing] ⚡ Biophysical Size Rules: Applied ${rbcFixCount} RBC_fix and ${pltFixCount} PLT_fix in ${elapsed}ms`);
+      } else {
+        console.log(`[Post-Processing] ⚡ Biophysical Size Rules: Evaluated in ${elapsed}ms (sizes all valid)`);
+      }
+      return classifiedResults;
+    }
+
     const DEFAULT_METADATA = {
       patientLastName: 'DOE',
       patientFirstName: 'John',
@@ -1493,7 +1804,7 @@
       specimenType: 'Peripheral Blood Smear',
       stainType: 'Wright-Giemsa',
       clinicalIndication: 'Cytopenia workup / Suspected acute leukemia',
-      notes: 'Hypercellular smear with blast excess. Atypical myeloid precursors and dysplastic neutrophils observed. Recommend bone marrow biopsy and flow cytometric immunophenotyping.',
+      notes: 'Hypercellular smear with blast excess. Atypical myeloid precursors and dysplastic neutrophils observed. Recommend peripheral blood flow cytometric immunophenotyping and hematopathology review.',
       reviewStatus: 'in_review'
     };
 
@@ -1523,7 +1834,8 @@
       taxonomy: CELL_TAXONOMY,
       metadata: { ...DEFAULT_METADATA },
       activeFilters: [],
-      filterCache: {}
+      filterCache: {},
+      postprocessingConfig: loadPostprocessingConfig()
     };
 
     const canvas = document.getElementById('microscope-canvas');
@@ -4327,6 +4639,95 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
     if (cardModelFast) cardModelFast.onclick = () => selectModelCard('fast');
     if (cardModelPro) cardModelPro.onclick = () => selectModelCard('pro');
 
+    // Post-Processing Settings Drawer & Heuristic Switches Binding
+    const btnModelSettingsToggle = document.getElementById('btn-model-settings-toggle');
+    const modelPostprocessingDrawer = document.getElementById('model-postprocessing-drawer');
+    const btnResetPostprocDefaults = document.getElementById('btn-reset-postproc-defaults');
+
+    const switchSizeFix = document.getElementById('postproc-switch-size-fix');
+    const switchBorderExcl = document.getElementById('postproc-switch-border-excl');
+    const switchDupeSuppr = document.getElementById('postproc-switch-dupe-suppr');
+    const switchWbcVeto = document.getElementById('postproc-switch-wbc-veto');
+    const switchWbcReassembly = document.getElementById('postproc-switch-wbc-reassembly');
+    const switchRbcWatershed = document.getElementById('postproc-switch-rbc-watershed');
+
+    function syncPostprocessingUI() {
+      const cfg = state.postprocessingConfig || DEFAULT_POSTPROCESSING_CONFIG;
+      if (switchSizeFix) switchSizeFix.checked = !!cfg.rbcPltSizeFix;
+      if (switchBorderExcl) switchBorderExcl.checked = !!cfg.borderExclusion;
+      if (switchDupeSuppr) switchDupeSuppr.checked = !!cfg.duplicateSuppression;
+      if (switchWbcVeto) switchWbcVeto.checked = !!cfg.wbcNuclearVeto;
+      if (switchWbcReassembly) switchWbcReassembly.checked = !!cfg.wbcMultiLobeReassembly;
+      if (switchRbcWatershed) switchRbcWatershed.checked = !!cfg.rbcWatershedSplitting;
+    }
+
+    function savePostprocessingConfig() {
+      try {
+        localStorage.setItem('lynceus_postprocessing_config', JSON.stringify(state.postprocessingConfig));
+      } catch (e) {
+        console.warn('[PostProcessing] Failed to save config to localStorage:', e);
+      }
+    }
+
+    if (btnModelSettingsToggle) {
+      btnModelSettingsToggle.onclick = (e) => {
+        e.stopPropagation();
+        selectModelCard('fast');
+        if (modelPostprocessingDrawer) {
+          modelPostprocessingDrawer.classList.toggle('hidden');
+        }
+      };
+    }
+
+    if (switchSizeFix) {
+      switchSizeFix.onchange = () => {
+        state.postprocessingConfig.rbcPltSizeFix = switchSizeFix.checked;
+        savePostprocessingConfig();
+      };
+    }
+    if (switchBorderExcl) {
+      switchBorderExcl.onchange = () => {
+        state.postprocessingConfig.borderExclusion = switchBorderExcl.checked;
+        savePostprocessingConfig();
+      };
+    }
+    if (switchDupeSuppr) {
+      switchDupeSuppr.onchange = () => {
+        state.postprocessingConfig.duplicateSuppression = switchDupeSuppr.checked;
+        savePostprocessingConfig();
+      };
+    }
+    if (switchWbcVeto) {
+      switchWbcVeto.onchange = () => {
+        state.postprocessingConfig.wbcNuclearVeto = switchWbcVeto.checked;
+        savePostprocessingConfig();
+      };
+    }
+    if (switchWbcReassembly) {
+      switchWbcReassembly.onchange = () => {
+        state.postprocessingConfig.wbcMultiLobeReassembly = switchWbcReassembly.checked;
+        savePostprocessingConfig();
+      };
+    }
+    if (switchRbcWatershed) {
+      switchRbcWatershed.onchange = () => {
+        state.postprocessingConfig.rbcWatershedSplitting = switchRbcWatershed.checked;
+        savePostprocessingConfig();
+      };
+    }
+
+    if (btnResetPostprocDefaults) {
+      btnResetPostprocDefaults.onclick = (e) => {
+        e.stopPropagation();
+        state.postprocessingConfig = { ...DEFAULT_POSTPROCESSING_CONFIG };
+        savePostprocessingConfig();
+        syncPostprocessingUI();
+        showToast('Reset post-processing heuristics to defaults');
+      };
+    }
+
+    syncPostprocessingUI();
+
     function openResetModal() {
       if (isResettingInference) return;
       if (resetModelSelection) resetModelSelection.classList.remove('hidden');
@@ -4462,10 +4863,19 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
               console.log(`[Stage 1 & 2 AI Pipeline] 🔬 Ingesting raw true-color capture`);
             }
 
-            updateHUD(42, 'Scanning smear fields and detecting cell boundaries...');
-            const preprocessed = prepareCellposeTensor(activeSource, 0.50);
+            const tPipelineStart = performance.now();
 
+            updateHUD(42, 'Scanning smear fields and detecting cell boundaries...');
+            const tPrep0 = performance.now();
+            const preprocessed = prepareCellposeTensor(activeSource, 0.50);
+            const prepMs = (performance.now() - tPrep0).toFixed(1);
+            console.log(`⏱️ [Timing 1/7] Stage 1 Preprocessing: ${prepMs}ms`);
+
+            const tSegRun0 = performance.now();
             const segOutputs = await segSession.run({ input: preprocessed.tensor });
+            const segRunMs = (performance.now() - tSegRun0).toFixed(1);
+            console.log(`⏱️ [Timing 2/7] Stage 1 SAM-v2 WebGPU Forward Pass: ${segRunMs}ms`);
+
             const segOut = segOutputs.output || segOutputs.flows_and_cellprob || segOutputs[Object.keys(segOutputs)[0]];
             const segData = segOut.data;
 
@@ -4477,6 +4887,7 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
             updateHUD(58, 'Refining cell contours and morphology...');
             await new Promise(r => setTimeout(r, 30));
 
+            const tEuler0 = performance.now();
             const { cells } = computeMasksFromFlows(dP_y, dP_x, cellprob, preprocessed.width, preprocessed.height, {
               cellprobThreshold: 0.0,
               flowThreshold: 0.4,
@@ -4485,6 +4896,8 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
               maxSizeFraction: 0.4,
               mpp: state.micronsPerPixel
             });
+            const eulerMs = (performance.now() - tEuler0).toFixed(1);
+            console.log(`⏱️ [Timing 3/7] Stage 1 Euler Flow Dynamics & Contours: ${eulerMs}ms (${cells.length} cells initial)`);
 
             // Rescale bounding boxes and contours back to native image dimensions
             const scaledCells = cells.map(c => ({
@@ -4501,6 +4914,43 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
               }))
             }));
 
+            // Post-Processing Phase 1: Pre-Classification Spatial and Morphological Filters
+            const tMorph0 = performance.now();
+            let processedCells = scaledCells;
+            const srcW = activeSource.naturalWidth || activeSource.width || 1500;
+            const srcH = activeSource.naturalHeight || activeSource.height || 1125;
+
+            // Compute field-wide median area
+            const cellAreas = processedCells.map(c => Math.max(1, (c.bbox[2] - c.bbox[0] + 1) * (c.bbox[3] - c.bbox[1] + 1)));
+            cellAreas.sort((a, b) => a - b);
+            const medianArea = cellAreas.length > 0 ? cellAreas[Math.floor(cellAreas.length / 2)] : 800;
+
+            if (state.postprocessingConfig.borderExclusion) {
+              const margin = 2;
+              const prevLen = processedCells.length;
+              processedCells = processedCells.filter(c => {
+                return c.bbox[0] >= margin && c.bbox[1] >= margin &&
+                       c.bbox[2] < (srcH - margin) && c.bbox[3] < (srcW - margin);
+              });
+              if (prevLen !== processedCells.length) {
+                console.log(`[Post-Processing] 🛡️ Border Exclusion: Filtered ${prevLen - processedCells.length} edge-clipped cells (${processedCells.length} remaining)`);
+              }
+            }
+
+            if (state.postprocessingConfig.wbcMultiLobeReassembly && processedCells.length > 1) {
+              processedCells = applyWbcMultiLobeReassembly(processedCells, medianArea);
+            }
+
+            if (state.postprocessingConfig.rbcWatershedSplitting && processedCells.length > 0) {
+              processedCells = applyRbcWatershedSplitting(processedCells, medianArea);
+            }
+
+            if (state.postprocessingConfig.duplicateSuppression && processedCells.length > 1) {
+              processedCells = applyDuplicateSuppression(processedCells, srcW, srcH, 0.50);
+            }
+            const morphMs = (performance.now() - tMorph0).toFixed(1);
+            console.log(`⏱️ [Timing 4/7] Pre-Classification Morphological Filters: ${morphMs}ms (${processedCells.length} candidate cells)`);
+
             updateHUD(68, 'Classifying cell types across all 20 lineages...');
             await new Promise(r => setTimeout(r, 30));
 
@@ -4509,13 +4959,14 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
             const clfSession = await classifierWarmupPromise;
 
             // STEP 4: Stage 2 Batched Forward Pass with continuous progress advance
-            const cellsToClassify = scaledCells.length > 0 ? scaledCells : MODEL_FLASH_ANNOTATIONS.map(a => ({
+            const cellsToClassify = processedCells.length > 0 ? processedCells : MODEL_FLASH_ANNOTATIONS.map(a => ({
               bbox: [a.y, a.x, a.y + a.height, a.x + a.width],
               shape: a.shape,
               morphology: a.morphology
             }));
 
-            const classified = await classifySegmentedBatch(
+            const tClassify0 = performance.now();
+            let classified = await classifySegmentedBatch(
               clfSession,
               activeSource,
               cellsToClassify,
@@ -4526,6 +4977,26 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
                 updateHUD(batchPct, `Classifying cell lineages: batch ${chunkIdx}/${numChunks}...`);
               }
             );
+            const classifyMs = (performance.now() - tClassify0).toFixed(1);
+            console.log(`⏱️ [Timing 5/7] Stage 2 Swin-T 20-Class WebGPU Classification: ${classifyMs}ms (${(parseFloat(classifyMs) / Math.max(1, cellsToClassify.length)).toFixed(1)}ms/cell)`);
+
+            // Post-Processing Phase 2: Post-Classification Biophysical & Chromatin Relabeling
+            const tRelabel0 = performance.now();
+            if (state.postprocessingConfig.wbcNuclearVeto && classified.length > 0) {
+              classified = applyWbcNuclearVeto(classified, activeSource);
+            }
+
+            if (state.postprocessingConfig.rbcPltSizeFix && classified.length > 0) {
+              classified = applyRbcPltSizeRules(classified, medianArea);
+            }
+            const relabelMs = (performance.now() - tRelabel0).toFixed(1);
+            console.log(`⏱️ [Timing 6/7] Post-Classification Biophysical Relabeling: ${relabelMs}ms`);
+
+            if (isAborted) throw new Error('Analysis stopped by user.');
+            finalAnnotations = classified.length > 0 ? classified : MODEL_FLASH_ANNOTATIONS;
+
+            const totalPipelineMs = (performance.now() - tPipelineStart).toFixed(1);
+            console.log(`🏁 [Timing 7/7] Total End-to-End Inference Pipeline: ${totalPipelineMs}ms | Detected: ${finalAnnotations.length} cells`);
 
             if (isAborted) throw new Error('Analysis stopped by user.');
             finalAnnotations = classified.length > 0 ? classified : MODEL_FLASH_ANNOTATIONS;
@@ -4970,6 +5441,11 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       expandRightSidebar,
       undo,
       redo,
+      applyWbcMultiLobeReassembly,
+      applyRbcWatershedSplitting,
+      applyDuplicateSuppression,
+      applyWbcNuclearVeto,
+      applyRbcPltSizeRules,
       toggleOverlays,
       getVisibleAnnotations,
       screenToWorld,

@@ -5,7 +5,7 @@ const http = require('http');
 const fs = require('fs');
 
 (async () => {
-  console.log('\n🧪 Running Test Suite: Cellpose SAM-v2 Cell Count (>140 Cells Target)');
+  console.log('\n🧪 Running Test Suite: Cellpose SAM-v2 End-to-End Pipeline (>80 & ~110 Cells Target)');
 
   const rootDir = path.resolve(__dirname, '..');
   const server = http.createServer((req, res) => {
@@ -32,6 +32,8 @@ const fs = require('fs');
 
   const browser = await puppeteer.launch({
     executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    userDataDir: '/tmp/lynceus_test_user_profile',
+    protocolTimeout: 60000,
     headless: true,
     args: [
       '--no-sandbox',
@@ -53,19 +55,19 @@ const fs = require('fs');
   });
 
   await page.goto(`http://localhost:${testPort}/index.html`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.ort !== undefined, { timeout: 10000 });
+  await page.waitForFunction(() => window.__CYTO_APP__ !== undefined, { timeout: 10000 });
 
   console.log('  ✓ Triggering Telesphorus Live AI Inference (Cellpose SAM-v2 ViT + Swin-T)...');
 
   const inferenceResult = await page.evaluate(async () => {
     const t0 = performance.now();
-    await runModelInference('fast');
+    await window.__CYTO_APP__.runModelInference('fast');
     const elapsed = performance.now() - t0;
 
-    const totalCells = state.annotations.length;
-    const leukocytes = state.annotations.filter(a => a.classId !== 'platelet' && a.classId !== 'rbc_variant');
-    const platelets = state.annotations.filter(a => a.classId === 'platelet');
-    const rbcVariants = state.annotations.filter(a => a.classId === 'rbc_variant');
+    const totalCells = window.__CYTO_APP__.state.annotations.length;
+    const leukocytes = window.__CYTO_APP__.state.annotations.filter(a => a.classId !== 'platelet' && a.classId !== 'rbc_variant');
+    const platelets = window.__CYTO_APP__.state.annotations.filter(a => a.classId === 'platelet');
+    const rbcVariants = window.__CYTO_APP__.state.annotations.filter(a => a.classId === 'rbc_variant');
 
     return {
       elapsedMs: parseFloat(elapsed.toFixed(1)),
@@ -73,7 +75,7 @@ const fs = require('fs');
       leukocytesCount: leukocytes.length,
       plateletsCount: platelets.length,
       rbcVariantsCount: rbcVariants.length,
-      sampleCell: state.annotations[0] || null
+      sampleCell: window.__CYTO_APP__.state.annotations[0] || null
     };
   });
 
@@ -81,10 +83,10 @@ const fs = require('fs');
   console.log(`  ✓ Total Detected Cell Instances: ${inferenceResult.totalCells} cells`);
   console.log(`  ✓ Lineage Breakdown: ${inferenceResult.leukocytesCount} WBCs, ${inferenceResult.plateletsCount} Platelets, ${inferenceResult.rbcVariantsCount} RBCs`);
 
-  // Assertion: SAM-v2 must segment at least 140 cells on smear-02.jpg
+  // Assertion: Stage 1 + Postprocessing must detect cleanly segmented smear cells (>80 cells, ~110 cells with border margin exclusion)
   assert(
-    inferenceResult.totalCells >= 140,
-    `Expected SAM-v2 ViT to detect at least 140 cells, but found ${inferenceResult.totalCells}`
+    inferenceResult.totalCells >= 80 && inferenceResult.totalCells <= 140,
+    `Expected SAM-v2 ViT + Postprocessing to detect between 80 and 140 cells (around ~110), but found ${inferenceResult.totalCells}`
   );
 
   assert(inferenceResult.sampleCell !== null, 'Should have valid segmented sample cell');
@@ -92,7 +94,7 @@ const fs = require('fs');
 
   await browser.close();
   server.close();
-  console.log(`🎉 Cellpose SAM-v2 Cell Count Test PASSED successfully (${inferenceResult.totalCells} >= 140 cells)!\n`);
+  console.log(`🎉 Cellpose SAM-v2 Cell Count & Postprocessing Test PASSED successfully (${inferenceResult.totalCells} cells detected)!\n`);
 })().catch(err => {
   console.error('❌ Test failed:', err);
   process.exit(1);
