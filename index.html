@@ -656,11 +656,11 @@
   </div>
 
   <!-- Re-run Inference / Model Reset Selection Modal -->
-  <div id="reset-confirm-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-[#1B191E] border border-[#373437] rounded-2xl shadow-2xl w-full max-w-lg p-6 text-white font-mono text-xs space-y-4">
+  <div id="reset-confirm-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
+    <div class="bg-[#1B191E] border border-[#373437] rounded-2xl shadow-2xl w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] flex flex-col p-5 sm:p-6 text-white font-mono text-xs overflow-hidden transition-all duration-200">
       
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between border-b border-[#373437] pb-3">
+      <!-- Modal Header (Fixed / Non-scrolling) -->
+      <div class="shrink-0 flex items-center justify-between border-b border-[#373437] pb-3">
         <div class="flex items-center space-x-2.5">
           <div class="w-6 h-6 rounded-lg bg-[#f97316]/15 border border-[#f97316]/30 flex items-center justify-center text-[#f97316] shadow-[0_0_10px_rgba(249,115,22,0.25)]">
             <svg width="14" height="14" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path><path d="M19 4v4"></path><path d="M21 6h-4"></path></svg>
@@ -673,192 +673,196 @@
         <button id="btn-cancel-reset-x" class="text-[#9e9a9e] hover:text-white text-sm px-2 py-1 rounded hover:bg-[#272527] transition">✕</button>
       </div>
 
-      <!-- Warning Banner -->
-      <div class="p-3 rounded-xl bg-[#e52246]/10 border border-[#e52246]/30 flex items-start space-x-2.5">
-        <svg width="16" height="16" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        <div class="space-y-0.5">
-          <span class="font-bold text-[#e52246] text-[11px] uppercase tracking-wider">Warning: Modifications Will Be Lost</span>
-          <p class="text-[10px] text-[#B4AFBA] leading-relaxed">
-            All manual annotations, box/point drawings, reclassifications, and caliper measurements will be permanently cleared and replaced with the selected model's annotations.
-          </p>
+      <!-- Modal Body (Scrollable Container expanding up to screen height) -->
+      <div class="flex-1 overflow-y-auto overscroll-contain pr-1 space-y-3.5 my-2">
+        <!-- Warning Banner -->
+        <div class="p-3 rounded-xl bg-[#e52246]/10 border border-[#e52246]/30 flex items-start space-x-2.5">
+          <svg width="16" height="16" class="shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <div class="space-y-0.5">
+            <span class="font-bold text-[#e52246] text-[11px] uppercase tracking-wider">Warning: Modifications Will Be Lost</span>
+            <p class="text-[10px] text-[#B4AFBA] leading-relaxed">
+              All manual annotations, box/point drawings, reclassifications, and caliper measurements will be permanently cleared and replaced with the selected model's annotations.
+            </p>
+          </div>
+        </div>
+
+        <!-- Model Selection State (Visible when not loading) -->
+        <div id="reset-model-selection" class="space-y-3">
+          <!-- Diagnostic Filter & Preprocessing Recommendation Callout -->
+          <div class="p-3 rounded-xl bg-[#38bdf8]/10 border border-[#38bdf8]/30 space-y-2">
+            <div class="flex items-center space-x-1.5 font-bold text-[#38bdf8] text-[11px]">
+              <svg width="14" height="14" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <span>When to Apply Preprocessing Presets</span>
+            </div>
+            <p class="text-[10px] text-[#e2e8f0] leading-relaxed">
+              Telesphorus runs inference directly on the <b>active filtered canvas</b>. Choose the preset tailored to your slide preparation:
+            </p>
+            <ul class="text-[10px] text-[#94a3b8] space-y-1.5 list-disc list-inside">
+              <li>
+                <b class="text-white">⚡ May-Giemsa AI Preset</b>: Use for standard clinical May-Grünwald Giemsa (MGG) peripheral blood smears to normalize varying illumination, circular microscope apertures, and camera sensors across different laboratories.
+              </li>
+              <li>
+                <b class="text-white">⚡ Romanowski AI Preset</b>: Use for Wright, Wright-Giemsa, Leishman, or Field stained smears displaying deep purple/azure dye precipitation, overstaining, or false platelet-like debris.
+              </li>
+              <li>
+                <b class="text-white">Raw RGB (True Color)</b>: Use for pre-calibrated digital whole-slide scanners (WSI) that already provide flat-field illumination, white balancing, and rectangular border cropping.
+              </li>
+            </ul>
+          </div>
+
+          <label class="text-[10px] uppercase font-bold text-[#9e9a9e] tracking-wider block">Choose AI Model Architecture</label>
+          
+          <div class="grid grid-cols-1 gap-2.5">
+            <!-- Fast Model Card (Telesphorus) -->
+            <div id="card-model-fast" class="model-select-card cursor-pointer p-3.5 rounded-xl border border-[#373437] hover:border-[#38bdf8]/60 bg-[#141316] hover:bg-[#1f1d22] transition space-y-2 group">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-white text-xs">Telesphorus</span>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse"></span>
+                    ACTIVE AI MODEL
+                  </span>
+                </div>
+                <div class="flex items-center space-x-1.5">
+                  <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">⚡ RAPID SCAN • Active AI</span>
+                  <button id="btn-model-settings-toggle" type="button" class="p-1 rounded-lg hover:bg-white/10 text-[#7a767a] hover:text-[#38bdf8] transition" title="Configure Post-Processing Pipeline" data-help="Post-Processing Settings|Toggle individual biophysical size rules, border exclusions, and reassembly heuristics.|CONFIG">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+              </div>
+              <p class="text-[10px] text-[#7a767a]">Automated smear analysis: High-precision cell detection paired with 20-lineage classification.</p>
+              <div class="text-[9px] text-[#9e9a9e] flex items-center space-x-3 pt-0.5 font-mono">
+                <span>Scope: <b class="text-white">Live AI Pipeline</b></span>
+                <span>Engine: <b class="text-[#38bdf8]">AI Vision Pipeline</b></span>
+              </div>
+
+              <!-- Expandable Post-Processing & Biophysical Settings Drawer -->
+              <div id="model-postprocessing-drawer" class="hidden mt-2 pt-2.5 border-t border-[#373437] space-y-2 cursor-default" onclick="event.stopPropagation()">
+                <div class="flex items-center justify-between text-[10px] font-bold text-[#38bdf8] uppercase tracking-wider">
+                  <span class="flex items-center space-x-1">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Post-Processing Heuristics</span>
+                  </span>
+                  <button id="btn-reset-postproc-defaults" type="button" class="text-[9px] text-[#9e9a9e] hover:text-white underline font-normal normal-case">Reset Defaults</button>
+                </div>
+
+                <div class="space-y-1.5 text-[10px]">
+                  <!-- 1. Biophysical Size Rules -->
+                  <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
+                    <div class="space-y-0.2 min-w-0 pr-2">
+                      <div class="font-semibold text-white truncate">Biophysical Size Rules (RBC_fix / PLT_fix)</div>
+                      <div class="text-[9px] text-[#7a767a] truncate">Relabels oversized platelets to RBCs and tiny RBCs to Platelets</div>
+                    </div>
+                    <input type="checkbox" id="postproc-switch-size-fix" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
+                  </label>
+
+                  <!-- 2. Border Margin Exclusion -->
+                  <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
+                    <div class="space-y-0.2 min-w-0 pr-2">
+                      <div class="font-semibold text-white truncate">Border Margin Exclusion (2px Margin)</div>
+                      <div class="text-[9px] text-[#7a767a] truncate">Strips clipped cells touching canvas perimeter</div>
+                    </div>
+                    <input type="checkbox" id="postproc-switch-border-excl" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
+                  </label>
+
+                  <!-- 3. Duplicate Overlap Suppression -->
+                  <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
+                    <div class="space-y-0.2 min-w-0 pr-2">
+                      <div class="font-semibold text-white truncate">Duplicate Overlap Suppression (&gt;50%)</div>
+                      <div class="text-[9px] text-[#7a767a] truncate">Discards secondary bounding boxes overlapping &gt;50% with existing cells</div>
+                    </div>
+                    <input type="checkbox" id="postproc-switch-dupe-suppr" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
+                  </label>
+
+                  <!-- 4. Mononuclear WBC Nuclear Veto -->
+                  <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
+                    <div class="space-y-0.2 min-w-0 pr-2">
+                      <div class="font-semibold text-white truncate">Mononuclear WBC Nuclear Veto</div>
+                      <div class="text-[9px] text-[#7a767a] truncate">Reclassifies un-nucleated RBC doublets falsely predicted as Monocytes/Blasts</div>
+                    </div>
+                    <input type="checkbox" id="postproc-switch-wbc-veto" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
+                  </label>
+
+                  <!-- 5. WBC Multi-Lobe Reassembly -->
+                  <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
+                    <div class="space-y-0.2 min-w-0 pr-2">
+                      <div class="font-semibold text-white truncate">WBC Multi-Lobe Reassembly (Union-Find)</div>
+                      <div class="text-[9px] text-[#7a767a] truncate">Combines segmented nuclear lobes into a unified leukocyte entity</div>
+                    </div>
+                    <input type="checkbox" id="postproc-switch-wbc-reassembly" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
+                  </label>
+
+                  <!-- 6. Conjoined RBC Splitting -->
+                  <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
+                    <div class="space-y-0.2 min-w-0 pr-2">
+                      <div class="font-semibold text-white truncate">Conjoined RBC Splitting (Watershed)</div>
+                      <div class="text-[9px] text-[#7a767a] truncate">Separates touching RBC doublets using distance transform peaks</div>
+                    </div>
+                    <input type="checkbox" id="postproc-switch-rbc-watershed" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pro Model Card (Asclepius) -->
+            <div id="card-model-pro" class="model-select-card cursor-pointer p-3.5 rounded-xl border-2 border-[#e52246] bg-[#1a1317] transition space-y-1.5 group shadow-lg shadow-[#e52246]/15">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-white text-xs">Asclepius</span>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    DEMO PRESET
+                  </span>
+                </div>
+                <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#e52246]/20 text-[#e52246] border border-[#e52246]/40">🔬 MOCK PRESET • 5.0s</span>
+              </div>
+              <p class="text-[10px] text-[#B4AFBA]">Simulated mock sample for demonstration only. Does not run live cell detection.</p>
+              <div class="text-[9px] text-[#9e9a9e] flex items-center space-x-3 pt-0.5 font-mono">
+                <span>Scope: <b class="text-amber-400">Mock Data Only</b></span>
+                <span>Status: <b class="text-amber-400">Demo Preset</b></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inference Loading View (Visible during active reset/inference) -->
+        <div id="reset-loading-view" class="hidden space-y-4 py-2">
+          <div class="text-center space-y-1">
+            <div class="inline-flex items-center space-x-2 text-xs font-bold text-white" id="reset-loading-model-name">
+              <svg width="16" height="16" class="smooth-spin shrink-0 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"></path></svg>
+              <span>Running Automated Cell Analysis Pipeline...</span>
+            </div>
+            <p class="text-[10px] text-[#9e9a9e]" id="reset-loading-step-text">Scanning 40x field of view and analyzing cell morphology...</p>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="space-y-1">
+            <div class="w-full bg-[#272527] h-2.5 rounded-full overflow-hidden border border-[#373437]">
+              <div id="reset-progress-bar" class="bg-gradient-to-r from-[#e52246] via-[#f97316] to-[#e52246] h-full transition-all duration-75 ease-out rounded-full" style="width: 0%;"></div>
+            </div>
+            <div class="flex items-center justify-between text-[10px] font-mono text-[#7a767a]">
+              <span id="reset-progress-percent">0%</span>
+              <span id="reset-progress-time">0s elapsed</span>
+            </div>
+          </div>
+
+          <!-- Stop / Cancel Inference Button -->
+          <div class="flex justify-center pt-2">
+            <button id="btn-stop-inference" type="button" class="px-4 py-1.5 rounded-lg bg-[#272527] hover:bg-[#e52246]/20 border border-[#373437] hover:border-[#e52246]/50 text-[#9e9a9e] hover:text-[#e52246] text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer shadow-md">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
+              <span>Stop Analysis</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Model Selection State (Visible when not loading) -->
-      <div id="reset-model-selection" class="space-y-3">
-        <!-- Diagnostic Filter & Preprocessing Recommendation Callout -->
-        <div class="p-3 rounded-xl bg-[#38bdf8]/10 border border-[#38bdf8]/30 space-y-2">
-          <div class="flex items-center space-x-1.5 font-bold text-[#38bdf8] text-[11px]">
-            <svg width="14" height="14" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-            <span>When to Apply Preprocessing Presets</span>
-          </div>
-          <p class="text-[10px] text-[#e2e8f0] leading-relaxed">
-            Telesphorus runs inference directly on the <b>active filtered canvas</b>. Choose the preset tailored to your slide preparation:
-          </p>
-          <ul class="text-[10px] text-[#94a3b8] space-y-1.5 list-disc list-inside">
-            <li>
-              <b class="text-white">⚡ May-Giemsa AI Preset</b>: Use for standard clinical May-Grünwald Giemsa (MGG) peripheral blood smears to normalize varying illumination, circular microscope apertures, and camera sensors across different laboratories.
-            </li>
-            <li>
-              <b class="text-white">⚡ Romanowski AI Preset</b>: Use for Wright, Wright-Giemsa, Leishman, or Field stained smears displaying deep purple/azure dye precipitation, overstaining, or false platelet-like debris.
-            </li>
-            <li>
-              <b class="text-white">Raw RGB (True Color)</b>: Use for pre-calibrated digital whole-slide scanners (WSI) that already provide flat-field illumination, white balancing, and rectangular border cropping.
-            </li>
-          </ul>
-        </div>
-
-        <label class="text-[10px] uppercase font-bold text-[#9e9a9e] tracking-wider block">Choose AI Model Architecture</label>
-        
-        <div class="grid grid-cols-1 gap-2.5">
-          <!-- Fast Model Card (Telesphorus) -->
-          <div id="card-model-fast" class="model-select-card cursor-pointer p-3.5 rounded-xl border border-[#373437] hover:border-[#38bdf8]/60 bg-[#141316] hover:bg-[#1f1d22] transition space-y-2 group">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <span class="font-bold text-white text-xs">Telesphorus</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30 flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse"></span>
-                  ACTIVE AI MODEL
-                </span>
-              </div>
-              <div class="flex items-center space-x-1.5">
-                <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">⚡ RAPID SCAN • Active AI</span>
-                <button id="btn-model-settings-toggle" type="button" class="p-1 rounded-lg hover:bg-white/10 text-[#7a767a] hover:text-[#38bdf8] transition" title="Configure Post-Processing Pipeline" data-help="Post-Processing Settings|Toggle individual biophysical size rules, border exclusions, and reassembly heuristics.|CONFIG">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                </button>
-              </div>
-            </div>
-            <p class="text-[10px] text-[#7a767a]">Automated smear analysis: High-precision cell detection paired with 20-lineage classification.</p>
-            <div class="text-[9px] text-[#9e9a9e] flex items-center space-x-3 pt-0.5 font-mono">
-              <span>Scope: <b class="text-white">Live AI Pipeline</b></span>
-              <span>Engine: <b class="text-[#38bdf8]">AI Vision Pipeline</b></span>
-            </div>
-
-            <!-- Expandable Post-Processing & Biophysical Settings Drawer -->
-            <div id="model-postprocessing-drawer" class="hidden mt-2 pt-2.5 border-t border-[#373437] space-y-2 cursor-default" onclick="event.stopPropagation()">
-              <div class="flex items-center justify-between text-[10px] font-bold text-[#38bdf8] uppercase tracking-wider">
-                <span class="flex items-center space-x-1">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                  <span>Post-Processing Heuristics</span>
-                </span>
-                <button id="btn-reset-postproc-defaults" type="button" class="text-[9px] text-[#9e9a9e] hover:text-white underline font-normal normal-case">Reset Defaults</button>
-              </div>
-
-              <div class="space-y-1.5 text-[10px]">
-                <!-- 1. Biophysical Size Rules -->
-                <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
-                  <div class="space-y-0.2 min-w-0 pr-2">
-                    <div class="font-semibold text-white truncate">Biophysical Size Rules (RBC_fix / PLT_fix)</div>
-                    <div class="text-[9px] text-[#7a767a] truncate">Relabels oversized platelets to RBCs and tiny RBCs to Platelets</div>
-                  </div>
-                  <input type="checkbox" id="postproc-switch-size-fix" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
-                </label>
-
-                <!-- 2. Border Margin Exclusion -->
-                <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
-                  <div class="space-y-0.2 min-w-0 pr-2">
-                    <div class="font-semibold text-white truncate">Border Margin Exclusion (2px Margin)</div>
-                    <div class="text-[9px] text-[#7a767a] truncate">Strips clipped cells touching canvas perimeter</div>
-                  </div>
-                  <input type="checkbox" id="postproc-switch-border-excl" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
-                </label>
-
-                <!-- 3. Duplicate Overlap Suppression -->
-                <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
-                  <div class="space-y-0.2 min-w-0 pr-2">
-                    <div class="font-semibold text-white truncate">Duplicate Overlap Suppression (&gt;50%)</div>
-                    <div class="text-[9px] text-[#7a767a] truncate">Discards secondary bounding boxes overlapping &gt;50% with existing cells</div>
-                  </div>
-                  <input type="checkbox" id="postproc-switch-dupe-suppr" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
-                </label>
-
-                <!-- 4. Mononuclear WBC Nuclear Veto -->
-                <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
-                  <div class="space-y-0.2 min-w-0 pr-2">
-                    <div class="font-semibold text-white truncate">Mononuclear WBC Nuclear Veto</div>
-                    <div class="text-[9px] text-[#7a767a] truncate">Reclassifies un-nucleated RBC doublets falsely predicted as Monocytes/Blasts</div>
-                  </div>
-                  <input type="checkbox" id="postproc-switch-wbc-veto" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
-                </label>
-
-                <!-- 5. WBC Multi-Lobe Reassembly -->
-                <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
-                  <div class="space-y-0.2 min-w-0 pr-2">
-                    <div class="font-semibold text-white truncate">WBC Multi-Lobe Reassembly (Union-Find)</div>
-                    <div class="text-[9px] text-[#7a767a] truncate">Combines segmented nuclear lobes into a unified leukocyte entity</div>
-                  </div>
-                  <input type="checkbox" id="postproc-switch-wbc-reassembly" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
-                </label>
-
-                <!-- 6. Conjoined RBC Splitting -->
-                <label class="flex items-center justify-between p-1.5 rounded-lg bg-[#1a181b] hover:bg-[#252327] border border-[#2e2b30] cursor-pointer transition">
-                  <div class="space-y-0.2 min-w-0 pr-2">
-                    <div class="font-semibold text-white truncate">Conjoined RBC Splitting (Watershed)</div>
-                    <div class="text-[9px] text-[#7a767a] truncate">Separates touching RBC doublets using distance transform peaks</div>
-                  </div>
-                  <input type="checkbox" id="postproc-switch-rbc-watershed" class="postproc-switch rounded text-[#38bdf8] focus:ring-0 cursor-pointer bg-[#272527] border-[#444]" checked>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pro Model Card (Asclepius) -->
-          <div id="card-model-pro" class="model-select-card cursor-pointer p-3.5 rounded-xl border-2 border-[#e52246] bg-[#1a1317] transition space-y-1.5 group shadow-lg shadow-[#e52246]/15">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <span class="font-bold text-white text-xs">Asclepius</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                  DEMO PRESET
-                </span>
-              </div>
-              <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#e52246]/20 text-[#e52246] border border-[#e52246]/40">🔬 MOCK PRESET • 5.0s</span>
-            </div>
-            <p class="text-[10px] text-[#B4AFBA]">Simulated mock sample for demonstration only. Does not run live cell detection.</p>
-            <div class="text-[9px] text-[#9e9a9e] flex items-center space-x-3 pt-0.5 font-mono">
-              <span>Scope: <b class="text-amber-400">Mock Data Only</b></span>
-              <span>Status: <b class="text-amber-400">Demo Preset</b></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end space-x-2 pt-3 border-t border-[#373437]">
-          <button id="btn-cancel-reset" class="px-3 py-1.5 rounded-lg bg-[#272527] hover:bg-[#373437] text-white text-xs font-semibold transition">Cancel</button>
-          <button id="btn-confirm-reset" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-[#e52246] to-[#f97316] hover:from-[#ce1438] hover:to-[#ea580c] text-white text-xs font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-[#f97316]/20">
-            <svg width="14" height="14" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path></svg>
-            <span>Run Inference & Reset</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Inference Loading View (Visible during active reset/inference) -->
-      <div id="reset-loading-view" class="hidden space-y-4 py-2">
-        <div class="text-center space-y-1">
-          <div class="inline-flex items-center space-x-2 text-xs font-bold text-white" id="reset-loading-model-name">
-            <svg width="16" height="16" class="smooth-spin shrink-0 text-[#e52246]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"></path></svg>
-            <span>Running Automated Cell Analysis Pipeline...</span>
-          </div>
-          <p class="text-[10px] text-[#9e9a9e]" id="reset-loading-step-text">Scanning 40x field of view and analyzing cell morphology...</p>
-        </div>
-
-        <!-- Progress Bar -->
-        <div class="space-y-1">
-          <div class="w-full bg-[#272527] h-2.5 rounded-full overflow-hidden border border-[#373437]">
-            <div id="reset-progress-bar" class="bg-gradient-to-r from-[#e52246] via-[#f97316] to-[#e52246] h-full transition-all duration-75 ease-out rounded-full" style="width: 0%;"></div>
-          </div>
-          <div class="flex items-center justify-between text-[10px] font-mono text-[#7a767a]">
-            <span id="reset-progress-percent">0%</span>
-            <span id="reset-progress-time">0s elapsed</span>
-          </div>
-        </div>
-
-        <!-- Stop / Cancel Inference Button -->
-        <div class="flex justify-center pt-2">
-          <button id="btn-stop-inference" type="button" class="px-4 py-1.5 rounded-lg bg-[#272527] hover:bg-[#e52246]/20 border border-[#373437] hover:border-[#e52246]/50 text-[#9e9a9e] hover:text-[#e52246] text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer shadow-md">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
-            <span>Stop Analysis</span>
-          </button>
-        </div>
+      <!-- Modal Footer (Fixed / Non-scrolling) -->
+      <div id="reset-modal-footer" class="shrink-0 flex items-center justify-end space-x-2 pt-3 border-t border-[#373437] mt-auto">
+        <button id="btn-cancel-reset" class="px-3 py-1.5 rounded-lg bg-[#272527] hover:bg-[#373437] text-white text-xs font-semibold transition">Cancel</button>
+        <button id="btn-confirm-reset" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-[#e52246] to-[#f97316] hover:from-[#ce1438] hover:to-[#ea580c] text-white text-xs font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-[#f97316]/20">
+          <svg width="14" height="14" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path></svg>
+          <span>Run Inference & Reset</span>
+        </button>
       </div>
 
     </div>
