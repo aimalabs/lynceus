@@ -2997,13 +2997,17 @@
 
       if (!state.imageLoaded) return;
 
+      const activeSource = getActiveImageSource();
+      const naturalW = activeSource.naturalWidth || activeSource.width || 1500;
+      const naturalH = activeSource.naturalHeight || activeSource.height || 1125;
+
       const pad = 20;
       const srcX = Math.max(0, ann.x - pad);
       const srcY = Math.max(0, ann.y - pad);
-      const srcW = Math.min(state.image.naturalWidth - srcX, ann.width + pad * 2);
-      const srcH = Math.min(state.image.naturalHeight - srcY, ann.height + pad * 2);
+      const srcW = Math.min(naturalW - srcX, ann.width + pad * 2);
+      const srcH = Math.min(naturalH - srcY, ann.height + pad * 2);
 
-      cropCtx.drawImage(state.image, srcX, srcY, srcW, srcH, 0, 0, cw, ch);
+      cropCtx.drawImage(activeSource, srcX, srcY, srcW, srcH, 0, 0, cw, ch);
 
       const cls = state.taxonomy.find(t => t.id === ann.classId) || state.taxonomy[0];
       cropCtx.strokeStyle = cls.color;
@@ -3069,8 +3073,9 @@
       }
 
       try {
+        const activeSource = getActiveImageSource();
         const bbox = [ann.y, ann.x, ann.y + ann.height, ann.x + ann.width];
-        const pred = await classifySinglePatch(state.image, bbox);
+        const pred = await classifySinglePatch(activeSource, bbox);
         if (pred) {
           const targetTax = state.taxonomy.find(t => t.id === pred.classId || t.rawClass === pred.rawClass || t.name === pred.label) || state.taxonomy[0];
 
