@@ -6145,31 +6145,40 @@
           console.groupEnd();
         } else {
           try {
-            let segRecBytes = 0, segTotBytes = 293 * 1024 * 1024;
-            let clfRecBytes = 0, clfTotBytes = 54 * 1024 * 1024;
+            let segRecBytes = 0, segTotBytes = 290.5 * 1024 * 1024;
+            let clfRecBytes = 0, clfTotBytes = 54.2 * 1024 * 1024;
 
-            const onModelDownloadProgress = () => {
+            const onModelDownloadProgress = (isCache = false) => {
               const totalRec = segRecBytes + clfRecBytes;
               const totalTot = segTotBytes + clfTotBytes;
               const ratio = Math.min(1.0, totalRec / Math.max(1, totalTot));
-              const percent = Math.round(ratio * 38);
-              const recMB = (totalRec / (1024 * 1024)).toFixed(1);
-              const totMB = (totalTot / (1024 * 1024)).toFixed(1);
-              updateHUD(percent, `Downloading AI models: ${recMB} / ${totMB} MB (${Math.round(ratio * 100)}%)...`);
+
+              if (isCache || ratio >= 1.0) {
+                updateHUD(35, 'Compiling WebGPU neural pipelines & WGSL shaders...');
+              } else {
+                const percent = Math.max(5, Math.round(ratio * 35));
+                const recMB = (totalRec / (1024 * 1024)).toFixed(1);
+                const totMB = (totalTot / (1024 * 1024)).toFixed(1);
+                updateHUD(percent, `Downloading AI models: ${recMB} / ${totMB} MB (${Math.round(ratio * 100)}%)...`);
+              }
             };
+
+            updateHUD(10, 'Loading cached AI models from IndexedDB...');
 
             // STEP 1: Load segmentation session with download progress & run Stage 1
             const segSession = await preloadSegmentationSession((percent, received, total) => {
               segRecBytes = received;
               segTotBytes = total || segTotBytes;
-              onModelDownloadProgress();
+              onModelDownloadProgress(percent >= 100);
             });
+
+            updateHUD(35, 'Compiling WebGPU Swin-T classifier shaders...');
 
             // STEP 2: Preload classifier session
             const classifierWarmupPromise = preloadClassifierSession((percent, received, total) => {
               clfRecBytes = received;
               clfTotBytes = total || clfTotBytes;
-              onModelDownloadProgress();
+              onModelDownloadProgress(percent >= 100);
             });
 
             const activeSource = getActiveImageSource();
