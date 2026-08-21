@@ -1395,7 +1395,8 @@
     function prepareBatchSquarePadTensor(sourceImage, cells, targetSize = 224) {
       const B = cells.length;
       const patchSize = 3 * targetSize * targetSize;
-      const batchData = new Float32Array(B * patchSize);
+      // Direct Float16Array allocation avoids secondary buffer duplication and CPU copy passes
+      const batchData = new Float16Array(B * patchSize);
       const stride = targetSize * targetSize;
 
       const srcBuf = getSourceImageBuffer(sourceImage);
@@ -1465,14 +1466,7 @@
         }
       }
 
-      // ⚠️ CRITICAL WEBGPU FALLBACK WARNING:
-      // Swin-T classifier is compiled in FP16 (swin_classifier_fp16.onnx). WebGPU requires Float16Array inputs.
-      // Passing Float32Array causes ORT WebGPU to silently fall back every layer to CPU WASM!
-      const f16Buf = new Float16Array(batchData.length);
-      for (let k = 0; k < batchData.length; k++) {
-        f16Buf[k] = batchData[k];
-      }
-      return new ort.Tensor('float16', f16Buf, [B, 3, targetSize, targetSize]);
+      return new ort.Tensor('float16', batchData, [B, 3, targetSize, targetSize]);
     }
 
     async function classifySegmentedBatch(clfSession, sourceImage, cells, maxCells = null, shouldAbort = null, onProgress = null) {
