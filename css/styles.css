@@ -151,7 +151,23 @@
     svg.w-5 { width: 20px; height: 20px; }
     svg.w-6 { width: 24px; height: 24px; }
     svg.w-8 { width: 32px; height: 32px; }
-      flex-shrink: 0 !important;
+
+    /* Centered Mobile Advisory Modal Dialog */
+    #mobile-advisory-modal.hidden {
+      display: none !important;
+    }
+    #mobile-advisory-modal:not(.hidden) {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100dvh !important;
+      z-index: 9999 !important;
     }
 
     @keyframes smooth-spin {
