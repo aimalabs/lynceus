@@ -47,6 +47,11 @@ const fs = require('fs');
       });
     }
 
+    // Warm-up pass for JIT compiler
+    app.applyDuplicateSuppression(mockCells, srcW, srcH, 0.50);
+    app.applyWbcMultiLobeReassembly(mockCells, medianArea);
+    app.applyRbcWatershedSplitting(mockCells, medianArea);
+
     const t0 = performance.now();
 
     // 1. Border Exclusion

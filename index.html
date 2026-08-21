@@ -280,11 +280,16 @@
           </button>
         </div>
       </div>
-      <input type="file" id="input-import-json-file" accept=".json,application/json" class="hidden" />
+      <input type="file" id="input-import-json-file" accept=".aimalabs,.zip,.json,application/json,application/zip" class="hidden" />
       <input type="file" id="input-load-image-file" accept="image/png,image/jpeg,image/webp,image/tiff,.jpg,.jpeg,.png,.webp,.tif,.tiff" class="hidden" />
       <button id="btn-upload-image-opt" class="hidden"></button>
       <input type="file" id="input-upload-image-file" class="hidden" />
       <button id="btn-import-json" class="hidden"></button>
+
+      <!-- Export .aimalabs Dataset Package Button (ZIP with annotations.json + raw image.png) -->
+      <button id="btn-export-aimalabs" title="Export .aimalabs Dataset Package (ZIP with annotations.json + raw image.png)" class="p-1.5 text-xs text-[#38bdf8] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] hover:border-[#38bdf8]/60 shadow-[0_0_8px_rgba(56,189,248,0.15)] transition flex items-center justify-center font-mono" data-help="Export .aimalabs Dataset Package|Download complete training package containing annotations.json and raw unfiltered image.png in a .aimalabs ZIP archive|EXPORT_AIMAU">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+      </button>
 
       <!-- Export Full State JSON Button (Icon Only) -->
       <button id="btn-export-json" title="Export Full Case State JSON" class="p-1.5 text-xs text-[#9e9a9e] hover:text-white bg-[#110f12] hover:bg-[#272527] rounded-lg border border-[#373437] transition flex items-center justify-center font-mono" data-help="Export Full JSON State|Download complete case state (metadata, annotations, measurements, calibration) in a single JSON file|EXPORT">

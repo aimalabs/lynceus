@@ -68,7 +68,7 @@ const fs = require('fs');
 
     console.log('✓ Dataset Payload Schema Validation:');
     assert.strictEqual(exportPayload.app, 'AIMALABS Lynceus');
-    assert.strictEqual(exportPayload.version, '1.1');
+    assert.strictEqual(exportPayload.version, '1.2');
     assert(exportPayload.exportedAt, 'exportedAt timestamp must exist');
 
     // 4. Validate Dataset Supervision metadata

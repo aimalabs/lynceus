@@ -2357,6 +2357,13 @@
         id: `c-${Date.now().toString().slice(-4)}`,
         classId: tax.id,
         label: tax.name,
+        lineage: tax.isWBC ? 'WBC' : (tax.id === 'plt' ? 'PLT' : 'RBC'),
+        origin: 'user_created',
+        isAiGenerated: false,
+        isUserModified: false,
+        isUserCreated: true,
+        createdBy: 'user',
+        createdAt: new Date().toISOString(),
         x: Math.round(x),
         y: Math.round(y),
         width: Math.max(15, Math.round(w)),
@@ -2570,8 +2577,23 @@
       if (!targetTax) return;
 
       pushHistory('Reclassify Cell');
+
+      const isUserCreated = !!ann.isUserCreated || ann.origin === 'user_created';
+      if (!isUserCreated) {
+        if (!ann.originalAiClassId) {
+          ann.originalAiClassId = ann.aiClassId || ann.classId;
+          ann.originalAiLabel = ann.aiLabel || ann.label;
+          ann.originalAiConfidence = ann.aiConfidence || ann.confidence;
+        }
+        ann.origin = 'user_reclassified';
+        ann.isUserModified = true;
+        ann.isAiGenerated = false;
+        ann.reclassifiedAt = new Date().toISOString();
+      }
+
       ann.classId = targetTax.id;
       ann.label = targetTax.name;
+      ann.lineage = targetTax.isWBC ? 'WBC' : (targetTax.id === 'plt' ? 'PLT' : 'RBC');
       ann.confidence = 0.99;
 
       refreshAppViews();
@@ -4224,6 +4246,211 @@
       });
     }
 
+    // ==========================================
+    // PKZip Binary Archive Encoder & Decoder
+    // ==========================================
+    const CRC32_TABLE = (() => {
+      const table = new Uint32Array(256);
+      for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let k = 0; k < 8; k++) {
+          c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        }
+        table[i] = c;
+      }
+      return table;
+    })();
+
+    function computeCrc32(uint8Array) {
+      let crc = 0xFFFFFFFF;
+      for (let i = 0; i < uint8Array.length; i++) {
+        crc = CRC32_TABLE[(crc ^ uint8Array[i]) & 0xFF] ^ (crc >>> 8);
+      }
+      return (crc ^ 0xFFFFFFFF) >>> 0;
+    }
+
+    function createZipArchive(entries) {
+      const encoder = new TextEncoder();
+      const fileRecords = [];
+      let offset = 0;
+
+      const now = new Date();
+      const dosTime = ((now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)) & 0xFFFF;
+      const dosDate = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()) & 0xFFFF;
+
+      for (const entry of entries) {
+        const nameBytes = encoder.encode(entry.name);
+        const dataBytes = entry.data instanceof Uint8Array ? entry.data : new Uint8Array(entry.data);
+        const crc = computeCrc32(dataBytes);
+        const uncompressedSize = dataBytes.length;
+        const compressedSize = dataBytes.length;
+
+        const localHeader = new Uint8Array(30 + nameBytes.length);
+        const view = new DataView(localHeader.buffer);
+        view.setUint32(0, 0x04034b50, true);
+        view.setUint16(4, 20, true);
+        view.setUint16(6, 0, true);
+        view.setUint16(8, 0, true); // Method 0 = Store
+        view.setUint16(10, dosTime, true);
+        view.setUint16(12, dosDate, true);
+        view.setUint32(14, crc, true);
+        view.setUint32(18, compressedSize, true);
+        view.setUint32(22, uncompressedSize, true);
+        view.setUint16(26, nameBytes.length, true);
+        view.setUint16(28, 0, true);
+        localHeader.set(nameBytes, 30);
+
+        fileRecords.push({
+          nameBytes,
+          dataBytes,
+          crc,
+          compressedSize,
+          uncompressedSize,
+          localHeader,
+          offset
+        });
+
+        offset += localHeader.length + dataBytes.length;
+      }
+
+      const centralDirStartOffset = offset;
+      const centralDirRecords = [];
+      let centralDirSize = 0;
+
+      for (const rec of fileRecords) {
+        const cdHeader = new Uint8Array(46 + rec.nameBytes.length);
+        const view = new DataView(cdHeader.buffer);
+        view.setUint32(0, 0x02014b50, true);
+        view.setUint16(4, 20, true);
+        view.setUint16(6, 20, true);
+        view.setUint16(8, 0, true);
+        view.setUint16(10, 0, true);
+        view.setUint16(12, dosTime, true);
+        view.setUint16(14, dosDate, true);
+        view.setUint32(16, rec.crc, true);
+        view.setUint32(20, rec.compressedSize, true);
+        view.setUint32(24, rec.uncompressedSize, true);
+        view.setUint16(28, rec.nameBytes.length, true);
+        view.setUint16(30, 0, true);
+        view.setUint16(32, 0, true);
+        view.setUint16(34, 0, true);
+        view.setUint16(36, 0, true);
+        view.setUint32(38, 0, true);
+        view.setUint32(42, rec.offset, true);
+        cdHeader.set(rec.nameBytes, 46);
+
+        centralDirRecords.push(cdHeader);
+        centralDirSize += cdHeader.length;
+      }
+
+      const eocd = new Uint8Array(22);
+      const eocdView = new DataView(eocd.buffer);
+      eocdView.setUint32(0, 0x06054b50, true);
+      eocdView.setUint16(4, 0, true);
+      eocdView.setUint16(6, 0, true);
+      eocdView.setUint16(8, fileRecords.length, true);
+      eocdView.setUint16(10, fileRecords.length, true);
+      eocdView.setUint32(12, centralDirSize, true);
+      eocdView.setUint32(16, centralDirStartOffset, true);
+      eocdView.setUint16(20, 0, true);
+
+      const totalLength = centralDirStartOffset + centralDirSize + 22;
+      const zipBuffer = new Uint8Array(totalLength);
+
+      let curPos = 0;
+      for (const rec of fileRecords) {
+        zipBuffer.set(rec.localHeader, curPos);
+        curPos += rec.localHeader.length;
+        zipBuffer.set(rec.dataBytes, curPos);
+        curPos += rec.dataBytes.length;
+      }
+      for (const cd of centralDirRecords) {
+        zipBuffer.set(cd, curPos);
+        curPos += cd.length;
+      }
+      zipBuffer.set(eocd, curPos);
+
+      return zipBuffer;
+    }
+
+    function readZipArchive(arrayBuffer) {
+      const bytes = new Uint8Array(arrayBuffer);
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const entries = {};
+      const decoder = new TextDecoder();
+
+      let eocdOffset = -1;
+      for (let i = bytes.length - 22; i >= 0; i--) {
+        if (view.getUint32(i, true) === 0x06054b50) {
+          eocdOffset = i;
+          break;
+        }
+      }
+      if (eocdOffset === -1) {
+        throw new Error("Invalid ZIP archive (EOCD signature not found)");
+      }
+
+      const numEntries = view.getUint16(eocdOffset + 10, true);
+      const cdOffset = view.getUint32(eocdOffset + 16, true);
+
+      let curCd = cdOffset;
+      for (let i = 0; i < numEntries; i++) {
+        if (view.getUint32(curCd, true) !== 0x02014b50) break;
+        const compression = view.getUint16(curCd + 10, true);
+        const compressedSize = view.getUint32(curCd + 20, true);
+        const uncompressedSize = view.getUint32(curCd + 24, true);
+        const nameLen = view.getUint16(curCd + 28, true);
+        const extraLen = view.getUint16(curCd + 30, true);
+        const commentLen = view.getUint16(curCd + 32, true);
+        const localHeaderOffset = view.getUint32(curCd + 42, true);
+
+        const nameBytes = bytes.subarray(curCd + 46, curCd + 46 + nameLen);
+        const fileName = decoder.decode(nameBytes);
+
+        const localNameLen = view.getUint16(localHeaderOffset + 26, true);
+        const localExtraLen = view.getUint16(localHeaderOffset + 28, true);
+        const dataStart = localHeaderOffset + 30 + localNameLen + localExtraLen;
+        const rawData = bytes.subarray(dataStart, dataStart + compressedSize);
+
+        let fileData;
+        if (compression === 0) {
+          fileData = rawData;
+        } else if (compression === 8 && typeof pako !== 'undefined') {
+          fileData = pako.inflateRaw(rawData);
+        } else {
+          fileData = rawData;
+        }
+
+        entries[fileName] = fileData;
+        curCd += 46 + nameLen + extraLen + commentLen;
+      }
+      return entries;
+    }
+
+    // Helper to get raw, unmodified optical brightfield image bytes (PNG) without any filters applied
+    async function getRawOriginalImagePngBytes() {
+      if (!state.image) return null;
+      const w = state.image.naturalWidth || state.image.width || 1500;
+      const h = state.image.naturalHeight || state.image.height || 1125;
+      const rawCanvas = document.createElement('canvas');
+      rawCanvas.width = w;
+      rawCanvas.height = h;
+      const ctx = rawCanvas.getContext('2d');
+      // Draw original unmodified image
+      ctx.drawImage(state.image, 0, 0, w, h);
+
+      return new Promise((resolve) => {
+        rawCanvas.toBlob(async (blob) => {
+          if (!blob) {
+            resolve(null);
+            return;
+          }
+          const buf = await blob.arrayBuffer();
+          resolve(new Uint8Array(buf));
+        }, 'image/png');
+      });
+    }
+
     // Helper to get base64 data URI of the smear image (with fetch blob fallback for tainted canvases)
     function getImageDataUri() {
       if (!state.image) return null;
@@ -4254,21 +4481,54 @@
       const classDistribution = {};
       const lineageDistribution = { WBC: 0, RBC: 0, PLT: 0 };
       
-      state.annotations.forEach(ann => {
+      const annotationsWithOrigin = state.annotations.map(ann => {
+        const isCreated = !!ann.isUserCreated || ann.origin === 'user_created';
+        const isReclassified = !isCreated && (!!ann.isUserModified || ann.origin === 'user_reclassified');
+        const isAi = !isCreated && !isReclassified;
+        
+        const origin = isCreated ? 'user_created' : (isReclassified ? 'user_reclassified' : 'ai_generated');
+
+        return {
+          ...ann,
+          origin,
+          isAiGenerated: isAi,
+          isUserModified: isReclassified,
+          isUserCreated: isCreated,
+          ...(isReclassified ? {
+            originalAiClassId: ann.originalAiClassId || ann.aiClassId || ann.classId,
+            originalAiLabel: ann.originalAiLabel || ann.aiLabel || ann.label,
+            originalAiConfidence: ann.originalAiConfidence || ann.aiConfidence || ann.confidence
+          } : {})
+        };
+      });
+
+      const counts = {
+        totalCells: annotationsWithOrigin.length,
+        aiGeneratedUnchanged: 0,
+        userReclassified: 0,
+        userCreated: 0
+      };
+
+      annotationsWithOrigin.forEach(ann => {
         classDistribution[ann.classId] = (classDistribution[ann.classId] || 0) + 1;
         const lineage = ann.lineage || 'WBC';
         lineageDistribution[lineage] = (lineageDistribution[lineage] || 0) + 1;
+
+        if (ann.origin === 'ai_generated') counts.aiGeneratedUnchanged++;
+        else if (ann.origin === 'user_reclassified') counts.userReclassified++;
+        else if (ann.origin === 'user_created') counts.userCreated++;
       });
 
       const fullState = {
         app: "AIMALABS Lynceus",
-        version: "1.1",
+        version: "1.2",
         exportedAt: new Date().toISOString(),
         dataset: {
           isHumanSupervised: true,
-          totalCells: state.annotations.length,
-          classDistribution: classDistribution,
-          lineageDistribution: lineageDistribution,
+          totalCells: annotationsWithOrigin.length,
+          counts,
+          classDistribution,
+          lineageDistribution,
           clinicianReviewStatus: state.metadata?.reviewStatus || 'reviewed'
         },
         image: {
@@ -4298,13 +4558,53 @@
           y: state.view.y,
           zoom: state.view.zoom
         },
-        annotations: state.annotations,
+        annotations: annotationsWithOrigin,
         measurements: state.measurements
       };
       return fullState;
     }
 
-    // Export & Import Handlers (Single full state JSON)
+    // Export .aimalabs ZIP Package (contains annotations.json + raw unfiltered image.png)
+    async function exportAimalabsZip() {
+      const annotationsPayload = buildDatasetExportPayload();
+      annotationsPayload.image.fileName = "image.png";
+      delete annotationsPayload.image.dataUri; // image is stored as separate image.png file inside the zip package
+
+      const jsonBytes = new TextEncoder().encode(JSON.stringify(annotationsPayload, null, 2));
+      let pngBytes = await getRawOriginalImagePngBytes();
+
+      if (!pngBytes) {
+        const fallbackCanvas = document.createElement('canvas');
+        fallbackCanvas.width = state.image?.naturalWidth || 1500;
+        fallbackCanvas.height = state.image?.naturalHeight || 1125;
+        const ctx = fallbackCanvas.getContext('2d');
+        ctx.drawImage(state.image, 0, 0);
+        const dataUrl = fallbackCanvas.toDataURL('image/png');
+        const binStr = atob(dataUrl.split(',')[1]);
+        pngBytes = new Uint8Array(binStr.length);
+        for (let i = 0; i < binStr.length; i++) pngBytes[i] = binStr.charCodeAt(i);
+      }
+
+      const zipBytes = createZipArchive([
+        { name: 'annotations.json', data: jsonBytes },
+        { name: 'image.png', data: pngBytes }
+      ]);
+
+      const blob = new Blob([zipBytes], { type: 'application/octet-stream' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", downloadUrl);
+      const safeLastName = (state.metadata?.patientLastName || 'DOE').replace(/[^a-zA-Z0-9_-]/g, '');
+      const safeSmearId = (state.metadata?.smearId || 'smear-02').replace(/[^a-zA-Z0-9_-]/g, '');
+      downloadAnchor.setAttribute("download", `lynceus_${safeLastName}_${safeSmearId}_${Date.now()}.aimalabs`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      URL.revokeObjectURL(downloadUrl);
+      showToast(`✓ Exported .aimalabs package (${state.annotations.length} annotations + original image.png)`);
+    }
+
+    // Export Single Full State JSON File
     function exportAnnotationsJSON() {
       const fullState = buildDatasetExportPayload();
 
@@ -4320,7 +4620,7 @@
       showToast(`✓ State exported as JSON (${state.annotations.length} annotations)`);
     }
 
-    function importAnnotationsJSON(fileOrPayload) {
+    async function importAnnotationsJSON(fileOrPayload) {
       const applyPayload = (parsed) => {
         try {
           if (!parsed || (typeof parsed !== 'object')) {
@@ -4402,6 +4702,49 @@
       }
 
       if (!fileOrPayload) return;
+
+      const file = fileOrPayload;
+      const isZipOrAimalabs = (file.name && (file.name.endsWith('.aimalabs') || file.name.endsWith('.zip')));
+
+      if (isZipOrAimalabs) {
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const entries = readZipArchive(arrayBuffer);
+          const jsonEntryKey = Object.keys(entries).find(k => k.endsWith('.json') || k === 'annotations.json');
+          const imageEntryKey = Object.keys(entries).find(k => k.match(/\.(png|jpe?g|webp)$/i) || k === 'image.png');
+
+          if (!jsonEntryKey) {
+            throw new Error("annotations.json not found in .aimalabs archive");
+          }
+
+          const jsonText = new TextDecoder().decode(entries[jsonEntryKey]);
+          const parsed = JSON.parse(jsonText);
+
+          if (imageEntryKey && entries[imageEntryKey]) {
+            const imgBlob = new Blob([entries[imageEntryKey]], { type: 'image/png' });
+            const imgUrl = URL.createObjectURL(imgBlob);
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              state.image = img;
+              state.imageLoaded = true;
+              state.imageDataUri = null;
+              updateMinimapBg();
+              renderMinimap();
+              scheduleRender();
+            };
+            img.src = imgUrl;
+          }
+
+          applyPayload(parsed);
+          showToast(`✓ Imported .aimalabs package: ${state.metadata.patientLastName || 'DOE'} (${state.annotations.length} cells)`);
+        } catch (err) {
+          console.error('[Import .aimalabs] Error:', err);
+          showToast(`Failed to parse .aimalabs file: ${err.message}`, 'warn');
+        }
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
@@ -4514,6 +4857,9 @@
         reader.readAsDataURL(file);
       }
     }
+
+    const btnExpAimalabs = document.getElementById('btn-export-aimalabs');
+    if (btnExpAimalabs) btnExpAimalabs.onclick = exportAimalabsZip;
 
     const btnExpJson = document.getElementById('btn-export-json');
     if (btnExpJson) btnExpJson.onclick = exportAnnotationsJSON;
@@ -5772,6 +6118,10 @@
       updateDocumentTitle,
       updateCaseHeaderPill,
       exportAnnotationsJSON,
+      exportAimalabsZip,
+      createZipArchive,
+      readZipArchive,
+      getRawOriginalImagePngBytes,
       buildDatasetExportPayload,
       importAnnotationsJSON,
       openResetModal,
