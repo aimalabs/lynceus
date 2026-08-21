@@ -2807,6 +2807,7 @@
       const newCell = {
         id: `c-${Date.now().toString().slice(-4)}`,
         classId: tax.id,
+        rawClass: tax.rawClass || tax.id,
         label: tax.name,
         lineage: tax.isWBC ? 'WBC' : (tax.id === 'plt' ? 'PLT' : 'RBC'),
         origin: 'user_created',
@@ -2820,7 +2821,7 @@
         width: Math.max(15, Math.round(w)),
         height: Math.max(15, Math.round(h)),
         shape,
-        confidence: 0.99,
+        confidence: 1.0,
         morphology: {
           area_um2,
           diameter_um,
@@ -2828,33 +2829,13 @@
           nc_ratio: 0.44
         },
         predictions: [
-          { classId: tax.id, prob: 0.99 },
-          { classId: state.taxonomy[1].id, prob: 0.01 }
+          { classId: tax.id, rawClass: tax.rawClass || tax.id, label: tax.name, prob: 1.0 }
         ]
       };
 
       state.annotations.unshift(newCell);
       selectCell(newCell.id);
       refreshAppViews();
-
-      // Trigger asynchronous classification on the drawn patch
-      if (state.imageLoaded && typeof ort !== 'undefined') {
-        const bbox = [newCell.y, newCell.x, newCell.y + newCell.height, newCell.x + newCell.width];
-        classifySinglePatch(state.image, bbox).then(pred => {
-          if (pred) {
-            console.log(`[Interactive WebGPU] Cell ${newCell.id} classified as ${pred.label} (${(pred.confidence * 100).toFixed(1)}%)`);
-            newCell.classId = pred.classId;
-            newCell.rawClass = pred.rawClass;
-            newCell.label = pred.label;
-            newCell.confidence = pred.confidence;
-            newCell.predictions = pred.predictions;
-            refreshAppViews();
-            scheduleRender();
-          }
-        }).catch(err => {
-          console.warn('[Interactive WebGPU] Single patch inference skipped:', err);
-        });
-      }
     }
 
     function setZoom(newZoom, centerX, centerY) {
@@ -3043,9 +3024,13 @@
       }
 
       ann.classId = targetTax.id;
+      ann.rawClass = targetTax.rawClass || targetTax.id;
       ann.label = targetTax.name;
       ann.lineage = targetTax.isWBC ? 'WBC' : (targetTax.id === 'plt' ? 'PLT' : 'RBC');
-      ann.confidence = 0.99;
+      ann.confidence = 1.0;
+      ann.predictions = [
+        { classId: targetTax.id, rawClass: targetTax.rawClass || targetTax.id, label: targetTax.name, prob: 1.0 }
+      ];
 
       refreshAppViews();
     }
@@ -6789,6 +6774,7 @@
       applyDuplicateSuppression,
       applyWbcNuclearVeto,
       applyRbcPltSizeRules,
+      setActiveLineage,
       openModelCacheModal,
       closeModelCacheModal,
       isModelCachePopulated,
