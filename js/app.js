@@ -425,6 +425,7 @@
     }
 
     async function saveModelBufferToCache(cacheKey, fileName, hash, arrayBuffer) {
+      const tStart = performance.now();
       try {
         const db = await openModelCacheDB();
         return new Promise((resolve) => {
@@ -438,10 +439,14 @@
             buffer: arrayBuffer
           });
           tx.oncomplete = () => {
-            console.log(`[Model Cache] ✓ Cached ${cacheKey} in persistent storage (${(arrayBuffer.byteLength / 1e6).toFixed(2)} MB)`);
+            const writeDuration = (performance.now() - tStart).toFixed(1);
+            console.log(`[Model Cache] ✓ Cached ${cacheKey} in persistent storage (${(arrayBuffer.byteLength / 1e6).toFixed(2)} MB in ${writeDuration}ms)`);
             resolve(true);
           };
-          tx.onerror = () => resolve(false);
+          tx.onerror = (e) => {
+            console.warn(`[Model Cache] Write failed for ${cacheKey}:`, e.target?.error?.message || e);
+            resolve(false);
+          };
         });
       } catch (err) {
         console.warn('[Model Cache] Write error:', err.message);
@@ -449,25 +454,28 @@
       }
     }
 
-    async function fetchChunkedModel(manifestUrl, modelName, onProgress = null) {
+    async function fetchChunkedModel(manifestUrl, modelName, onProgress = null, cacheChunks = true) {
+      const tFetchStart = performance.now();
       console.log(`[Chunked Download] 📦 Fetching chunk manifest for ${modelName} from ${manifestUrl}...`);
       const manifestResp = await fetch(manifestUrl);
       if (!manifestResp.ok) {
         throw new Error(`Manifest not found: ${manifestUrl} (status: ${manifestResp.status})`);
       }
       const manifest = await manifestResp.json();
+      const tManifestFetched = performance.now();
       const numChunks = manifest.numChunks;
       const totalBytes = manifest.totalBytes;
       const totalMB = manifest.totalSizeMB || (totalBytes / (1024 * 1024)).toFixed(1);
       const basePath = manifestUrl.replace('.manifest.json', '');
       const baseFileName = manifest.modelName || basePath.split('/').pop();
 
-      console.log(`[Chunked Download] ⬇️ Processing ${numChunks} chunks for ${modelName} (${totalMB} MB total)...`);
+      console.log(`[Chunked Download] ⬇️ Processing ${numChunks} chunks for ${modelName} (${totalMB} MB total, cacheChunks: ${cacheChunks})...`);
 
       const chunks = new Array(numChunks);
       let receivedBytes = 0;
       let lastReportedDecile = -1;
       let allFromCache = true;
+      let cachedChunkCount = 0;
 
       // Parallel chunk fetching with individual IndexedDB persistent caching (concurrency pool of 4)
       const chunkIndices = Array.from({ length: numChunks }, (_, i) => i);
@@ -482,10 +490,11 @@
           const chunkSha = chunkMeta.sha256 || `part_${idx}`;
           const chunkKey = `${partFileName}_${chunkSha}`;
 
-          // Check individual chunk in IndexedDB persistent storage first
-          let buf = await getCachedModelBuffer(chunkKey);
+          // Check individual chunk in IndexedDB persistent storage first if cacheChunks is enabled
+          let buf = cacheChunks ? await getCachedModelBuffer(chunkKey) : null;
 
           if (buf) {
+            cachedChunkCount++;
             console.log(`[Chunk Cache] ✓ Chunk ${idx + 1}/${numChunks} (${partFileName}) loaded from localstore (${(buf.byteLength / 1e6).toFixed(2)} MB)`);
           } else {
             allFromCache = false;
@@ -496,15 +505,17 @@
             }
             buf = await resp.arrayBuffer();
 
-            // Cache this chunk file separately in persistent IndexedDB storage
-            await saveModelBufferToCache(chunkKey, partFileName, chunkSha, buf);
+            // Cache this chunk file separately in persistent IndexedDB storage if requested
+            if (cacheChunks) {
+              await saveModelBufferToCache(chunkKey, partFileName, chunkSha, buf);
 
-            // Register in localStorage chunk registry
-            try {
-              const registry = JSON.parse(localStorage.getItem('LYNCEUS_CHUNK_REGISTRY') || '{}');
-              registry[partFileName] = chunkSha;
-              localStorage.setItem('LYNCEUS_CHUNK_REGISTRY', JSON.stringify(registry));
-            } catch (e) {}
+              // Register in localStorage chunk registry
+              try {
+                const registry = JSON.parse(localStorage.getItem('LYNCEUS_CHUNK_REGISTRY') || '{}');
+                registry[partFileName] = chunkSha;
+                localStorage.setItem('LYNCEUS_CHUNK_REGISTRY', JSON.stringify(registry));
+              } catch (e) {}
+            }
           }
 
           chunks[idx] = buf;
@@ -525,17 +536,23 @@
       }
 
       await Promise.all(Array.from({ length: Math.min(concurrency, numChunks) }, () => worker()));
+      const tChunksLoaded = performance.now();
 
       // Concatenate all separately cached chunks into a single contiguous ArrayBuffer
+      const tConcat0 = performance.now();
       const fullBuffer = new Uint8Array(totalBytes);
       let offset = 0;
       for (let i = 0; i < numChunks; i++) {
         fullBuffer.set(new Uint8Array(chunks[i]), offset);
         offset += chunks[i].byteLength;
       }
+      const tConcatMs = (performance.now() - tConcat0).toFixed(1);
+      const totalFetchMs = (performance.now() - tFetchStart).toFixed(1);
+      const chunkLoadMs = (tChunksLoaded - tManifestFetched).toFixed(1);
+
+      console.log(`[Chunked Download] ✓ Assembled ${modelName} (${totalMB} MB) in ${totalFetchMs}ms (manifest: ${(tManifestFetched - tFetchStart).toFixed(1)}ms, chunks: ${chunkLoadMs}ms [${cachedChunkCount}/${numChunks} cached], concat: ${tConcatMs}ms)`);
 
       if (lastReportedDecile < 100) {
-        console.log(`[Chunked Download] ${modelName}: 100% (${(receivedBytes / (1024 * 1024)).toFixed(1)} / ${totalMB} MB)`);
         if (onProgress) onProgress(100, receivedBytes, totalBytes);
       }
 
@@ -687,13 +704,24 @@
     }
 
     async function loadAndDequantizeCpsam(onProgress = null) {
+      const tPipeline0 = performance.now();
       const CACHE_KEY = 'cellpose_cpsam_v2_fp16_data_v2';
+      
+      const tCacheCheck0 = performance.now();
       const cachedFp16Buffer = await getCachedModelBuffer(CACHE_KEY);
+      const cacheCheckMs = (performance.now() - tCacheCheck0).toFixed(1);
+
       if (cachedFp16Buffer) {
-        console.log(`[Lynceus GPU] ⚡ Loaded CPSAM FP16 weights from local IndexedDB cache (0 ms network download)!`);
-        if (onProgress) onProgress(100, cachedFp16Buffer.byteLength, cachedFp16Buffer.byteLength);
+        const tTopology0 = performance.now();
         const modelResp = await fetch('assets/cellpose_cpsam_v2_external.onnx');
+        if (!modelResp.ok) throw new Error(`Failed to load topology: ${modelResp.statusText}`);
         const modelBuffer = await modelResp.arrayBuffer();
+        const topologyMs = (performance.now() - tTopology0).toFixed(1);
+        const totalWarmLoadMs = (performance.now() - tPipeline0).toFixed(1);
+
+        console.log(`[Model Cache] ⚡ Loaded SAM-v2 FP16 weights directly from IndexedDB (${(cachedFp16Buffer.byteLength / 1e6).toFixed(2)} MB) in ${cacheCheckMs}ms (topology: ${topologyMs}ms, total: ${totalWarmLoadMs}ms, 0 ms INT8 dequant, 0 ms network)!`);
+        if (onProgress) onProgress(100, cachedFp16Buffer.byteLength, cachedFp16Buffer.byteLength);
+
         return {
           modelBuffer,
           externalData: [{
@@ -704,26 +732,40 @@
         };
       }
 
-      console.log(`[Lynceus GPU] 📥 Downloading Client-Side INT8 CPSAM (~290 MB compressed wire size)...`);
+      console.log(`[Lynceus GPU] 📥 Downloading Compressed INT8 CPSAM chunks over wire (~290 MB) for client-side FP16 storage...`);
+      
+      const tTopology0 = performance.now();
       const modelResp = await fetch('assets/cellpose_cpsam_v2_external.onnx');
+      if (!modelResp.ok) throw new Error(`Failed to load external topology: ${modelResp.statusText}`);
       const modelBuffer = await modelResp.arrayBuffer();
+      const topologyMs = (performance.now() - tTopology0).toFixed(1);
 
+      const tMetaScales0 = performance.now();
       const metaResp = await fetch('assets/cellpose_cpsam_v2_dequant_meta.json');
+      if (!metaResp.ok) throw new Error(`Failed to load dequant meta: ${metaResp.statusText}`);
       const meta = await metaResp.json();
 
       const scalesResp = await fetch('assets/cellpose_cpsam_v2_scales.bin');
+      if (!scalesResp.ok) throw new Error(`Failed to load scales binary: ${scalesResp.statusText}`);
       const scalesBuf = await scalesResp.arrayBuffer();
       const scalesFp16 = new Float16Array(scalesBuf);
+      const metaScalesMs = (performance.now() - tMetaScales0).toFixed(1);
 
-      const { buffer: int8Buf } = await fetchOrGetCachedModel(
-        'assets/cellpose_cpsam_v2_data_int8.bin',
+      // Download INT8 chunks directly into memory (cacheChunks = false to avoid storing duplicate INT8 in IndexedDB)
+      const tInt80 = performance.now();
+      const chunkResult = await fetchChunkedModel(
+        'assets/cellpose_cpsam_v2_data_int8.bin.manifest.json',
         'Cellpose SAM-v2 INT8 Weights',
-        onProgress
+        onProgress,
+        false
       );
+      const int8Buf = chunkResult.buffer;
       const int8Arr = new Int8Array(int8Buf);
+      const int8FetchMs = (performance.now() - tInt80).toFixed(1);
 
       if (onProgress) onProgress(60, 100, meta.int8Bytes);
-      console.log(`[Lynceus GPU] ⚙️ Dequantizing 304M weights from INT8 to FP16 in client browser memory...`);
+      console.log(`[Lynceus GPU] ⚙️ Dequantizing ${meta.totalElements.toLocaleString()} weights from INT8 to FP16 in client browser memory...`);
+      
       const tDequant0 = performance.now();
       const numElements = meta.totalElements;
       const fp16Out = new Float16Array(numElements);
@@ -738,14 +780,27 @@
           fp16Out[i] = int8Arr[i] * scale;
         }
       }
-      const dequantDurationMs = (performance.now() - tDequant0).toFixed(1);
-      console.log(`[Lynceus GPU] ✨ Dequantized to FP16 in ${dequantDurationMs} ms!`);
+      const dequantMs = (performance.now() - tDequant0).toFixed(1);
+      const throughputMWeights = ((numElements / 1e6) / (parseFloat(dequantMs) / 1000)).toFixed(1);
+      const throughputMBps = (((numElements * 2) / 1e6) / (parseFloat(dequantMs) / 1000)).toFixed(1);
+      console.log(`[Lynceus GPU] ✨ Client Dequantized ${numElements.toLocaleString()} weights in ${dequantMs}ms (${throughputMWeights} M-weights/s, ${throughputMBps} MB/s)`);
 
       if (onProgress) onProgress(90, 100, meta.int8Bytes);
       const fp16Buffer = fp16Out.buffer;
-      saveModelBufferToCache(CACHE_KEY, 'cellpose_cpsam_v2_fp16_data.bin', 'v2', fp16Buffer).catch(e => console.warn('[Model Cache] FP16 save warning:', e.message));
+
+      // Store ONLY the high-precision FP16 weights in persistent IndexedDB storage
+      const tSaveFp160 = performance.now();
+      saveModelBufferToCache(CACHE_KEY, 'cellpose_cpsam_v2_fp16_data.bin', 'fp16_v2', fp16Buffer)
+        .then(() => {
+          const saveMs = (performance.now() - tSaveFp160).toFixed(1);
+          console.log(`[Model Cache] ✓ Persisted SAM-v2 FP16 weights (${(fp16Buffer.byteLength / 1e6).toFixed(2)} MB) to IndexedDB in ${saveMs}ms`);
+        })
+        .catch(e => console.warn('[Model Cache] FP16 save warning:', e.message));
 
       if (onProgress) onProgress(100, meta.int8Bytes, meta.int8Bytes);
+      const totalLoadDequantMs = (performance.now() - tPipeline0).toFixed(1);
+      console.log(`[Lynceus GPU] ✓ SAM-v2 Load & Dequant pipeline completed in ${totalLoadDequantMs}ms (topology: ${topologyMs}ms, meta/scales: ${metaScalesMs}ms, int8 download: ${int8FetchMs}ms, dequant: ${dequantMs}ms)`);
+
       return {
         modelBuffer,
         externalData: [{
@@ -768,8 +823,9 @@
       if (!gSegmentationSessionPromise) {
         console.log(`[Preload Overlap] [${new Date().toISOString()}] Kicking off background pre-fetch & WebGPU compilation for Cellpose SAM-v2 ViT (Client Dequant INT8 -> FP16)...`);
         gSegmentationSessionPromise = (async () => {
-          const startTime = performance.now();
+          const tInit0 = performance.now();
           const { modelBuffer, externalData, fromCache } = await loadAndDequantizeCpsam(onProgress);
+          const tCompile0 = performance.now();
           const options = {
             executionProviders: [
               {
@@ -782,8 +838,9 @@
             externalData: externalData
           };
           const session = await ort.InferenceSession.create(new Uint8Array(modelBuffer), options);
-          const duration = (performance.now() - startTime).toFixed(1);
-          console.log(`[Lynceus GPU] ✓ Cellpose SAM-v2 ViT initialized successfully on WebGPU (${duration}ms, fromCache: ${fromCache})`);
+          const compileMs = (performance.now() - tCompile0).toFixed(1);
+          const totalInitMs = (performance.now() - tInit0).toFixed(1);
+          console.log(`[Lynceus GPU] ✓ Cellpose SAM-v2 ViT ready on WebGPU in ${totalInitMs}ms (compile: ${compileMs}ms, fromCache: ${fromCache})`);
           return session;
         })();
       }
@@ -6101,17 +6158,17 @@
               updateHUD(percent, `Downloading AI models: ${recMB} / ${totMB} MB (${Math.round(ratio * 100)}%)...`);
             };
 
-            // STEP 1: PARALLEL ASYNC OVERLAP - Preload classifier in background with download progress
-            const classifierWarmupPromise = preloadClassifierSession((percent, received, total) => {
-              clfRecBytes = received;
-              clfTotBytes = total || clfTotBytes;
-              onModelDownloadProgress();
-            });
-
-            // STEP 2: Concurrently load segmentation session with download progress & run Stage 1
+            // STEP 1: Load segmentation session with download progress & run Stage 1
             const segSession = await preloadSegmentationSession((percent, received, total) => {
               segRecBytes = received;
               segTotBytes = total || segTotBytes;
+              onModelDownloadProgress();
+            });
+
+            // STEP 2: Preload classifier session
+            const classifierWarmupPromise = preloadClassifierSession((percent, received, total) => {
+              clfRecBytes = received;
+              clfTotBytes = total || clfTotBytes;
               onModelDownloadProgress();
             });
 
@@ -6262,8 +6319,8 @@
             console.groupEnd();
           } catch (gpuErr) {
             errorOccurred = true;
-            errorMessage = gpuErr.message || 'Model execution error';
-            console.error('[Flash Mode ❌ Error during inference]:', gpuErr);
+            errorMessage = (gpuErr && (gpuErr.stack || gpuErr.message)) || String(gpuErr) || 'Model execution error';
+            console.error('[Flash Mode ❌ Error during inference]:', errorMessage);
             console.info('[Flash Mode 🔄 Fallback]: Restored calibrated survey detections (32 cells). UI remains fully operational.');
             console.groupEnd();
             finalAnnotations = MODEL_FLASH_ANNOTATIONS;
@@ -6354,7 +6411,7 @@
 
     if (btnConfirmReset) {
       btnConfirmReset.onclick = () => {
-        runModelInference(selectedInferenceModel || 'pro');
+        runModelInference(selectedInferenceModel || 'fast');
       };
     }
 

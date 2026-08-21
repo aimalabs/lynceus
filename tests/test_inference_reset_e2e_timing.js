@@ -38,7 +38,8 @@ const fs = require('fs');
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--enable-unsafe-webgpu'
+      '--enable-unsafe-webgpu',
+      '--js-flags=--max-old-space-size=4096'
     ]
   });
 
@@ -146,6 +147,9 @@ const fs = require('fs');
     console.log(`• Cold-Start Total E2E: ${(run1.totalE2EMs / 1000).toFixed(2)}s | Pipeline: ${(run1.inferenceExecutionMs / 1000).toFixed(2)}s | Cells: ${run1.stateSummary.count}`);
     console.log(`• Warm-Start Total E2E: ${(run2.totalE2EMs / 1000).toFixed(2)}s | Pipeline: ${(run2.inferenceExecutionMs / 1000).toFixed(2)}s | Cells: ${run2.stateSummary.count}`);
     console.log(`============================================================\n`);
+
+    console.log(`Run 1 State Summary:`, JSON.stringify(run1.stateSummary));
+    console.log(`Run 2 State Summary:`, JSON.stringify(run2.stateSummary));
 
     // Verify cell count is within expected range [100, 140]
     assert.ok(
