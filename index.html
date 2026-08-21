@@ -534,9 +534,17 @@
         <!-- Active Cell Details -->
         <div id="inspector-active" class="hidden space-y-3">
           <!-- Cropped Preview Canvas -->
-          <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border border-[#373437] flex items-center justify-center shadow-inner">
+          <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border border-[#373437] flex items-center justify-center shadow-inner group/crop">
             <canvas id="cell-crop-canvas" width="200" height="200" class="w-full h-full block"></canvas>
             <div class="absolute bottom-2 left-2 bg-[#110f12]/80 backdrop-blur px-2 py-0.5 rounded text-[10px] font-mono text-[#e52246] border border-[#373437]" id="crop-zoom-label">High-Res ROI</div>
+            <!-- Quick AI Patch Classification Button (styled similar to top-right model button) -->
+            <button id="btn-classify-patch" type="button" title="Quick AI Classify Patch (Swin-T 20-Class)" class="absolute top-2 right-2 p-1.5 text-xs text-[#f97316] hover:text-amber-300 bg-[#141112]/90 hover:bg-[#261713] rounded-lg border border-[#373437] hover:border-[#f97316]/60 shadow-[0_0_10px_rgba(249,115,22,0.25)] hover:shadow-[0_0_16px_rgba(249,115,22,0.5)] transition flex items-center justify-center font-mono cursor-pointer z-10 group" data-help="Quick AI Classify Patch|Run Swin-T 20-Class neural classifier on this specific cell patch.|AI CLASSIFY">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path>
+                <path d="M19 4v4"></path>
+                <path d="M21 6h-4"></path>
+              </svg>
+            </button>
           </div>
 
           <!-- Classification & Confidence Bar -->
@@ -670,6 +678,10 @@
         <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
           <span class="text-[#9e9a9e]">Fit to Screen</span>
           <kbd class="text-white font-bold bg-[#272527] px-1.5 py-0.5 rounded">0</kbd>
+        </div>
+        <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
+          <span class="text-[#f97316]">AI Classify Patch</span>
+          <kbd class="text-amber-300 font-bold bg-[#272527] px-1.5 py-0.5 rounded">A</kbd>
         </div>
         <div class="bg-[#110f12] p-2 rounded border border-[#373437] flex justify-between">
           <span class="text-[#9e9a9e]">Zoom In / Out</span>

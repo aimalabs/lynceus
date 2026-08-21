@@ -2975,6 +2975,14 @@
 
       document.getElementById('btn-focus-cell').onclick = () => focusOnCell(ann);
       document.getElementById('btn-delete-cell').onclick = () => deleteCell(ann.id);
+
+      const btnClassifyPatch = document.getElementById('btn-classify-patch');
+      if (btnClassifyPatch) {
+        btnClassifyPatch.onclick = (e) => {
+          e.stopPropagation();
+          classifySelectedCellPatch(ann.id);
+        };
+      }
     }
 
     function renderCroppedPreview(ann) {
@@ -3042,6 +3050,55 @@
         state.selectedCellId = null;
       }
       refreshAppViews();
+    }
+
+    async function classifySelectedCellPatch(cellId = null) {
+      const targetId = cellId || state.selectedCellId;
+      if (!targetId) return;
+      const ann = state.annotations.find(a => a.id === targetId);
+      if (!ann || !state.imageLoaded) return;
+
+      pushHistory('AI Classify Patch');
+
+      const btnClassify = document.getElementById('btn-classify-patch');
+      if (btnClassify) {
+        btnClassify.classList.add('animate-spin', 'text-amber-300', 'border-[#f97316]');
+      }
+
+      try {
+        const bbox = [ann.y, ann.x, ann.y + ann.height, ann.x + ann.width];
+        const pred = await classifySinglePatch(state.image, bbox);
+        if (pred) {
+          const targetTax = state.taxonomy.find(t => t.id === pred.classId || t.rawClass === pred.rawClass || t.name === pred.label) || state.taxonomy[0];
+
+          if (ann.origin !== 'user_created') {
+            if (!ann.originalAiClassId) {
+              ann.originalAiClassId = ann.aiClassId || ann.classId;
+              ann.originalAiLabel = ann.aiLabel || ann.label;
+              ann.originalAiConfidence = ann.aiConfidence || ann.confidence;
+            }
+            ann.origin = 'user_reclassified';
+            ann.isUserModified = true;
+            ann.isAiGenerated = false;
+          }
+
+          ann.classId = targetTax.id;
+          ann.rawClass = pred.rawClass || targetTax.rawClass || targetTax.id;
+          ann.label = targetTax.name;
+          ann.lineage = targetTax.isWBC ? 'WBC' : (targetTax.id === 'plt' ? 'PLT' : 'RBC');
+          ann.confidence = pred.confidence;
+          ann.predictions = pred.predictions;
+
+          refreshAppViews();
+          scheduleRender();
+        }
+      } catch (err) {
+        console.error('[Lynceus Classifier] Quick patch classification failed:', err);
+      } finally {
+        if (btnClassify) {
+          btnClassify.classList.remove('animate-spin', 'text-amber-300', 'border-[#f97316]');
+        }
+      }
     }
 
     function updateScaleBar() {
@@ -3327,6 +3384,11 @@
           reclassifyCell(state.selectedCellId, state.taxonomy[taxIndex].id);
           return;
         }
+      }
+
+      if (k === 'a' && state.selectedCellId) {
+        classifySelectedCellPatch(state.selectedCellId);
+        return;
       }
 
       // Tool selection shortcuts
@@ -6775,6 +6837,7 @@
       applyWbcNuclearVeto,
       applyRbcPltSizeRules,
       setActiveLineage,
+      classifySelectedCellPatch,
       openModelCacheModal,
       closeModelCacheModal,
       isModelCachePopulated,
