@@ -65,7 +65,7 @@
       MASTER_CLASSES.map(c => [c, (CLASS_METADATA_CONFIG[c]?.name) || c.replace(/_/g, ' ')])
     );
 
-    // Initial multi-lineage annotations across WBC, RBC variants, and Platelets
+    // Initial multi-lineage annotations across WBC, RBC variants, and Platelets (smear-02 - John DOE)
     const INITIAL_ANNOTATIONS = [
       // Neutrophils (10)
       { id: 'c-01', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 280, y: 190, width: 110, height: 105, confidence: 0.984, shape: 'box', morphology: { area_um2: 154.2, diameter_um: 14.0, circularity: 0.88, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.984 }, { classId: 'monocytes', prob: 0.012 }, { classId: 'eosinophils', prob: 0.004 }] },
@@ -122,6 +122,81 @@
       { id: 'c-38', classId: 'schistocytes', label: 'Schistocyte', x: 940, y: 130, width: 46, height: 38, confidence: 0.895, shape: 'box', morphology: { area_um2: 27.2, diameter_um: 5.9, circularity: 0.76, nc_ratio: 0.0 }, predictions: [{ classId: 'schistocytes', prob: 0.895 }, { classId: 'plt', prob: 0.105 }] },
       { id: 'c-39', classId: 'teardrops', label: 'Tear Drop Cell', x: 1100, y: 730, width: 58, height: 44, confidence: 0.922, shape: 'box', morphology: { area_um2: 34.6, diameter_um: 6.6, circularity: 0.81, nc_ratio: 0.0 }, predictions: [{ classId: 'teardrops', prob: 0.922 }, { classId: 'plt', prob: 0.078 }] },
       { id: 'c-40', classId: 'target_cells', label: 'Target Cell', x: 620, y: 740, width: 54, height: 54, confidence: 0.948, shape: 'circle', morphology: { area_um2: 37.0, diameter_um: 6.9, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'target_cells', prob: 0.948 }, { classId: 'plt', prob: 0.052 }] }
+    ];
+
+    // Initial multi-lineage annotations for smear-field (Jane SMITH - 58 Cells: Leukemoid reaction workup)
+    const INITIAL_ANNOTATIONS_FIELD = [
+      // Segmented Neutrophils (24)
+      { id: 'fld-01', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 120, y: 140, width: 112, height: 108, confidence: 0.982, shape: 'box', morphology: { area_um2: 156.0, diameter_um: 14.1, circularity: 0.87, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.982 }, { classId: 'monocytes', prob: 0.014 }, { classId: 'eosinophils', prob: 0.004 }] },
+      { id: 'fld-02', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 290, y: 180, width: 114, height: 110, confidence: 0.978, shape: 'box', morphology: { area_um2: 159.2, diameter_um: 14.2, circularity: 0.86, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophils', prob: 0.978 }, { classId: 'monocytes', prob: 0.016 }, { classId: 'eosinophils', prob: 0.006 }] },
+      { id: 'fld-03', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 480, y: 120, width: 116, height: 112, confidence: 0.985, shape: 'box', morphology: { area_um2: 162.8, diameter_um: 14.4, circularity: 0.88, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophils', prob: 0.985 }, { classId: 'eosinophils', prob: 0.010 }, { classId: 'monocytes', prob: 0.005 }] },
+      { id: 'fld-04', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 670, y: 160, width: 110, height: 106, confidence: 0.974, shape: 'box', morphology: { area_um2: 151.5, diameter_um: 13.9, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophils', prob: 0.974 }, { classId: 'monocytes', prob: 0.020 }, { classId: 'eosinophils', prob: 0.006 }] },
+      { id: 'fld-05', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 860, y: 130, width: 115, height: 110, confidence: 0.989, shape: 'box', morphology: { area_um2: 161.0, diameter_um: 14.3, circularity: 0.89, nc_ratio: 0.40 }, predictions: [{ classId: 'neutrophils', prob: 0.989 }, { classId: 'eosinophils', prob: 0.007 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'fld-06', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1050, y: 170, width: 112, height: 108, confidence: 0.981, shape: 'box', morphology: { area_um2: 155.4, diameter_um: 14.1, circularity: 0.86, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.981 }, { classId: 'monocytes', prob: 0.015 }, { classId: 'eosinophils', prob: 0.004 }] },
+      { id: 'fld-07', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1240, y: 140, width: 118, height: 114, confidence: 0.990, shape: 'box', morphology: { area_um2: 166.2, diameter_um: 14.5, circularity: 0.88, nc_ratio: 0.39 }, predictions: [{ classId: 'neutrophils', prob: 0.990 }, { classId: 'eosinophils', prob: 0.006 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'fld-08', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 150, y: 310, width: 114, height: 110, confidence: 0.976, shape: 'box', morphology: { area_um2: 158.5, diameter_um: 14.2, circularity: 0.87, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophils', prob: 0.976 }, { classId: 'monocytes', prob: 0.018 }, { classId: 'eosinophils', prob: 0.006 }] },
+      { id: 'fld-09', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 360, y: 330, width: 115, height: 112, confidence: 0.983, shape: 'box', morphology: { area_um2: 160.8, diameter_um: 14.3, circularity: 0.88, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophils', prob: 0.983 }, { classId: 'eosinophils', prob: 0.011 }, { classId: 'monocytes', prob: 0.006 }] },
+      { id: 'fld-10', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 570, y: 300, width: 110, height: 106, confidence: 0.969, shape: 'box', morphology: { area_um2: 152.0, diameter_um: 13.9, circularity: 0.84, nc_ratio: 0.45 }, predictions: [{ classId: 'neutrophils', prob: 0.969 }, { classId: 'monocytes', prob: 0.024 }, { classId: 'eosinophils', prob: 0.007 }] },
+      { id: 'fld-11', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 770, y: 340, width: 116, height: 112, confidence: 0.987, shape: 'box', morphology: { area_um2: 164.0, diameter_um: 14.4, circularity: 0.89, nc_ratio: 0.40 }, predictions: [{ classId: 'neutrophils', prob: 0.987 }, { classId: 'eosinophils', prob: 0.008 }, { classId: 'monocytes', prob: 0.005 }] },
+      { id: 'fld-12', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 960, y: 320, width: 112, height: 108, confidence: 0.979, shape: 'box', morphology: { area_um2: 156.5, diameter_um: 14.1, circularity: 0.86, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.979 }, { classId: 'monocytes', prob: 0.016 }, { classId: 'eosinophils', prob: 0.005 }] },
+      { id: 'fld-13', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1160, y: 350, width: 115, height: 110, confidence: 0.984, shape: 'box', morphology: { area_um2: 161.4, diameter_um: 14.3, circularity: 0.87, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophils', prob: 0.984 }, { classId: 'eosinophils', prob: 0.010 }, { classId: 'monocytes', prob: 0.006 }] },
+      { id: 'fld-14', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1350, y: 310, width: 114, height: 108, confidence: 0.975, shape: 'box', morphology: { area_um2: 157.8, diameter_um: 14.2, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophils', prob: 0.975 }, { classId: 'monocytes', prob: 0.019 }, { classId: 'eosinophils', prob: 0.006 }] },
+      { id: 'fld-15', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 210, y: 490, width: 116, height: 112, confidence: 0.988, shape: 'box', morphology: { area_um2: 163.5, diameter_um: 14.4, circularity: 0.88, nc_ratio: 0.40 }, predictions: [{ classId: 'neutrophils', prob: 0.988 }, { classId: 'eosinophils', prob: 0.008 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'fld-16', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 420, y: 510, width: 112, height: 108, confidence: 0.980, shape: 'box', morphology: { area_um2: 155.0, diameter_um: 14.0, circularity: 0.87, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.980 }, { classId: 'monocytes', prob: 0.015 }, { classId: 'eosinophils', prob: 0.005 }] },
+      { id: 'fld-17', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 630, y: 480, width: 114, height: 110, confidence: 0.977, shape: 'box', morphology: { area_um2: 159.0, diameter_um: 14.2, circularity: 0.86, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophils', prob: 0.977 }, { classId: 'monocytes', prob: 0.017 }, { classId: 'eosinophils', prob: 0.006 }] },
+      { id: 'fld-18', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 840, y: 520, width: 118, height: 114, confidence: 0.991, shape: 'box', morphology: { area_um2: 167.0, diameter_um: 14.6, circularity: 0.89, nc_ratio: 0.39 }, predictions: [{ classId: 'neutrophils', prob: 0.991 }, { classId: 'eosinophils', prob: 0.005 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'fld-19', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1040, y: 500, width: 110, height: 106, confidence: 0.972, shape: 'box', morphology: { area_um2: 152.8, diameter_um: 13.9, circularity: 0.85, nc_ratio: 0.44 }, predictions: [{ classId: 'neutrophils', prob: 0.972 }, { classId: 'monocytes', prob: 0.021 }, { classId: 'eosinophils', prob: 0.007 }] },
+      { id: 'fld-20', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 1250, y: 530, width: 115, height: 112, confidence: 0.986, shape: 'box', morphology: { area_um2: 162.0, diameter_um: 14.4, circularity: 0.88, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophils', prob: 0.986 }, { classId: 'eosinophils', prob: 0.009 }, { classId: 'monocytes', prob: 0.005 }] },
+      { id: 'fld-21', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 180, y: 680, width: 112, height: 108, confidence: 0.979, shape: 'box', morphology: { area_um2: 154.6, diameter_um: 14.0, circularity: 0.86, nc_ratio: 0.42 }, predictions: [{ classId: 'neutrophils', prob: 0.979 }, { classId: 'monocytes', prob: 0.016 }, { classId: 'eosinophils', prob: 0.005 }] },
+      { id: 'fld-22', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 390, y: 700, width: 116, height: 112, confidence: 0.983, shape: 'box', morphology: { area_um2: 160.5, diameter_um: 14.3, circularity: 0.87, nc_ratio: 0.41 }, predictions: [{ classId: 'neutrophils', prob: 0.983 }, { classId: 'eosinophils', prob: 0.011 }, { classId: 'monocytes', prob: 0.006 }] },
+      { id: 'fld-23', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 600, y: 670, width: 114, height: 110, confidence: 0.975, shape: 'box', morphology: { area_um2: 158.0, diameter_um: 14.2, circularity: 0.86, nc_ratio: 0.43 }, predictions: [{ classId: 'neutrophils', prob: 0.975 }, { classId: 'monocytes', prob: 0.018 }, { classId: 'eosinophils', prob: 0.007 }] },
+      { id: 'fld-24', classId: 'neutrophils', label: 'Segmented Neutrophil', x: 810, y: 710, width: 115, height: 112, confidence: 0.988, shape: 'box', morphology: { area_um2: 163.2, diameter_um: 14.4, circularity: 0.89, nc_ratio: 0.40 }, predictions: [{ classId: 'neutrophils', prob: 0.988 }, { classId: 'eosinophils', prob: 0.007 }, { classId: 'monocytes', prob: 0.005 }] },
+
+      // Band Neutrophils (8)
+      { id: 'fld-25', classId: 'neutrophils', label: 'Band Neutrophil', x: 1020, y: 690, width: 108, height: 104, confidence: 0.956, shape: 'box', morphology: { area_um2: 148.0, diameter_um: 13.7, circularity: 0.82, nc_ratio: 0.48 }, predictions: [{ classId: 'neutrophils', prob: 0.956 }, { classId: 'monocytes', prob: 0.034 }, { classId: 'lymphocytes', prob: 0.010 }] },
+      { id: 'fld-26', classId: 'neutrophils', label: 'Band Neutrophil', x: 1220, y: 720, width: 106, height: 102, confidence: 0.949, shape: 'box', morphology: { area_um2: 144.5, diameter_um: 13.6, circularity: 0.81, nc_ratio: 0.49 }, predictions: [{ classId: 'neutrophils', prob: 0.949 }, { classId: 'monocytes', prob: 0.039 }, { classId: 'lymphocytes', prob: 0.012 }] },
+      { id: 'fld-27', classId: 'neutrophils', label: 'Band Neutrophil', x: 230, y: 860, width: 110, height: 105, confidence: 0.962, shape: 'box', morphology: { area_um2: 150.2, diameter_um: 13.8, circularity: 0.83, nc_ratio: 0.47 }, predictions: [{ classId: 'neutrophils', prob: 0.962 }, { classId: 'monocytes', prob: 0.028 }, { classId: 'lymphocytes', prob: 0.010 }] },
+      { id: 'fld-28', classId: 'neutrophils', label: 'Band Neutrophil', x: 440, y: 880, width: 107, height: 103, confidence: 0.951, shape: 'box', morphology: { area_um2: 146.0, diameter_um: 13.6, circularity: 0.82, nc_ratio: 0.49 }, predictions: [{ classId: 'neutrophils', prob: 0.951 }, { classId: 'monocytes', prob: 0.037 }, { classId: 'lymphocytes', prob: 0.012 }] },
+      { id: 'fld-29', classId: 'neutrophils', label: 'Band Neutrophil', x: 650, y: 850, width: 109, height: 105, confidence: 0.958, shape: 'box', morphology: { area_um2: 149.0, diameter_um: 13.8, circularity: 0.83, nc_ratio: 0.48 }, predictions: [{ classId: 'neutrophils', prob: 0.958 }, { classId: 'monocytes', prob: 0.031 }, { classId: 'lymphocytes', prob: 0.011 }] },
+      { id: 'fld-30', classId: 'neutrophils', label: 'Band Neutrophil', x: 860, y: 890, width: 108, height: 104, confidence: 0.953, shape: 'box', morphology: { area_um2: 147.5, diameter_um: 13.7, circularity: 0.82, nc_ratio: 0.48 }, predictions: [{ classId: 'neutrophils', prob: 0.953 }, { classId: 'monocytes', prob: 0.035 }, { classId: 'lymphocytes', prob: 0.012 }] },
+      { id: 'fld-31', classId: 'neutrophils', label: 'Band Neutrophil', x: 1070, y: 860, width: 106, height: 102, confidence: 0.947, shape: 'box', morphology: { area_um2: 143.8, diameter_um: 13.5, circularity: 0.80, nc_ratio: 0.50 }, predictions: [{ classId: 'neutrophils', prob: 0.947 }, { classId: 'monocytes', prob: 0.041 }, { classId: 'lymphocytes', prob: 0.012 }] },
+      { id: 'fld-32', classId: 'neutrophils', label: 'Band Neutrophil', x: 1280, y: 890, width: 110, height: 106, confidence: 0.960, shape: 'box', morphology: { area_um2: 151.0, diameter_um: 13.9, circularity: 0.84, nc_ratio: 0.47 }, predictions: [{ classId: 'neutrophils', prob: 0.960 }, { classId: 'monocytes', prob: 0.029 }, { classId: 'lymphocytes', prob: 0.011 }] },
+
+      // Metamyelocytes / Myelocytic precursors (4)
+      { id: 'fld-33', classId: 'neutrophils', label: 'Metamyelocyte', x: 320, y: 990, width: 122, height: 118, confidence: 0.938, shape: 'box', morphology: { area_um2: 178.0, diameter_um: 15.0, circularity: 0.84, nc_ratio: 0.55 }, predictions: [{ classId: 'neutrophils', prob: 0.938 }, { classId: 'monocytes', prob: 0.048 }, { classId: 'blasts', prob: 0.014 }] },
+      { id: 'fld-34', classId: 'neutrophils', label: 'Metamyelocyte', x: 530, y: 970, width: 120, height: 116, confidence: 0.942, shape: 'box', morphology: { area_um2: 175.5, diameter_um: 14.9, circularity: 0.85, nc_ratio: 0.54 }, predictions: [{ classId: 'neutrophils', prob: 0.942 }, { classId: 'monocytes', prob: 0.045 }, { classId: 'blasts', prob: 0.013 }] },
+      { id: 'fld-35', classId: 'neutrophils', label: 'Metamyelocyte', x: 740, y: 1000, width: 124, height: 120, confidence: 0.935, shape: 'box', morphology: { area_um2: 181.0, diameter_um: 15.2, circularity: 0.83, nc_ratio: 0.56 }, predictions: [{ classId: 'neutrophils', prob: 0.935 }, { classId: 'monocytes', prob: 0.051 }, { classId: 'blasts', prob: 0.014 }] },
+      { id: 'fld-36', classId: 'neutrophils', label: 'Metamyelocyte', x: 950, y: 980, width: 121, height: 117, confidence: 0.940, shape: 'box', morphology: { area_um2: 177.0, diameter_um: 15.0, circularity: 0.84, nc_ratio: 0.55 }, predictions: [{ classId: 'neutrophils', prob: 0.940 }, { classId: 'monocytes', prob: 0.046 }, { classId: 'blasts', prob: 0.014 }] },
+
+      // Lymphocytes (6)
+      { id: 'fld-37', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 100, y: 460, width: 76, height: 74, confidence: 0.988, shape: 'box', morphology: { area_um2: 67.2, diameter_um: 9.3, circularity: 0.93, nc_ratio: 0.82 }, predictions: [{ classId: 'lymphocytes', prob: 0.988 }, { classId: 'blasts', prob: 0.008 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'fld-38', classId: 'lymphocytes', label: 'Reactive Lymphocyte', x: 500, y: 640, width: 84, height: 80, confidence: 0.965, shape: 'box', morphology: { area_um2: 81.5, diameter_um: 10.2, circularity: 0.90, nc_ratio: 0.74 }, predictions: [{ classId: 'lymphocytes', prob: 0.965 }, { classId: 'monocytes', prob: 0.024 }, { classId: 'blasts', prob: 0.011 }] },
+      { id: 'fld-39', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 720, y: 490, width: 75, height: 75, confidence: 0.991, shape: 'box', morphology: { area_um2: 66.5, diameter_um: 9.2, circularity: 0.95, nc_ratio: 0.85 }, predictions: [{ classId: 'lymphocytes', prob: 0.991 }, { classId: 'blasts', prob: 0.005 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'fld-40', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 920, y: 670, width: 78, height: 76, confidence: 0.982, shape: 'box', morphology: { area_um2: 70.0, diameter_um: 9.4, circularity: 0.92, nc_ratio: 0.83 }, predictions: [{ classId: 'lymphocytes', prob: 0.982 }, { classId: 'blasts', prob: 0.012 }, { classId: 'monocytes', prob: 0.006 }] },
+      { id: 'fld-41', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 1120, y: 470, width: 74, height: 72, confidence: 0.986, shape: 'box', morphology: { area_um2: 65.0, diameter_um: 9.1, circularity: 0.94, nc_ratio: 0.81 }, predictions: [{ classId: 'lymphocytes', prob: 0.986 }, { classId: 'blasts', prob: 0.009 }, { classId: 'monocytes', prob: 0.005 }] },
+      { id: 'fld-42', classId: 'lymphocytes', label: 'Small Lymphocyte', x: 1330, y: 650, width: 77, height: 75, confidence: 0.979, shape: 'box', morphology: { area_um2: 68.8, diameter_um: 9.4, circularity: 0.93, nc_ratio: 0.84 }, predictions: [{ classId: 'lymphocytes', prob: 0.979 }, { classId: 'blasts', prob: 0.015 }, { classId: 'monocytes', prob: 0.006 }] },
+
+      // Monocytes (4)
+      { id: 'fld-43', classId: 'monocytes', label: 'Monocyte', x: 140, y: 960, width: 140, height: 134, confidence: 0.965, shape: 'box', morphology: { area_um2: 238.0, diameter_um: 17.4, circularity: 0.78, nc_ratio: 0.52 }, predictions: [{ classId: 'monocytes', prob: 0.965 }, { classId: 'neutrophils', prob: 0.022 }, { classId: 'blasts', prob: 0.013 }] },
+      { id: 'fld-44', classId: 'monocytes', label: 'Monocyte', x: 550, y: 160, width: 138, height: 132, confidence: 0.958, shape: 'box', morphology: { area_um2: 234.0, diameter_um: 17.2, circularity: 0.79, nc_ratio: 0.53 }, predictions: [{ classId: 'monocytes', prob: 0.958 }, { classId: 'neutrophils', prob: 0.028 }, { classId: 'blasts', prob: 0.014 }] },
+      { id: 'fld-45', classId: 'monocytes', label: 'Monocyte', x: 990, y: 140, width: 142, height: 136, confidence: 0.962, shape: 'box', morphology: { area_um2: 241.5, diameter_um: 17.5, circularity: 0.77, nc_ratio: 0.51 }, predictions: [{ classId: 'monocytes', prob: 0.962 }, { classId: 'neutrophils', prob: 0.025 }, { classId: 'blasts', prob: 0.013 }] },
+      { id: 'fld-46', classId: 'monocytes', label: 'Monocyte', x: 1180, y: 960, width: 136, height: 130, confidence: 0.954, shape: 'box', morphology: { area_um2: 230.0, diameter_um: 17.1, circularity: 0.80, nc_ratio: 0.54 }, predictions: [{ classId: 'monocytes', prob: 0.954 }, { classId: 'neutrophils', prob: 0.032 }, { classId: 'blasts', prob: 0.014 }] },
+
+      // Eosinophils (2)
+      { id: 'fld-47', classId: 'eosinophils', label: 'Eosinophil', x: 470, y: 390, width: 115, height: 112, confidence: 0.982, shape: 'box', morphology: { area_um2: 162.0, diameter_um: 14.4, circularity: 0.85, nc_ratio: 0.40 }, predictions: [{ classId: 'eosinophils', prob: 0.982 }, { classId: 'neutrophils', prob: 0.014 }, { classId: 'monocytes', prob: 0.004 }] },
+      { id: 'fld-48', classId: 'eosinophils', label: 'Eosinophil', x: 1110, y: 780, width: 114, height: 110, confidence: 0.978, shape: 'box', morphology: { area_um2: 159.5, diameter_um: 14.2, circularity: 0.84, nc_ratio: 0.41 }, predictions: [{ classId: 'eosinophils', prob: 0.978 }, { classId: 'neutrophils', prob: 0.017 }, { classId: 'monocytes', prob: 0.005 }] },
+
+      // Platelets (10)
+      { id: 'fld-49', classId: 'plt', label: 'Platelet', x: 250, y: 120, width: 25, height: 24, confidence: 0.980, shape: 'circle', morphology: { area_um2: 6.8, diameter_um: 2.9, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.980 }, { classId: 'target_cells', prob: 0.020 }] },
+      { id: 'fld-50', classId: 'plt', label: 'Giant Platelet', x: 440, y: 220, width: 35, height: 32, confidence: 0.945, shape: 'box', morphology: { area_um2: 14.5, diameter_um: 4.3, circularity: 0.86, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.945 }, { classId: 'target_cells', prob: 0.055 }] },
+      { id: 'fld-51', classId: 'plt', label: 'Platelet', x: 640, y: 110, width: 26, height: 25, confidence: 0.985, shape: 'circle', morphology: { area_um2: 7.1, diameter_um: 3.0, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.985 }, { classId: 'target_cells', prob: 0.015 }] },
+      { id: 'fld-52', classId: 'plt', label: 'Platelet', x: 840, y: 240, width: 24, height: 24, confidence: 0.975, shape: 'circle', morphology: { area_um2: 6.5, diameter_um: 2.9, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.975 }, { classId: 'target_cells', prob: 0.025 }] },
+      { id: 'fld-53', classId: 'plt', label: 'Platelet', x: 1040, y: 120, width: 27, height: 26, confidence: 0.981, shape: 'circle', morphology: { area_um2: 7.4, diameter_um: 3.1, circularity: 0.93, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.981 }, { classId: 'target_cells', prob: 0.019 }] },
+      { id: 'fld-54', classId: 'plt', label: 'Platelet', x: 270, y: 620, width: 25, height: 25, confidence: 0.978, shape: 'circle', morphology: { area_um2: 6.9, diameter_um: 3.0, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.978 }, { classId: 'target_cells', prob: 0.022 }] },
+      { id: 'fld-55', classId: 'plt', label: 'Platelet', x: 670, y: 610, width: 26, height: 25, confidence: 0.983, shape: 'circle', morphology: { area_um2: 7.2, diameter_um: 3.0, circularity: 0.94, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.983 }, { classId: 'target_cells', prob: 0.017 }] },
+      { id: 'fld-56', classId: 'plt', label: 'Platelet', x: 880, y: 620, width: 24, height: 24, confidence: 0.972, shape: 'circle', morphology: { area_um2: 6.4, diameter_um: 2.8, circularity: 0.96, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.972 }, { classId: 'target_cells', prob: 0.028 }] },
+      { id: 'fld-57', classId: 'plt', label: 'Platelet', x: 1080, y: 620, width: 26, height: 26, confidence: 0.980, shape: 'circle', morphology: { area_um2: 7.3, diameter_um: 3.0, circularity: 0.93, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.980 }, { classId: 'target_cells', prob: 0.020 }] },
+      { id: 'fld-58', classId: 'plt', label: 'Platelet', x: 1290, y: 610, width: 25, height: 24, confidence: 0.976, shape: 'circle', morphology: { area_um2: 6.7, diameter_um: 2.9, circularity: 0.95, nc_ratio: 0.0 }, predictions: [{ classId: 'plt', prob: 0.976 }, { classId: 'target_cells', prob: 0.024 }] }
     ];
 
     // Telesphorus (Fast Model - 32 Cells)
@@ -1839,7 +1914,7 @@
       return classifiedResults;
     }
 
-    const DEFAULT_METADATA = {
+    const DEFAULT_METADATA_DOE = {
       patientLastName: 'DOE',
       patientFirstName: 'John',
       patientMrn: 'PT-8402',
@@ -1854,18 +1929,133 @@
       reviewStatus: 'in_review'
     };
 
-    const initialImg = new Image();
-    initialImg.crossOrigin = 'anonymous';
+    const DEFAULT_METADATA_SMITH = {
+      patientLastName: 'SMITH',
+      patientFirstName: 'Jane',
+      patientMrn: 'PT-9140',
+      collectionDate: '2026-08-20',
+      smearId: 'smear-field',
+      fileName: 'smear-field.jpg',
+      imageDimensions: '1500 × 1125 px',
+      specimenType: 'Peripheral Blood Smear',
+      stainType: 'May-Grünwald Giemsa',
+      clinicalIndication: 'Marked leukocytosis / Granulocytic hyperplasia assessment',
+      notes: 'Marked neutrophilic leukocytosis with toxic granulation and Döhle bodies. Normal platelet morphology and distribution. No blast excess identified. Consistent with reactive leukemoid response.',
+      reviewStatus: 'in_review'
+    };
+
+    const DEFAULT_METADATA = DEFAULT_METADATA_DOE;
+
+    function createCaseInstance({
+      id,
+      metadata = null,
+      imageSrc = null,
+      imageElement = null,
+      annotations = [],
+      measurements = [],
+      activeFilters = ['clahe', 'fov_crop', 'reinhard_lab'],
+      micronsPerPixel = 0.125,
+      minConfidence = 0.70,
+      classFilter = null,
+      view = { x: 0, y: 0, zoom: 1.0 },
+      postprocessingConfig = null
+    }) {
+      const img = imageElement || new Image();
+      img.crossOrigin = 'anonymous';
+      if (imageSrc && !imageElement) {
+        img.src = imageSrc;
+      }
+
+      const caseId = id || (metadata && metadata.smearId) || `smear-${Date.now()}`;
+      const caseMeta = { ...(metadata || DEFAULT_METADATA_DOE) };
+      caseMeta.smearId = caseId;
+
+      const caseObj = {
+        id: caseId,
+        metadata: caseMeta,
+        image: img,
+        imageLoaded: !!img.complete && !!img.naturalWidth,
+        imageDataUri: (imageSrc && imageSrc.startsWith('data:')) ? imageSrc : null,
+        annotations: (annotations || []).map(a => ({
+          ...a,
+          origin: a.origin || (a.isUserCreated ? 'user_created' : (a.isUserModified ? 'user_reclassified' : 'ai_generated')),
+          isAiGenerated: a.isAiGenerated !== undefined ? a.isAiGenerated : !a.isUserCreated,
+          isUserModified: a.isUserModified !== undefined ? a.isUserModified : false,
+          isUserCreated: a.isUserCreated !== undefined ? a.isUserCreated : false,
+          aiClassId: a.aiClassId || a.classId,
+          aiLabel: a.aiLabel || a.label,
+          aiConfidence: a.aiConfidence || a.confidence
+        })),
+        measurements: measurements ? [...measurements] : [],
+        activeFilters: activeFilters ? [...activeFilters] : [],
+        micronsPerPixel: micronsPerPixel || 0.125,
+        minConfidence: minConfidence || 0.70,
+        classFilter: classFilter ? { ...classFilter } : CELL_TAXONOMY.reduce((acc, t) => { acc[t.id] = true; return acc; }, {}),
+        view: { ...(view || { x: 0, y: 0, zoom: 1.0 }) },
+        postprocessingConfig: { ...(postprocessingConfig || loadPostprocessingConfig()) },
+        undoStack: [],
+        redoStack: [],
+        selectedCellId: null,
+        selectedMeasurementId: null,
+        filterCache: {}
+      };
+
+      img.onload = () => {
+        caseObj.imageLoaded = true;
+        try {
+          if (!caseObj.imageDataUri && img.complete && (img.naturalWidth || img.width)) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = img.naturalWidth || img.width;
+            tempCanvas.height = img.naturalHeight || img.height;
+            const tctx = tempCanvas.getContext('2d');
+            tctx.drawImage(img, 0, 0);
+            caseObj.imageDataUri = tempCanvas.toDataURL('image/jpeg', 0.92);
+          }
+        } catch (e) {}
+
+        if (state && state.activeCaseId === caseObj.id) {
+          state.imageLoaded = true;
+          state.image = img;
+          state.imageDataUri = caseObj.imageDataUri;
+          updateMinimapBg();
+          fitToScreen();
+          renderTaxonomyList();
+          updateUI();
+          render();
+          renderMinimap();
+        }
+      };
+
+      return caseObj;
+    }
+
+    const defaultCaseDoe = createCaseInstance({
+      id: 'smear-02',
+      metadata: DEFAULT_METADATA_DOE,
+      imageSrc: 'assets/smear-02.jpg',
+      annotations: INITIAL_ANNOTATIONS,
+      activeFilters: ['clahe', 'fov_crop', 'reinhard_lab']
+    });
+
+    const defaultCaseSmith = createCaseInstance({
+      id: 'smear-field',
+      metadata: DEFAULT_METADATA_SMITH,
+      imageSrc: 'assets/smear-field.jpg',
+      annotations: INITIAL_ANNOTATIONS_FIELD,
+      activeFilters: ['clahe', 'fov_crop', 'two_tone', 'reinhard_lab']
+    });
 
     const state = {
-      image: initialImg,
-      imageLoaded: false,
-      view: { x: 0, y: 0, zoom: 1.0, minZoom: 0.1, maxZoom: 16.0 },
+      cases: [defaultCaseDoe, defaultCaseSmith],
+      activeCaseId: 'smear-02',
+      image: defaultCaseDoe.image,
+      imageLoaded: defaultCaseDoe.imageLoaded,
+      view: { ...defaultCaseDoe.view, minZoom: 0.1, maxZoom: 16.0 },
       tool: 'select',
       activeClassId: 'neutrophil',
       overlaysVisible: true,
-      minConfidence: 0.70,
-      classFilter: CELL_TAXONOMY.reduce((acc, t) => { acc[t.id] = true; return acc; }, {}),
+      minConfidence: defaultCaseDoe.minConfidence,
+      classFilter: { ...defaultCaseDoe.classFilter },
       selectedCellId: null,
       hoveredCellId: null,
       isDragging: false,
@@ -1874,17 +2064,17 @@
       drawStartWorld: { x: 0, y: 0 },
       drawCurrentWorld: { x: 0, y: 0 },
       dragStart: { x: 0, y: 0 },
-      micronsPerPixel: 0.125,
-      measurements: [],
+      micronsPerPixel: defaultCaseDoe.micronsPerPixel,
+      measurements: defaultCaseDoe.measurements,
       selectedMeasurementId: null,
-      undoStack: [],
-      redoStack: [],
-      annotations: [...INITIAL_ANNOTATIONS],
+      undoStack: defaultCaseDoe.undoStack,
+      redoStack: defaultCaseDoe.redoStack,
+      annotations: defaultCaseDoe.annotations,
       taxonomy: CELL_TAXONOMY,
-      metadata: { ...DEFAULT_METADATA },
-      activeFilters: [],
+      metadata: defaultCaseDoe.metadata,
+      activeFilters: defaultCaseDoe.activeFilters,
       filterCache: {},
-      postprocessingConfig: loadPostprocessingConfig()
+      postprocessingConfig: defaultCaseDoe.postprocessingConfig
     };
 
     const canvas = document.getElementById('microscope-canvas');
@@ -2166,15 +2356,218 @@
       render();
     }
 
-    const STORAGE_KEY = 'aimalabs_hemapath_annotations_v1';
+    // Multi-Case State Engine & State Persistence
+    function getActiveCase() {
+      if (!state.cases || state.cases.length === 0) return null;
+      return state.cases.find(c => c.id === state.activeCaseId) || null;
+    }
+
+    function syncActiveCaseFromState() {
+      const current = getActiveCase();
+      if (current) {
+        current.annotations = state.annotations;
+        current.measurements = state.measurements;
+        current.metadata = state.metadata;
+        current.activeFilters = state.activeFilters ? [...state.activeFilters] : [];
+        current.view = { ...state.view };
+        current.micronsPerPixel = state.micronsPerPixel;
+        current.minConfidence = state.minConfidence;
+        current.classFilter = { ...state.classFilter };
+        current.undoStack = state.undoStack;
+        current.redoStack = state.redoStack;
+        current.postprocessingConfig = { ...state.postprocessingConfig };
+        current.imageDataUri = state.imageDataUri;
+      }
+    }
+
+    function switchActiveCase(caseId, skipSync = false) {
+      if (!skipSync) {
+        syncActiveCaseFromState();
+      }
+
+      const target = (state.cases || []).find(c => c.id === caseId);
+      if (!target) {
+        console.warn(`[MultiCase] Case "${caseId}" not found.`);
+        return;
+      }
+
+      state.activeCaseId = target.id;
+      state.image = target.image;
+      state.imageLoaded = target.imageLoaded || (target.image && target.image.complete && !!target.image.naturalWidth);
+      state.imageDataUri = target.imageDataUri;
+      state.annotations = target.annotations;
+      state.measurements = target.measurements;
+      state.metadata = target.metadata;
+      state.activeFilters = target.activeFilters ? [...target.activeFilters] : [];
+      state.view = { ...target.view };
+      state.micronsPerPixel = target.micronsPerPixel || 0.125;
+      state.minConfidence = target.minConfidence !== undefined ? target.minConfidence : 0.70;
+      state.classFilter = target.classFilter ? { ...target.classFilter } : CELL_TAXONOMY.reduce((acc, t) => { acc[t.id] = true; return acc; }, {});
+      state.undoStack = target.undoStack || [];
+      state.redoStack = target.redoStack || [];
+      state.selectedCellId = null;
+      state.selectedMeasurementId = null;
+      state.postprocessingConfig = { ...(target.postprocessingConfig || DEFAULT_POSTPROCESSING_CONFIG) };
+      state.filterCache = {};
+
+      renderEmptyStateHUD();
+      updateDocumentTitle();
+      updateCaseHeaderPill();
+      renderCaseSelectorDropdown();
+      updateFilterUI();
+      syncPostprocessingUI();
+      setCalibration(state.micronsPerPixel);
+
+      const slider = document.getElementById('conf-slider');
+      const valEl = document.getElementById('conf-value-label');
+      if (slider) slider.value = state.minConfidence.toString();
+      if (valEl) valEl.textContent = `${Math.round(state.minConfidence * 100)}%`;
+
+      updateMinimapBg();
+      fitToScreen();
+      refreshAppViews();
+
+      autoSaveToLocalStorage();
+      showToast(`✓ Switched to smear: ${target.metadata?.patientLastName || 'DOE'} (${target.id})`);
+    }
+
+    function deleteActiveCase() {
+      const active = getActiveCase();
+      if (!active) return;
+      deleteCase(active.id);
+    }
+
+    function deleteCase(caseId) {
+      const idx = (state.cases || []).findIndex(c => c.id === caseId);
+      if (idx === -1) return;
+
+      const deletedCase = state.cases[idx];
+      state.cases.splice(idx, 1);
+      closeCaseModal();
+
+      if (state.cases.length > 0) {
+        const nextCase = state.cases[Math.min(idx, state.cases.length - 1)];
+        switchActiveCase(nextCase.id, true);
+        showToast(`✓ Deleted smear "${deletedCase.id}". Switched to ${nextCase.id}`);
+      } else {
+        // Zero cases state
+        state.activeCaseId = null;
+        state.image = null;
+        state.imageLoaded = false;
+        state.imageDataUri = null;
+        state.annotations = [];
+        state.measurements = [];
+        state.metadata = null;
+        state.selectedCellId = null;
+        state.selectedMeasurementId = null;
+
+        renderEmptyStateHUD();
+        updateDocumentTitle();
+        updateCaseHeaderPill();
+        renderCaseSelectorDropdown();
+        renderTaxonomyList();
+        updateUI();
+        render();
+        renderMinimap();
+
+        autoSaveToLocalStorage();
+        showToast(`✓ Deleted smear "${deletedCase.id}". No smears loaded.`);
+      }
+    }
+
+    function renderEmptyStateHUD() {
+      const hud = document.getElementById('empty-workspace-hud');
+      if (!hud) return;
+      if (!state.cases || state.cases.length === 0) {
+        hud.classList.remove('hidden');
+      } else {
+        hud.classList.add('hidden');
+      }
+    }
+
+    function renderCaseSelectorDropdown() {
+      const listContainer = document.getElementById('case-selector-list');
+      const countBadge = document.getElementById('loaded-cases-count');
+      const totalCases = (state.cases || []).length;
+      if (countBadge) {
+        countBadge.textContent = `${totalCases} smear${totalCases === 1 ? '' : 's'}`;
+      }
+      if (!listContainer) return;
+
+      if (!state.cases || state.cases.length === 0) {
+        listContainer.innerHTML = `
+          <div class="p-3 text-center text-[11px] text-[#7a767a]">
+            No smears currently loaded.
+          </div>
+        `;
+        return;
+      }
+
+      listContainer.innerHTML = state.cases.map(c => {
+        const isActive = c.id === state.activeCaseId;
+        const meta = c.metadata || DEFAULT_METADATA_DOE;
+        const initial = meta.patientFirstName ? `${meta.patientFirstName[0]}.` : 'J.';
+        const cellCount = c.annotations ? c.annotations.length : 0;
+        const status = meta.reviewStatus || 'in_review';
+        const dotColor = status === 'reviewed' ? 'bg-[#10b981]' : (status === 'critical' ? 'bg-[#e52246]' : 'bg-[#f59e0b]');
+
+        return `
+          <div data-case-id="${c.id}" class="btn-select-case w-full flex items-center justify-between p-2 rounded-lg cursor-pointer transition ${isActive ? 'bg-[#e52246]/15 border border-[#e52246]/50 text-white shadow-sm' : 'bg-[#141316] hover:bg-[#272527] border border-[#272527] text-[#9e9a9e] hover:text-white'}">
+            <div class="flex items-center space-x-2 min-w-0 pr-1">
+              <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
+              <div class="flex flex-col min-w-0 text-left">
+                <div class="flex items-center space-x-1 font-semibold text-xs text-white truncate">
+                  <span>${meta.patientLastName || 'DOE'}, ${initial}</span>
+                  <span class="text-[#5a575a]">•</span>
+                  <span class="text-[#f7aab8] text-[10px]">${c.id}</span>
+                </div>
+                <div class="text-[10px] text-[#7a767a] truncate font-mono">
+                  ${meta.collectionDate || ''} • ${meta.stainType || 'Wright-Giemsa'}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-1 shrink-0">
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#272527] border border-[#373437] text-white font-mono">${cellCount} cells</span>
+              ${isActive ? '<span class="text-[#10b981] font-bold text-xs ml-1">✓</span>' : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      listContainer.querySelectorAll('.btn-select-case').forEach(el => {
+        el.onclick = (e) => {
+          e.stopPropagation();
+          const cid = el.getAttribute('data-case-id');
+          if (cid) {
+            switchActiveCase(cid);
+            const menu = document.getElementById('case-selector-dropdown');
+            if (menu) menu.classList.add('hidden');
+          }
+        };
+      });
+    }
+
+    const STORAGE_KEY = 'aimalabs_hemapath_multicase_v2';
 
     function autoSaveToLocalStorage() {
       try {
+        syncActiveCaseFromState();
         const payload = {
-          annotations: state.annotations,
-          measurements: state.measurements,
-          metadata: state.metadata,
-          micronsPerPixel: state.micronsPerPixel,
+          version: 2,
+          activeCaseId: state.activeCaseId,
+          cases: (state.cases || []).map(c => ({
+            id: c.id,
+            metadata: c.metadata,
+            annotations: c.annotations,
+            measurements: c.measurements,
+            activeFilters: c.activeFilters,
+            micronsPerPixel: c.micronsPerPixel,
+            minConfidence: c.minConfidence,
+            classFilter: c.classFilter,
+            view: c.view,
+            imageDataUri: c.imageDataUri || null,
+            imageSrc: (c.image && c.image.src && !c.image.src.startsWith('blob:') && !c.image.src.startsWith('data:')) ? c.image.src : null
+          })),
           timestamp: Date.now()
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -2188,19 +2581,26 @@
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed.annotations) && parsed.annotations.length > 0) {
-            state.annotations = parsed.annotations;
+          if (parsed.version === 2 && Array.isArray(parsed.cases) && parsed.cases.length > 0) {
+            state.cases = parsed.cases.map(c => {
+              const src = c.imageDataUri || c.imageSrc || (c.id === 'smear-field' ? 'assets/smear-field.jpg' : 'assets/smear-02.jpg');
+              return createCaseInstance({
+                id: c.id,
+                metadata: c.metadata,
+                imageSrc: src,
+                annotations: c.annotations,
+                measurements: c.measurements,
+                activeFilters: c.activeFilters,
+                micronsPerPixel: c.micronsPerPixel,
+                minConfidence: c.minConfidence,
+                classFilter: c.classFilter,
+                view: c.view
+              });
+            });
+            const targetId = parsed.activeCaseId || state.cases[0].id;
+            switchActiveCase(targetId);
+            return true;
           }
-          if (Array.isArray(parsed.measurements)) {
-            state.measurements = parsed.measurements;
-          }
-          if (parsed.metadata && typeof parsed.metadata === 'object') {
-            state.metadata = { ...DEFAULT_METADATA, ...parsed.metadata };
-          }
-          if (typeof parsed.micronsPerPixel === 'number' && parsed.micronsPerPixel > 0) {
-            state.micronsPerPixel = parsed.micronsPerPixel;
-          }
-          return true;
         }
       } catch (e) {
         // quiet fallback
@@ -3472,6 +3872,26 @@
       updateMinimapBg();
     }
 
+    // Universal Dropdown Coordinator (Ensures only one dropdown menu is open at any time)
+    const ALL_DROPDOWN_IDS = [
+      'case-selector-dropdown',
+      'filter-dropdown-menu',
+      'tool-dropdown-menu',
+      'obj-dropdown-menu',
+      'export-dropdown-menu',
+      'import-dropdown-menu',
+      'draw-class-menu'
+    ];
+
+    function closeAllDropdowns(exceptElement = null) {
+      ALL_DROPDOWN_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el !== exceptElement) {
+          el.classList.add('hidden');
+        }
+      });
+    }
+
     // Filter dropdown trigger & click handler
     const filterTrigger = document.getElementById('filter-dropdown-trigger');
     const filterMenu = document.getElementById('filter-dropdown-menu');
@@ -3500,8 +3920,10 @@
       filterTrigger.onclick = (e) => {
         e.stopPropagation();
         hideHelpTooltip();
-        if (toolMenu) toolMenu.classList.add('hidden');
-        filterMenu.classList.toggle('hidden');
+        const willOpen = filterMenu.classList.contains('hidden');
+        closeAllDropdowns(filterMenu);
+        if (willOpen) filterMenu.classList.remove('hidden');
+        else filterMenu.classList.add('hidden');
       };
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.onclick = (e) => {
@@ -3509,11 +3931,6 @@
           hideHelpTooltip();
           toggleCanvasFilter(btn.getAttribute('data-filter'));
         };
-      });
-      window.addEventListener('click', (e) => {
-        if (!filterMenu.contains(e.target) && e.target !== filterTrigger) {
-          filterMenu.classList.add('hidden');
-        }
       });
     }
 
@@ -3524,7 +3941,10 @@
       toolTrigger.onclick = (e) => {
         e.stopPropagation();
         hideHelpTooltip();
-        toolMenu.classList.toggle('hidden');
+        const willOpen = toolMenu.classList.contains('hidden');
+        closeAllDropdowns(toolMenu);
+        if (willOpen) toolMenu.classList.remove('hidden');
+        else toolMenu.classList.add('hidden');
       };
       document.querySelectorAll('.tool-btn').forEach(btn => {
         btn.onclick = (e) => {
@@ -3532,11 +3952,6 @@
           hideHelpTooltip();
           setTool(btn.getAttribute('data-tool'));
         };
-      });
-      window.addEventListener('click', (e) => {
-        if (!toolMenu.contains(e.target) && e.target !== toolTrigger) {
-          toolMenu.classList.add('hidden');
-        }
       });
     }
 
@@ -3554,7 +3969,7 @@
       const ttHeight = helpTooltip.offsetHeight || 75;
 
       // Check if target is inside a dropdown menu
-      const isInsideDropdown = !!target.closest('#tool-dropdown-menu, #obj-dropdown-menu, #export-dropdown-menu, #draw-class-menu, .dropdown-menu');
+      const isInsideDropdown = !!target.closest('#filter-dropdown-menu, #case-selector-dropdown, #tool-dropdown-menu, #obj-dropdown-menu, #export-dropdown-menu, #draw-class-menu, .dropdown-menu');
 
       let left, top;
 
@@ -3598,10 +4013,8 @@
         if (helpTitleText) helpTitleText.textContent = title || 'Info';
         if (helpDesc) helpDesc.textContent = desc || '';
 
-        // Dynamic theme color for tooltip border, dot, and key tag
+        // Dynamic theme color for tooltip border and key tag
         helpTooltip.style.borderColor = customColor;
-        const dotEl = helpTooltip.querySelector('.rounded-full');
-        if (dotEl) dotEl.style.backgroundColor = customColor;
 
         if (helpKey) {
           if (key) {
@@ -3644,13 +4057,11 @@
       objTrigger.onclick = (e) => {
         e.stopPropagation();
         hideHelpTooltip();
-        objMenu.classList.toggle('hidden');
+        const willOpen = objMenu.classList.contains('hidden');
+        closeAllDropdowns(objMenu);
+        if (willOpen) objMenu.classList.remove('hidden');
+        else objMenu.classList.add('hidden');
       };
-      window.addEventListener('click', (e) => {
-        if (!objMenu.contains(e.target) && e.target !== objTrigger) {
-          objMenu.classList.add('hidden');
-        }
-      });
     }
 
     document.querySelectorAll('.obj-btn').forEach(btn => {
@@ -3664,6 +4075,16 @@
 
     const drawTrigger = document.getElementById('draw-class-trigger');
     const drawMenu = document.getElementById('draw-class-menu');
+    if (drawTrigger && drawMenu) {
+      drawTrigger.onclick = (e) => {
+        e.stopPropagation();
+        hideHelpTooltip();
+        const willOpen = drawMenu.classList.contains('hidden');
+        closeAllDropdowns(drawMenu);
+        if (willOpen) drawMenu.classList.remove('hidden');
+        else drawMenu.classList.add('hidden');
+      };
+    }
     const drawOptionsContainer = document.getElementById('draw-class-options');
     const drawSelect = document.getElementById('draw-class-select');
     const drawDot = document.getElementById('draw-class-dot');
@@ -3715,19 +4136,6 @@
         drawSelect.value = state.activeClassId;
       }
       renderLineageMenu();
-    }
-
-    if (drawTrigger && drawMenu) {
-      drawTrigger.onclick = (e) => {
-        e.stopPropagation();
-        hideHelpTooltip();
-        drawMenu.classList.toggle('hidden');
-      };
-      window.addEventListener('click', (e) => {
-        if (!drawMenu.contains(e.target) && e.target !== drawTrigger) {
-          drawMenu.classList.add('hidden');
-        }
-      });
     }
 
     if (drawSelect) {
@@ -3828,13 +4236,17 @@
     }
 
     function renderMinimap() {
-      if (!state.imageLoaded) return;
       const mw = minimapCanvas.width;
       const mh = minimapCanvas.height;
+      minimapCtx.clearRect(0, 0, mw, mh);
+
+      if (!state.cases || state.cases.length === 0 || !state.imageLoaded || !state.image) {
+        return;
+      }
+
       const imgW = state.image.naturalWidth || 1500;
       const imgH = state.image.naturalHeight || 1125;
 
-      minimapCtx.clearRect(0, 0, mw, mh);
       if (minimapBgCanvas.width > 0) {
         minimapCtx.drawImage(minimapBgCanvas, 0, 0);
       } else {
@@ -3882,7 +4294,11 @@
       const h = container.clientHeight;
       ctx.clearRect(0, 0, w, h);
 
-      if (!state.imageLoaded) {
+      if (!state.cases || state.cases.length === 0) {
+        return;
+      }
+
+      if (!state.imageLoaded || !state.image) {
         ctx.fillStyle = '#9e9a9e';
         ctx.font = '14px sans-serif';
         ctx.textAlign = 'center';
@@ -4237,13 +4653,12 @@
     if (exportTrigger && exportMenu) {
       exportTrigger.onclick = (e) => {
         e.stopPropagation();
-        exportMenu.classList.toggle('hidden');
+        hideHelpTooltip();
+        const willOpen = exportMenu.classList.contains('hidden');
+        closeAllDropdowns(exportMenu);
+        if (willOpen) exportMenu.classList.remove('hidden');
+        else exportMenu.classList.add('hidden');
       };
-      window.addEventListener('click', (e) => {
-        if (!exportMenu.contains(e.target) && e.target !== exportTrigger) {
-          exportMenu.classList.add('hidden');
-        }
-      });
     }
 
     // ==========================================
@@ -4627,21 +5042,39 @@
             throw new Error("Invalid JSON format");
           }
 
+          const smearId = (parsed.metadata && parsed.metadata.smearId) ? parsed.metadata.smearId : (file ? file.name.replace(/\.[^/.]+$/, "") : `smear-${Date.now()}`);
+          let targetCase = (state.cases || []).find(c => c.id === smearId);
+          if (!targetCase) {
+            targetCase = createCaseInstance({
+              id: smearId,
+              metadata: parsed.metadata || DEFAULT_METADATA_DOE,
+              annotations: parsed.annotations || []
+            });
+            if (!state.cases) state.cases = [];
+            state.cases.push(targetCase);
+          }
+          state.activeCaseId = targetCase.id;
+
           if (parsed.metadata && typeof parsed.metadata === 'object') {
             state.metadata = { ...DEFAULT_METADATA, ...parsed.metadata };
+            targetCase.metadata = state.metadata;
           }
           if (Array.isArray(parsed.annotations)) {
             state.annotations = parsed.annotations;
+            targetCase.annotations = state.annotations;
           }
           if (Array.isArray(parsed.measurements)) {
             state.measurements = parsed.measurements;
+            targetCase.measurements = state.measurements;
           }
           if (typeof parsed.micronsPerPixel === 'number' && parsed.micronsPerPixel > 0) {
             state.micronsPerPixel = parsed.micronsPerPixel;
+            targetCase.micronsPerPixel = parsed.micronsPerPixel;
             setCalibration(parsed.micronsPerPixel);
           }
           if (typeof parsed.minConfidence === 'number') {
             state.minConfidence = parsed.minConfidence;
+            targetCase.minConfidence = parsed.minConfidence;
             const slider = document.getElementById('conf-slider');
             const valEl = document.getElementById('conf-value-label');
             if (slider) slider.value = state.minConfidence.toString();
@@ -4649,18 +5082,21 @@
           }
           if (parsed.classFilter && typeof parsed.classFilter === 'object') {
             state.classFilter = { ...state.classFilter, ...parsed.classFilter };
+            targetCase.classFilter = state.classFilter;
           }
 
           // Restore Preprocessing Filters & Preset if present
           if (parsed.preprocessing && typeof parsed.preprocessing === 'object') {
             if (Array.isArray(parsed.preprocessing.activeFilters)) {
               setCanvasFilters(parsed.preprocessing.activeFilters);
+              targetCase.activeFilters = [...parsed.preprocessing.activeFilters];
             }
           }
 
           // Restore Postprocessing Heuristics if present
           if (parsed.postprocessingConfig && typeof parsed.postprocessingConfig === 'object') {
             state.postprocessingConfig = { ...state.postprocessingConfig, ...parsed.postprocessingConfig };
+            targetCase.postprocessingConfig = { ...state.postprocessingConfig };
             savePostprocessingConfig();
             syncPostprocessingUI();
           }
@@ -4672,6 +5108,9 @@
               state.image = img;
               state.imageLoaded = true;
               state.imageDataUri = parsed.image.dataUri;
+              targetCase.image = img;
+              targetCase.imageLoaded = true;
+              targetCase.imageDataUri = parsed.image.dataUri;
               updateMinimapBg();
               renderMinimap();
               scheduleRender();
@@ -4684,8 +5123,10 @@
           state.undoStack = [];
           state.redoStack = [];
 
+          renderEmptyStateHUD();
           updateDocumentTitle();
           updateCaseHeaderPill();
+          renderCaseSelectorDropdown();
           refreshAppViews();
           scheduleRender();
 
@@ -4767,32 +5208,36 @@
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
-          state.image = img;
-          state.imageLoaded = true;
-          state.imageDataUri = (imgSrc && imgSrc.startsWith('data:')) ? imgSrc : null;
+          const smearId = file.name ? file.name.replace(/\.[^/.]+$/, "") : `smear-${Date.now()}`;
+          const newMeta = {
+            ...DEFAULT_METADATA_DOE,
+            smearId: smearId,
+            fileName: file.name || `${smearId}.jpg`,
+            imageDimensions: `${img.naturalWidth} × ${img.naturalHeight} px`,
+            collectionDate: new Date().toISOString().split('T')[0]
+          };
 
-          const fileName = file.name ? file.name.replace(/\.[^/.]+$/, "") : "smear-image";
-          if (state.metadata) {
-            state.metadata.smearId = fileName;
+          const newCase = createCaseInstance({
+            id: smearId,
+            metadata: newMeta,
+            imageElement: img,
+            imageSrc: (imgSrc && imgSrc.startsWith('data:')) ? imgSrc : null,
+            annotations: [],
+            measurements: []
+          });
+
+          if (!state.cases) state.cases = [];
+          const existingIdx = state.cases.findIndex(c => c.id === smearId);
+          if (existingIdx >= 0) {
+            state.cases[existingIdx] = newCase;
+          } else {
+            state.cases.push(newCase);
           }
 
-          // Clear all annotations and measurements from UI
-          state.annotations = [];
-          state.measurements = [];
-          state.selectedCellId = null;
-          state.selectedMeasurementId = null;
-          state.undoStack = [];
-          state.redoStack = [];
+          switchActiveCase(newCase.id);
 
           const resReadout = document.getElementById('meta-res-readout');
           if (resReadout) resReadout.textContent = `${img.naturalWidth} × ${img.naturalHeight} px`;
-
-          updateMinimapBg();
-          fitToScreen();
-          updateDocumentTitle();
-          updateCaseHeaderPill();
-          refreshAppViews();
-          scheduleRender();
 
           pushHistory('Load Smear Image');
           showToast(`✓ Smear image loaded: ${file.name || 'image'} (annotations cleared)`);
@@ -4875,13 +5320,43 @@
     if (btnImportTrigger && importMenu) {
       btnImportTrigger.onclick = (e) => {
         e.stopPropagation();
-        importMenu.classList.toggle('hidden');
+        hideHelpTooltip();
+        const willOpen = importMenu.classList.contains('hidden');
+        closeAllDropdowns(importMenu);
+        if (willOpen) importMenu.classList.remove('hidden');
+        else importMenu.classList.add('hidden');
       };
-      window.addEventListener('click', (e) => {
-        if (!btnImportTrigger.contains(e.target) && !importMenu.contains(e.target)) {
-          importMenu.classList.add('hidden');
+    }
+
+    const inputLoadSmearUnified = document.getElementById('input-load-smear-unified');
+
+    function handleUnifiedSmearFile(file) {
+      if (!file) return;
+      const lower = file.name.toLowerCase();
+      if (lower.endsWith('.aimalabs') || lower.endsWith('.zip') || lower.endsWith('.json')) {
+        importAnnotationsJSON(file);
+      } else {
+        loadSmearImage(file);
+      }
+    }
+
+    const triggerSmearLoad = () => {
+      closeAllDropdowns();
+      if (inputLoadSmearUnified) {
+        inputLoadSmearUnified.value = '';
+        inputLoadSmearUnified.click();
+      } else if (inputLoadImageFile) {
+        inputLoadImageFile.value = '';
+        inputLoadImageFile.click();
+      }
+    };
+
+    if (inputLoadSmearUnified) {
+      inputLoadSmearUnified.onchange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleUnifiedSmearFile(e.target.files[0]);
         }
-      });
+      };
     }
 
     const triggerJsonImport = () => {
@@ -4904,11 +5379,7 @@
     }
 
     const triggerImageLoad = () => {
-      if (importMenu) importMenu.classList.add('hidden');
-      if (inputLoadImageFile) {
-        inputLoadImageFile.value = '';
-        inputLoadImageFile.click();
-      }
+      triggerSmearLoad();
     };
 
     if (btnLoadImageOpt) btnLoadImageOpt.onclick = triggerImageLoad;
@@ -4941,7 +5412,11 @@
 
     // Patient & Case Metadata Functions
     function updateDocumentTitle() {
-      const meta = state.metadata || DEFAULT_METADATA;
+      if (!state.metadata || !state.cases || state.cases.length === 0) {
+        document.title = '[No Smear Loaded] aimalabs • Lynceus';
+        return;
+      }
+      const meta = state.metadata || DEFAULT_METADATA_DOE;
       const lastName = (meta.patientLastName || 'DOE').trim();
       const date = (meta.collectionDate || '2026-08-18').trim();
       const smear = (meta.smearId || 'smear-02').trim();
@@ -4949,7 +5424,6 @@
     }
 
     function updateCaseHeaderPill() {
-      const meta = state.metadata || DEFAULT_METADATA;
       const pName = document.getElementById('patient-name-display');
       const pDate = document.getElementById('patient-date-display');
       const sTitle = document.getElementById('slide-title');
@@ -4957,6 +5431,20 @@
       const modalTag = document.getElementById('modal-patient-tag');
       const dot = document.getElementById('patient-status-dot');
 
+      if (!state.metadata || !state.cases || state.cases.length === 0) {
+        if (pName) pName.textContent = 'No Smear Loaded';
+        if (pDate) pDate.textContent = '—';
+        if (sTitle) sTitle.textContent = 'empty';
+        if (modalTag) modalTag.textContent = 'No Case Loaded';
+        if (dot) {
+          dot.className = 'inline-block w-2 h-2 rounded-full bg-[#7a767a] shrink-0';
+          dot.title = 'No case loaded';
+        }
+        if (notesBadge) notesBadge.textContent = 'No Case';
+        return;
+      }
+
+      const meta = state.metadata;
       const firstInitial = meta.patientFirstName ? `${meta.patientFirstName[0]}.` : 'J.';
       if (pName) pName.textContent = `${meta.patientLastName || 'DOE'}, ${firstInitial}`;
       if (pDate) pDate.textContent = meta.collectionDate || '2026-08-18';
@@ -4990,7 +5478,7 @@
     function openCaseModal() {
       const modal = document.getElementById('case-modal');
       if (!modal) return;
-      const meta = state.metadata || DEFAULT_METADATA;
+      const meta = state.metadata || DEFAULT_METADATA_DOE;
       
       const inLastName = document.getElementById('input-patient-lastname');
       const inMrn = document.getElementById('input-patient-mrn');
@@ -5032,8 +5520,8 @@
       const inNotes = document.getElementById('input-doctor-notes');
       const inStatus = document.getElementById('select-review-status');
 
-      let firstName = state.metadata.patientFirstName || 'John';
-      let mrn = state.metadata.patientMrn || 'PT-8402';
+      let firstName = state.metadata?.patientFirstName || 'John';
+      let mrn = state.metadata?.patientMrn || 'PT-8402';
       if (inMrn && inMrn.value.trim()) {
         const val = inMrn.value.trim();
         const parenMatch = val.match(/^([^(]+)\s*\(([^)]+)\)$/);
@@ -5045,20 +5533,30 @@
         }
       }
 
+      const updatedSmearId = inSmear ? (inSmear.value.trim() || 'smear-02') : 'smear-02';
+
       state.metadata = {
-        ...state.metadata,
+        ...(state.metadata || DEFAULT_METADATA_DOE),
         patientLastName: inLastName ? (inLastName.value.trim() || 'DOE') : 'DOE',
         patientFirstName: firstName,
         patientMrn: mrn,
         collectionDate: inDate ? (inDate.value.trim() || '2026-08-18') : '2026-08-18',
-        smearId: inSmear ? (inSmear.value.trim() || 'smear-02') : 'smear-02',
+        smearId: updatedSmearId,
         clinicalIndication: inIndication ? inIndication.value.trim() : '',
         notes: inNotes ? inNotes.value.trim() : '',
         reviewStatus: inStatus ? inStatus.value : 'in_review'
       };
 
+      const active = getActiveCase();
+      if (active) {
+        active.metadata = { ...state.metadata };
+        active.id = updatedSmearId;
+        state.activeCaseId = updatedSmearId;
+      }
+
       updateDocumentTitle();
       updateCaseHeaderPill();
+      renderCaseSelectorDropdown();
       autoSaveToLocalStorage();
       closeCaseModal();
       showToast('✓ Case metadata & diagnostic notes saved');
@@ -5067,11 +5565,94 @@
     const btnCaseMeta = document.getElementById('btn-case-meta');
     if (btnCaseMeta) btnCaseMeta.onclick = openCaseModal;
 
+    const btnCaseDropdownTrigger = document.getElementById('btn-case-dropdown-trigger');
+    const caseSelectorDropdown = document.getElementById('case-selector-dropdown');
+    if (btnCaseDropdownTrigger && caseSelectorDropdown) {
+      btnCaseDropdownTrigger.onclick = (e) => {
+        e.stopPropagation();
+        hideHelpTooltip();
+        renderCaseSelectorDropdown();
+        const willOpen = caseSelectorDropdown.classList.contains('hidden');
+        closeAllDropdowns(caseSelectorDropdown);
+        if (willOpen) caseSelectorDropdown.classList.remove('hidden');
+        else caseSelectorDropdown.classList.add('hidden');
+      };
+    }
+
+    // Global outside-click listener to fold all dropdowns
+    window.addEventListener('click', (e) => {
+      const isInsideAnyDropdown = ALL_DROPDOWN_IDS.some(id => {
+        const el = document.getElementById(id);
+        return el && el.contains(e.target);
+      });
+      const isTriggerClick = [
+        'btn-case-dropdown-trigger',
+        'filter-dropdown-trigger',
+        'tool-dropdown-trigger',
+        'obj-dropdown-trigger',
+        'btn-export-dropdown-trigger',
+        'btn-import-dropdown-trigger',
+        'draw-class-trigger'
+      ].some(tid => {
+        const t = document.getElementById(tid);
+        return t && (t === e.target || t.contains(e.target));
+      });
+
+      if (!isInsideAnyDropdown && !isTriggerClick) {
+        closeAllDropdowns();
+      }
+    });
+
+    const btnAddNewCaseTrigger = document.getElementById('btn-add-new-case-trigger');
+    if (btnAddNewCaseTrigger) {
+      btnAddNewCaseTrigger.onclick = (e) => {
+        e.stopPropagation();
+        if (caseSelectorDropdown) caseSelectorDropdown.classList.add('hidden');
+        triggerSmearLoad();
+      };
+    }
+
     const btnCloseCaseModal = document.getElementById('btn-close-case-modal');
     if (btnCloseCaseModal) btnCloseCaseModal.onclick = closeCaseModal;
 
+    const btnCancelCaseModal = document.getElementById('btn-cancel-case-modal');
+    if (btnCancelCaseModal) btnCancelCaseModal.onclick = closeCaseModal;
+
+    const btnDeleteCase = document.getElementById('btn-delete-case');
+    if (btnDeleteCase) btnDeleteCase.onclick = deleteActiveCase;
+
     const btnSaveCaseModal = document.getElementById('btn-save-case-modal');
     if (btnSaveCaseModal) btnSaveCaseModal.onclick = saveCaseMetadata;
+
+    const btnEmptyLoadSample = document.getElementById('btn-empty-load-sample');
+    if (btnEmptyLoadSample) {
+      btnEmptyLoadSample.onclick = () => {
+        const dDoe = createCaseInstance({
+          id: 'smear-02',
+          metadata: DEFAULT_METADATA_DOE,
+          imageSrc: 'assets/smear-02.jpg',
+          annotations: INITIAL_ANNOTATIONS,
+          activeFilters: ['clahe', 'fov_crop', 'reinhard_lab']
+        });
+        const dSmith = createCaseInstance({
+          id: 'smear-field',
+          metadata: DEFAULT_METADATA_SMITH,
+          imageSrc: 'assets/smear-field.jpg',
+          annotations: INITIAL_ANNOTATIONS_FIELD,
+          activeFilters: ['clahe', 'fov_crop', 'two_tone', 'reinhard_lab']
+        });
+        state.cases = [dDoe, dSmith];
+        switchActiveCase('smear-02');
+        showToast('✓ Sample smear cases restored');
+      };
+    }
+
+    const btnEmptyUploadImage = document.getElementById('btn-empty-upload-image');
+    if (btnEmptyUploadImage) {
+      btnEmptyUploadImage.onclick = () => {
+        triggerImageLoad();
+      };
+    }
 
     const caseModalBackdrop = document.getElementById('case-modal');
     if (caseModalBackdrop) {
@@ -6082,6 +6663,8 @@
     loadFromLocalStorage();
     resizeCanvas();
     renderTaxonomyList();
+    renderCaseSelectorDropdown();
+    renderEmptyStateHUD();
     updateDocumentTitle();
     updateCaseHeaderPill();
     checkMobileDevice();
@@ -6123,7 +6706,16 @@
       readZipArchive,
       getRawOriginalImagePngBytes,
       buildDatasetExportPayload,
-      importAnnotationsJSON,
+      createCaseInstance,
+      getActiveCase,
+      switchActiveCase,
+      deleteActiveCase,
+      deleteCase,
+      renderCaseSelectorDropdown,
+      renderEmptyStateHUD,
+      DEFAULT_METADATA_DOE,
+      DEFAULT_METADATA_SMITH,
+      INITIAL_ANNOTATIONS_FIELD,
       openResetModal,
       closeResetModal,
       runModelInference,
