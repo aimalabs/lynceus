@@ -725,6 +725,9 @@
                 </div>
                 <div class="flex items-center space-x-1.5">
                   <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">⚡ RAPID SCAN • Active AI</span>
+                  <button id="btn-model-cache-manage" type="button" class="p-1 rounded-lg hover:bg-white/10 text-[#38bdf8] transition" title="Download & Cache Models Offline" data-help="Model Cache|Pre-download and store AI weights in browser memory or clear cache.|CACHE">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  </button>
                   <button id="btn-model-settings-toggle" type="button" class="p-1 rounded-lg hover:bg-white/10 text-[#7a767a] hover:text-[#38bdf8] transition" title="Configure Post-Processing Pipeline" data-help="Post-Processing Settings|Toggle individual biophysical size rules, border exclusions, and reassembly heuristics.|CONFIG">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
@@ -863,6 +866,83 @@
           <svg width="14" height="14" class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path></svg>
           <span>Run Inference & Reset</span>
         </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Offline Model Cache Downloader / Storage Manager Modal -->
+  <div id="modal-cache-downloader" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
+    <div class="bg-[#1B191E] border border-[#373437] rounded-2xl shadow-2xl w-full max-w-lg max-h-[calc(100vh-2rem)] flex flex-col p-5 sm:p-6 text-white font-mono text-xs overflow-hidden transition-all duration-200 space-y-4">
+      
+      <!-- Modal Header -->
+      <div class="shrink-0 flex items-center justify-between border-b border-[#373437] pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-6 h-6 rounded-lg bg-[#38bdf8]/15 border border-[#38bdf8]/30 flex items-center justify-center text-[#38bdf8] shadow-[0_0_10px_rgba(56,189,248,0.25)]">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-sm text-white">Offline Model Cache Manager</h3>
+            <p class="text-[10px] text-[#7a767a]">Preload & cache neural network weights in browser storage for instant zero-wait inference</p>
+          </div>
+        </div>
+        <button id="btn-close-cache-modal" class="text-[#9e9a9e] hover:text-white text-sm px-2 py-1 rounded hover:bg-[#272527] transition">✕</button>
+      </div>
+
+      <!-- Cache Status & Details -->
+      <div class="flex-1 overflow-y-auto space-y-3.5 pr-1">
+        <div class="p-3 rounded-xl bg-[#141316] border border-[#2e2b30] space-y-2">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-[#9e9a9e]">Storage Backend:</span>
+            <span class="text-white font-semibold">IndexedDB (<code class="text-[#38bdf8]">LynceusModelCache</code>)</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-[#9e9a9e]">CPSAM SAM-v2 Backbone:</span>
+            <span id="cache-status-cpsam" class="text-amber-400 font-semibold">Checking...</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-[#9e9a9e]">Swin-T 20-Class Classifier:</span>
+            <span id="cache-status-swin" class="text-amber-400 font-semibold">Checking...</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] pt-1 border-t border-[#272527]">
+            <span class="text-[#9e9a9e]">Total Download Wire Size:</span>
+            <span class="text-white font-semibold">~344.7 MB (15 compressed chunk parts)</span>
+          </div>
+        </div>
+
+        <!-- Download Progress Container -->
+        <div id="cache-downloader-progress-view" class="hidden p-3 rounded-xl bg-[#110f12] border border-[#272527] space-y-2.5">
+          <div class="flex items-center justify-between text-[11px]">
+            <span id="cache-download-stage-text" class="text-[#38bdf8] font-semibold flex items-center gap-1.5">
+              <svg width="12" height="12" class="smooth-spin shrink-0 text-[#38bdf8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"></path></svg>
+              <span>Downloading model chunks...</span>
+            </span>
+            <span id="cache-download-percent" class="text-white font-bold">0%</span>
+          </div>
+          <div class="w-full bg-[#272527] h-2.5 rounded-full overflow-hidden border border-[#373437]">
+            <div id="cache-download-progress-bar" class="bg-gradient-to-r from-[#38bdf8] via-[#10b981] to-[#38bdf8] h-full transition-all duration-75 rounded-full" style="width: 0%;"></div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-[#7a767a]">
+            <span id="cache-download-bytes">0 / 344.7 MB</span>
+            <span id="cache-download-speed">Chunked Transfer</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="shrink-0 flex items-center justify-between pt-3 border-t border-[#373437] mt-auto">
+        <button id="btn-purge-cache-action" type="button" class="px-3 py-1.5 rounded-lg bg-[#e52246]/10 hover:bg-[#e52246]/20 border border-[#e52246]/30 text-[#e52246] hover:text-white text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <span>Clear Cache</span>
+        </button>
+
+        <div class="flex items-center space-x-2">
+          <button id="btn-cancel-cache-modal" type="button" class="px-3 py-1.5 rounded-lg bg-[#272527] hover:bg-[#373437] text-white text-xs font-semibold transition">Close</button>
+          <button id="btn-start-cache-download" type="button" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-[#38bdf8] to-[#0284c7] hover:from-[#0ea5e9] hover:to-[#0369a1] text-white text-xs font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-[#38bdf8]/20 cursor-pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download All Models</span>
+          </button>
+        </div>
       </div>
 
     </div>

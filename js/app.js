@@ -303,6 +303,52 @@
       }
     }
 
+    async function isModelCachePopulated() {
+      try {
+        const db = await openModelCacheDB();
+        return new Promise(resolve => {
+          const tx = db.transaction(MODEL_CACHE_STORE, 'readonly');
+          const store = tx.objectStore(MODEL_CACHE_STORE);
+          const req = store.getAllKeys();
+          req.onsuccess = () => {
+            const keys = req.result || [];
+            const hasSwin = keys.some(k => k.includes('swin_classifier_fp16'));
+            const hasCpsam = keys.some(k => k.includes('cellpose_cpsam_v2'));
+            resolve({
+              populated: hasSwin && hasCpsam,
+              hasSwin,
+              hasCpsam,
+              keysCount: keys.length
+            });
+          };
+          req.onerror = () => resolve({ populated: false, hasSwin: false, hasCpsam: false, keysCount: 0 });
+        });
+      } catch (e) {
+        return { populated: false, hasSwin: false, hasCpsam: false, keysCount: 0 };
+      }
+    }
+
+    async function clearModelCache() {
+      try {
+        const db = await openModelCacheDB();
+        return new Promise(resolve => {
+          const tx = db.transaction(MODEL_CACHE_STORE, 'readwrite');
+          const store = tx.objectStore(MODEL_CACHE_STORE);
+          const req = store.clear();
+          req.onsuccess = () => {
+            gClassifierSessionPromise = null;
+            gSegmentationSessionPromise = null;
+            console.log('[Model Cache] ✓ All cached models purged from IndexedDB');
+            resolve(true);
+          };
+          req.onerror = () => resolve(false);
+        });
+      } catch (e) {
+        console.warn('[Model Cache] Clear error:', e);
+        return false;
+      }
+    }
+
     async function saveModelBufferToCache(cacheKey, fileName, hash, arrayBuffer) {
       try {
         const db = await openModelCacheDB();
@@ -4728,6 +4774,178 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
 
     syncPostprocessingUI();
 
+    const btnModelCacheManage = document.getElementById('btn-model-cache-manage');
+    const modalCacheDownloader = document.getElementById('modal-cache-downloader');
+    const btnCloseCacheModal = document.getElementById('btn-close-cache-modal');
+    const btnCancelCacheModal = document.getElementById('btn-cancel-cache-modal');
+    const btnPurgeCacheAction = document.getElementById('btn-purge-cache-action');
+    const btnStartCacheDownload = document.getElementById('btn-start-cache-download');
+
+    async function updateModelCacheButtonUI() {
+      const btn = document.getElementById('btn-model-cache-manage');
+      if (!btn) return;
+      const { populated } = await isModelCachePopulated();
+      if (populated) {
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 text-[#10b981]"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+        btn.title = "Manage / Clear Offline Model Cache (Cached)";
+        btn.classList.add('text-[#10b981]');
+        btn.classList.remove('text-[#7a767a]', 'text-[#38bdf8]');
+      } else {
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 text-[#38bdf8]"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+        btn.title = "Download & Cache Models Offline (Not Cached)";
+        btn.classList.add('text-[#38bdf8]');
+        btn.classList.remove('text-[#10b981]', 'text-[#7a767a]');
+      }
+    }
+
+    async function syncModelCacheStatusUI() {
+      const { populated, hasSwin, hasCpsam } = await isModelCachePopulated();
+      const statusCpsam = document.getElementById('cache-status-cpsam');
+      const statusSwin = document.getElementById('cache-status-swin');
+      const btnPurge = document.getElementById('btn-purge-cache-action');
+      const btnDownload = document.getElementById('btn-start-cache-download');
+
+      if (statusCpsam) {
+        statusCpsam.className = hasCpsam ? 'text-[#10b981] font-semibold flex items-center gap-1' : 'text-amber-400 font-semibold';
+        statusCpsam.innerHTML = hasCpsam ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Cached in IndexedDB (304 MB)' : 'Not Cached';
+      }
+      if (statusSwin) {
+        statusSwin.className = hasSwin ? 'text-[#10b981] font-semibold flex items-center gap-1' : 'text-amber-400 font-semibold';
+        statusSwin.innerHTML = hasSwin ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Cached in IndexedDB (56 MB)' : 'Not Cached';
+      }
+
+      if (btnPurge) {
+        if (hasSwin || hasCpsam) {
+          btnPurge.disabled = false;
+          btnPurge.classList.remove('opacity-40', 'cursor-not-allowed');
+          btnPurge.classList.add('cursor-pointer');
+          btnPurge.title = "Purge all cached model chunks from IndexedDB";
+        } else {
+          btnPurge.disabled = true;
+          btnPurge.classList.add('opacity-40', 'cursor-not-allowed');
+          btnPurge.classList.remove('cursor-pointer');
+          btnPurge.title = "No cached models in storage";
+        }
+      }
+      if (btnDownload) {
+        btnDownload.innerHTML = populated
+          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Re-Download All Models</span>'
+          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Download All Models</span>';
+      }
+      updateModelCacheButtonUI();
+    }
+
+    function openModelCacheModal() {
+      if (modalCacheDownloader) {
+        modalCacheDownloader.classList.remove('hidden');
+        syncModelCacheStatusUI();
+      }
+    }
+
+    function closeModelCacheModal() {
+      if (modalCacheDownloader) modalCacheDownloader.classList.add('hidden');
+    }
+
+    async function startOfflineModelDownload() {
+      const progressView = document.getElementById('cache-downloader-progress-view');
+      const stageText = document.getElementById('cache-download-stage-text');
+      const percentEl = document.getElementById('cache-download-percent');
+      const barEl = document.getElementById('cache-download-progress-bar');
+      const bytesEl = document.getElementById('cache-download-bytes');
+      const btnDownload = document.getElementById('btn-start-cache-download');
+
+      if (progressView) progressView.classList.remove('hidden');
+      if (btnDownload) btnDownload.disabled = true;
+
+      let segRec = 0, segTot = 290.5 * 1024 * 1024;
+      let clfRec = 0, clfTot = 54.2 * 1024 * 1024;
+
+      const updateProgress = (stage, pct, recBytes, totBytes) => {
+        if (stageText) {
+          stageText.innerHTML = `
+            <svg width="12" height="12" class="smooth-spin shrink-0 text-[#38bdf8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"></path></svg>
+            <span>${stage}</span>
+          `;
+        }
+        if (percentEl) percentEl.textContent = `${pct}%`;
+        if (barEl) barEl.style.width = `${pct}%`;
+        if (bytesEl) {
+          const recMB = (recBytes / (1024 * 1024)).toFixed(1);
+          const totMB = (totBytes / (1024 * 1024)).toFixed(1);
+          bytesEl.textContent = `${recMB} / ${totMB} MB`;
+        }
+      };
+
+      try {
+        updateProgress('Downloading Swin-T 20-Class Classifier (5 chunks)...', 5, 0, segTot + clfTot);
+        const clfPromise = preloadClassifierSession((pct, rec, tot) => {
+          clfRec = rec;
+          clfTot = tot || clfTot;
+          const totalRec = segRec + clfRec;
+          const totalTot = segTot + clfTot;
+          const overallPct = Math.round((totalRec / totalTot) * 85);
+          updateProgress('Downloading AI neural networks...', Math.max(5, overallPct), totalRec, totalTot);
+        });
+
+        const segPromise = preloadSegmentationSession((pct, rec, tot) => {
+          segRec = rec;
+          segTot = tot || segTot;
+          const totalRec = segRec + clfRec;
+          const totalTot = segTot + clfTot;
+          const overallPct = Math.round((totalRec / totalTot) * 85);
+          updateProgress('Downloading AI neural networks...', Math.max(5, overallPct), totalRec, totalTot);
+        });
+
+        await Promise.all([clfPromise, segPromise]);
+
+        updateProgress('All models verified & cached in IndexedDB!', 100, segTot + clfTot, segTot + clfTot);
+        if (stageText) {
+          stageText.innerHTML = `
+            <svg width="14" height="14" class="text-[#10b981]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span class="text-[#10b981] font-bold">✓ Models cached successfully!</span>
+          `;
+        }
+        showToast('All AI models downloaded and cached in IndexedDB');
+        await syncModelCacheStatusUI();
+      } catch (err) {
+        console.error('[Model Cache] Download error:', err);
+        if (stageText) stageText.textContent = `Error: ${err.message}`;
+        showToast(`Download failed: ${err.message}`);
+      } finally {
+        if (btnDownload) btnDownload.disabled = false;
+      }
+    }
+
+    if (btnModelCacheManage) {
+      btnModelCacheManage.onclick = (e) => {
+        e.stopPropagation();
+        openModelCacheModal();
+      };
+    }
+    if (btnCloseCacheModal) btnCloseCacheModal.onclick = closeModelCacheModal;
+    if (btnCancelCacheModal) btnCancelCacheModal.onclick = closeModelCacheModal;
+    if (modalCacheDownloader) {
+      modalCacheDownloader.onclick = (e) => {
+        if (e.target === modalCacheDownloader) closeModelCacheModal();
+      };
+    }
+    if (btnPurgeCacheAction) {
+      btnPurgeCacheAction.onclick = async () => {
+        const success = await clearModelCache();
+        if (success) {
+          showToast('Offline model cache cleared');
+          await syncModelCacheStatusUI();
+        } else {
+          showToast('Could not clear cache');
+        }
+      };
+    }
+    if (btnStartCacheDownload) {
+      btnStartCacheDownload.onclick = startOfflineModelDownload;
+    }
+
+    updateModelCacheButtonUI();
+
     function openResetModal() {
       if (isResettingInference) return;
       if (resetModelSelection) resetModelSelection.classList.remove('hidden');
@@ -5446,6 +5664,10 @@ showToast(`✓ Case imported: ${state.metadata.patientLastName || 'DOE'} (${stat
       applyDuplicateSuppression,
       applyWbcNuclearVeto,
       applyRbcPltSizeRules,
+      openModelCacheModal,
+      closeModelCacheModal,
+      isModelCachePopulated,
+      clearModelCache,
       toggleOverlays,
       getVisibleAnnotations,
       screenToWorld,
