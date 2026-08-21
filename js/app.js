@@ -3062,7 +3062,7 @@
 
       const btnClassify = document.getElementById('btn-classify-patch');
       if (btnClassify) {
-        btnClassify.classList.add('animate-spin', 'text-amber-300', 'border-[#f97316]');
+        btnClassify.classList.add('slow-pulse', 'text-amber-300', 'border-[#f97316]');
       }
 
       try {
@@ -3096,7 +3096,7 @@
         console.error('[Lynceus Classifier] Quick patch classification failed:', err);
       } finally {
         if (btnClassify) {
-          btnClassify.classList.remove('animate-spin', 'text-amber-300', 'border-[#f97316]');
+          btnClassify.classList.remove('slow-pulse', 'text-amber-300', 'border-[#f97316]');
         }
       }
     }
