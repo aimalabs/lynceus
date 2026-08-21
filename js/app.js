@@ -790,6 +790,19 @@
       return gSegmentationSessionPromise;
     }
 
+    // Proactive background pre-warming of WebGPU neural sessions on startup
+    if (typeof window !== 'undefined' && window.location.protocol !== 'file:') {
+      const scheduleWarmup = () => {
+        preloadClassifierSession().catch(e => console.warn('[Background Warmup] Classifier:', e.message));
+        preloadSegmentationSession().catch(e => console.warn('[Background Warmup] Segmentation:', e.message));
+      };
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(scheduleWarmup, { timeout: 2000 });
+      } else {
+        setTimeout(scheduleWarmup, 1000);
+      }
+    }
+
     function extractCellContour(mask, targetLabel, width, height, minY, minX, maxY, maxX) {
       const DIRS = [
         [-1, 0],  // N
@@ -5702,7 +5715,7 @@
     const resetProgressTime = document.getElementById('reset-progress-time');
 
     let isResettingInference = false;
-    let selectedInferenceModel = 'pro';
+    let selectedInferenceModel = 'fast';
 
     function selectModelCard(modelType) {
       selectedInferenceModel = modelType;
@@ -5994,7 +6007,7 @@
       if (resetProgressBar) resetProgressBar.style.width = '0%';
       if (resetProgressPercent) resetProgressPercent.textContent = '0%';
       if (resetProgressTime) resetProgressTime.textContent = '0s elapsed';
-      selectModelCard(selectedInferenceModel || 'pro');
+      selectModelCard(selectedInferenceModel || 'fast');
       if (resetModal) resetModal.classList.remove('hidden');
     }
 
@@ -6144,7 +6157,6 @@
             const cellprob = segData.subarray(stride * 2, stride * 3);
 
             updateHUD(58, 'Refining cell contours and morphology...');
-            await new Promise(r => setTimeout(r, 30));
 
             const tEuler0 = performance.now();
             const { cells } = computeMasksFromFlows(dP_y, dP_x, cellprob, preprocessed.width, preprocessed.height, {
@@ -6185,7 +6197,7 @@
             const medianArea = cellAreas.length > 0 ? cellAreas[Math.floor(cellAreas.length / 2)] : 800;
 
             if (state.postprocessingConfig.borderExclusion) {
-              const margin = 2;
+              const margin = 14;
               const prevLen = processedCells.length;
               processedCells = processedCells.filter(c => {
                 return c.bbox[0] >= margin && c.bbox[1] >= margin &&
@@ -6211,7 +6223,6 @@
             console.log(`⏱️ [Timing 4/7] Pre-Classification Morphological Filters: ${morphMs}ms (${processedCells.length} candidate cells)`);
 
             updateHUD(68, 'Classifying cell types across all 20 lineages...');
-            await new Promise(r => setTimeout(r, 30));
 
             // STEP 3: Await pre-warmed classifier session (zero-wait stall!)
             if (isAborted) throw new Error('Analysis stopped by user.');
@@ -6261,7 +6272,6 @@
             finalAnnotations = classified.length > 0 ? classified : MODEL_FLASH_ANNOTATIONS;
 
             updateHUD(100, 'Finalizing differential count and cell summary...');
-            await new Promise(r => setTimeout(r, 40));
             console.groupEnd();
           } catch (gpuErr) {
             errorOccurred = true;
