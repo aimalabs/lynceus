@@ -5150,13 +5150,17 @@
     }
 
     async function importAnnotationsJSON(fileOrPayload) {
-      const applyPayload = (parsed) => {
+      const applyPayload = async (parsed, loadedImg = null) => {
         try {
           if (!parsed || (typeof parsed !== 'object')) {
             throw new Error("Invalid JSON format");
           }
 
-          const smearId = (parsed.metadata && parsed.metadata.smearId) ? parsed.metadata.smearId : (file ? file.name.replace(/\.[^/.]+$/, "") : `smear-${Date.now()}`);
+          const fileObj = (fileOrPayload instanceof Blob) ? fileOrPayload : null;
+          const smearId = (parsed.metadata && parsed.metadata.smearId)
+            ? parsed.metadata.smearId
+            : (fileObj ? fileObj.name.replace(/\.[^/.]+$/, "") : `smear-${Date.now()}`);
+
           let targetCase = (state.cases || []).find(c => c.id === smearId);
           if (!targetCase) {
             targetCase = createCaseInstance({
@@ -5168,6 +5172,36 @@
             state.cases.push(targetCase);
           }
           state.activeCaseId = targetCase.id;
+
+          // If a new image was decoded from the .aimalabs ZIP archive:
+          if (loadedImg) {
+            state.image = loadedImg;
+            state.imageLoaded = true;
+            state.imageDataUri = null;
+            targetCase.image = loadedImg;
+            targetCase.imageLoaded = true;
+            targetCase.imageDataUri = null;
+            state.filterCache = {};
+            gSourceImageBufferCache = null;
+          } else if (parsed.image && parsed.image.dataUri && typeof parsed.image.dataUri === 'string' && parsed.image.dataUri.startsWith('data:')) {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            await new Promise((resolve) => {
+              img.onload = () => {
+                state.image = img;
+                state.imageLoaded = true;
+                state.imageDataUri = parsed.image.dataUri;
+                targetCase.image = img;
+                targetCase.imageLoaded = true;
+                targetCase.imageDataUri = parsed.image.dataUri;
+                state.filterCache = {};
+                gSourceImageBufferCache = null;
+                resolve();
+              };
+              img.onerror = () => resolve();
+              img.src = parsed.image.dataUri;
+            });
+          }
 
           if (parsed.metadata && typeof parsed.metadata === 'object') {
             state.metadata = { ...DEFAULT_METADATA, ...parsed.metadata };
@@ -5199,12 +5233,22 @@
             targetCase.classFilter = state.classFilter;
           }
 
+          // Invalidate previous filter caches so new image filters recompute cleanly
+          state.filterCache = {};
+          gSourceImageBufferCache = null;
+
           // Restore Preprocessing Filters & Preset if present
           if (parsed.preprocessing && typeof parsed.preprocessing === 'object') {
             if (Array.isArray(parsed.preprocessing.activeFilters)) {
               setCanvasFilters(parsed.preprocessing.activeFilters);
               targetCase.activeFilters = [...parsed.preprocessing.activeFilters];
+            } else {
+              setCanvasFilters([]);
+              targetCase.activeFilters = [];
             }
+          } else {
+            setCanvasFilters([]);
+            targetCase.activeFilters = [];
           }
 
           // Restore Postprocessing Heuristics if present
@@ -5215,32 +5259,18 @@
             syncPostprocessingUI();
           }
 
-          // Restore Image from dataUri if present and valid
-          if (parsed.image && parsed.image.dataUri && typeof parsed.image.dataUri === 'string' && parsed.image.dataUri.startsWith('data:')) {
-            const img = new Image();
-            img.onload = () => {
-              state.image = img;
-              state.imageLoaded = true;
-              state.imageDataUri = parsed.image.dataUri;
-              targetCase.image = img;
-              targetCase.imageLoaded = true;
-              targetCase.imageDataUri = parsed.image.dataUri;
-              updateMinimapBg();
-              renderMinimap();
-              scheduleRender();
-            };
-            img.src = parsed.image.dataUri;
-          }
-
           state.selectedCellId = null;
           state.selectedMeasurementId = null;
           state.undoStack = [];
           state.redoStack = [];
 
+          fitToScreen();
           renderEmptyStateHUD();
           updateDocumentTitle();
           updateCaseHeaderPill();
           renderCaseSelectorDropdown();
+          updateMinimapBg();
+          renderMinimap();
           refreshAppViews();
           scheduleRender();
 
@@ -5252,7 +5282,7 @@
       };
 
       if (fileOrPayload && typeof fileOrPayload === 'object' && !(fileOrPayload instanceof Blob)) {
-        applyPayload(fileOrPayload);
+        await applyPayload(fileOrPayload);
         return;
       }
 
@@ -5266,45 +5296,45 @@
           const arrayBuffer = await file.arrayBuffer();
           const entries = readZipArchive(arrayBuffer);
           const jsonEntryKey = Object.keys(entries).find(k => k.endsWith('.json') || k === 'annotations.json');
-          const imageEntryKey = Object.keys(entries).find(k => k.match(/\.(png|jpe?g|webp)$/i) || k === 'image.png');
+          const imageEntryKey = Object.keys(entries).find(k => k.match(/\.(png|jpe?g|webp|tif|tiff)$/i) || k === 'image.png');
 
           if (!jsonEntryKey) {
-            throw new Error("annotations.json not found in .aimalabs archive");
+            throw new Error("Missing annotations.json in .aimalabs archive");
+          }
+
+          if (!imageEntryKey || !entries[imageEntryKey] || entries[imageEntryKey].byteLength === 0) {
+            throw new Error("No image file (e.g. image.png) found in .aimalabs archive");
           }
 
           const jsonText = new TextDecoder().decode(entries[jsonEntryKey]);
           const parsed = JSON.parse(jsonText);
 
-          if (imageEntryKey && entries[imageEntryKey]) {
-            const imgBlob = new Blob([entries[imageEntryKey]], { type: 'image/png' });
-            const imgUrl = URL.createObjectURL(imgBlob);
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              state.image = img;
-              state.imageLoaded = true;
-              state.imageDataUri = null;
-              updateMinimapBg();
-              renderMinimap();
-              scheduleRender();
-            };
-            img.src = imgUrl;
-          }
+          const mime = imageEntryKey.match(/\.jpe?g$/i) ? 'image/jpeg' : (imageEntryKey.match(/\.webp$/i) ? 'image/webp' : 'image/png');
+          const imgBlob = new Blob([entries[imageEntryKey]], { type: mime });
+          const imgUrl = URL.createObjectURL(imgBlob);
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
 
-          applyPayload(parsed);
-          showToast(`✓ Imported .aimalabs package: ${state.metadata.patientLastName || 'DOE'} (${state.annotations.length} cells)`);
+          await new Promise((resolve, reject) => {
+            img.onload = () => resolve();
+            img.onerror = () => reject(new Error(`Failed to decode image data (${imageEntryKey}) in .aimalabs package`));
+            img.src = imgUrl;
+          });
+
+          await applyPayload(parsed, img);
         } catch (err) {
           console.error('[Import .aimalabs] Error:', err);
-          showToast(`Failed to parse .aimalabs file: ${err.message}`, 'warn');
+          showToast(`❌ Import Failed: ${err.message}`, 'error', 5000);
+          throw err;
         }
         return;
       }
 
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const parsed = JSON.parse(e.target.result);
-          applyPayload(parsed);
+          await applyPayload(parsed);
         } catch (err) {
           console.error("Import error:", err);
           showToast("Failed to parse case JSON file", 'warn');
