@@ -2801,8 +2801,11 @@
       pushHistory('Add Cell');
       const activeClass = state.activeClassId;
       const tax = state.taxonomy.find(t => t.id === activeClass || t.rawClass === activeClass) || state.taxonomy[0];
-      const area_um2 = parseFloat((w * h * 0.125 * 0.125).toFixed(1));
-      const diameter_um = parseFloat((((w + h) / 2) * 0.125).toFixed(1));
+      const mpp = state.micronsPerPixel || 0.125;
+      const area_um2 = shape === 'circle'
+        ? parseFloat((Math.PI * Math.pow((w / 2) * mpp, 2)).toFixed(1))
+        : parseFloat((w * h * mpp * mpp).toFixed(1));
+      const diameter_um = parseFloat((((w + h) / 2) * mpp).toFixed(1));
       
       const newCell = {
         id: `c-${Date.now().toString().slice(-4)}`,
@@ -3321,9 +3324,14 @@
 
         if (state.tool === 'box' && w > 10 && h > 10) {
           addCellAnnotation(x1, y1, w, h, 'box');
-        } else if (state.tool === 'circle' && w > 10) {
-          const radius = Math.hypot(w, h);
-          addCellAnnotation(state.drawStartWorld.x - radius, state.drawStartWorld.y - radius, radius * 2, radius * 2, 'circle');
+        } else if (state.tool === 'circle') {
+          const diameter = Math.hypot(state.drawCurrentWorld.x - state.drawStartWorld.x, state.drawCurrentWorld.y - state.drawStartWorld.y);
+          if (diameter > 10) {
+            const centerX = (state.drawStartWorld.x + state.drawCurrentWorld.x) / 2;
+            const centerY = (state.drawStartWorld.y + state.drawCurrentWorld.y) / 2;
+            const radius = diameter / 2;
+            addCellAnnotation(centerX - radius, centerY - radius, diameter, diameter, 'circle');
+          }
         } else if (state.tool === 'measure' && Math.hypot(w, h) > 5) {
           const distPx = Math.hypot(state.drawCurrentWorld.x - state.drawStartWorld.x, state.drawCurrentWorld.y - state.drawStartWorld.y);
           const distUm = (distPx * 0.125).toFixed(1);
@@ -4510,9 +4518,12 @@
           ctx.fillRect(bx, by, bw, bh);
           ctx.strokeRect(bx, by, bw, bh);
         } else if (state.tool === 'circle') {
-          const radius = Math.hypot(state.drawCurrentWorld.x - state.drawStartWorld.x, state.drawCurrentWorld.y - state.drawStartWorld.y);
+          const diameter = Math.hypot(state.drawCurrentWorld.x - state.drawStartWorld.x, state.drawCurrentWorld.y - state.drawStartWorld.y);
+          const centerX = (state.drawStartWorld.x + state.drawCurrentWorld.x) / 2;
+          const centerY = (state.drawStartWorld.y + state.drawCurrentWorld.y) / 2;
+          const radius = diameter / 2;
           ctx.beginPath();
-          ctx.arc(state.drawStartWorld.x, state.drawStartWorld.y, radius, 0, Math.PI * 2);
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
         } else if (state.tool === 'measure') {
