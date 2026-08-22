@@ -1279,12 +1279,16 @@
         }
 
         const contour = extractCellContour(cleanedMask, currentCellId, width, height, minY, minX, maxY, maxX);
-        const area_um2 = parseFloat((area * mpp * mpp).toFixed(1));
-        const diameter_um = parseFloat((2 * Math.sqrt(area_um2 / Math.PI)).toFixed(1));
         const w = maxX - minX + 1;
         const h = maxY - minY + 1;
-        const perimeter = Math.max(1, contour.length);
-        const circularity = parseFloat(Math.min(1.0, (4 * Math.PI * area) / (perimeter * perimeter)).toFixed(2));
+        const isSymmetric = Math.abs(w - h) <= 8;
+        const shape = isSymmetric ? 'circle' : 'box';
+        const r_um = ((w + h) / 4.0) * mpp;
+        const area_um2 = shape === 'circle'
+          ? parseFloat((Math.PI * r_um * r_um).toFixed(1))
+          : parseFloat(((w * mpp) * (h * mpp)).toFixed(1));
+        const diameter_um = parseFloat((((w + h) / 2.0) * mpp).toFixed(1));
+        const circularity = shape === 'circle' ? 0.96 : 0.86;
 
         cells.push({
           cellId: currentCellId,
@@ -1292,12 +1296,12 @@
           area,
           centroid: [Number(centroidY.toFixed(1)), Number(centroidX.toFixed(1))],
           contour,
-          shape: circularity > 0.88 ? 'circle' : 'box',
+          shape,
           morphology: {
-            area_um2: Math.max(5.0, area_um2),
-            diameter_um: Math.max(2.5, diameter_um),
-            circularity: Math.max(0.60, circularity),
-            nc_ratio: 0.44
+            area_um2: Math.max(1.0, area_um2),
+            diameter_um: Math.max(1.0, diameter_um),
+            circularity,
+            nc_ratio: 0.0
           }
         });
       }
@@ -1563,6 +1567,19 @@
 
           const cell = chunk[b];
           const cellNum = offset + b + 1;
+          const w = Math.max(15, cell.bbox[3] - cell.bbox[1] + 1);
+          const h = Math.max(15, cell.bbox[2] - cell.bbox[0] + 1);
+          const isSymmetric = Math.abs(w - h) <= 8;
+          const shape = cell.shape || (isSymmetric ? 'circle' : 'box');
+          const isWBC = WBC_MASTER_CLASSES.has(topRawClass);
+          const mpp = (state && state.micronsPerPixel) ? state.micronsPerPixel : 0.125;
+          const r_um = ((w + h) / 4.0) * mpp;
+          const area_um2 = shape === 'circle'
+            ? parseFloat((Math.PI * r_um * r_um).toFixed(1))
+            : parseFloat(((w * mpp) * (h * mpp)).toFixed(1));
+          const diameter_um = parseFloat((((w + h) / 2.0) * mpp).toFixed(1));
+          const circularity = shape === 'circle' ? 0.96 : 0.86;
+
           results.push({
             id: `c-${String(cellNum).padStart(2, '0')}`,
             classId: topCatId,
@@ -1570,11 +1587,16 @@
             label: topLabel,
             x: cell.bbox[1],
             y: cell.bbox[0],
-            width: Math.max(15, cell.bbox[3] - cell.bbox[1] + 1),
-            height: Math.max(15, cell.bbox[2] - cell.bbox[0] + 1),
+            width: w,
+            height: h,
             confidence: parseFloat(topProb.toFixed(3)),
-            shape: cell.shape || 'box',
-            morphology: cell.morphology,
+            shape,
+            morphology: {
+              area_um2: Math.max(1.0, area_um2),
+              diameter_um: Math.max(1.0, diameter_um),
+              circularity,
+              nc_ratio: isWBC ? 0.44 : 0.0
+            },
             predictions: allPreds
           });
         }
@@ -1920,6 +1942,7 @@
           res.rawClass = topRbc.rawClass;
           res.classId = topRbc.classId;
           res.label = topRbc.label;
+          if (res.morphology) res.morphology.nc_ratio = 0.0;
           vetoCount++;
         }
       }
@@ -1955,11 +1978,13 @@
           res.rawClass = topRbc.rawClass;
           res.classId = topRbc.classId;
           res.label = topRbc.label;
+          if (res.morphology) res.morphology.nc_ratio = 0.0;
           rbcFixCount++;
         } else if (RBC_MASTER_CLASSES.has(res.rawClass) && area < pltMax) {
           res.rawClass = 'Plt';
           res.classId = 'plt';
           res.label = 'Platelet (Plt)';
+          if (res.morphology) res.morphology.nc_ratio = 0.0;
           pltFixCount++;
         }
       }
@@ -6685,7 +6710,12 @@
         const w = ann.width;
         const h = ann.height;
         if (!ann.morphology) ann.morphology = {};
-        ann.morphology.area_um2 = parseFloat((w * h * state.micronsPerPixel * state.micronsPerPixel).toFixed(1));
+        if (ann.shape === 'circle') {
+          const r_um = ((w + h) / 4.0) * state.micronsPerPixel;
+          ann.morphology.area_um2 = parseFloat((Math.PI * r_um * r_um).toFixed(1));
+        } else {
+          ann.morphology.area_um2 = parseFloat((w * h * state.micronsPerPixel * state.micronsPerPixel).toFixed(1));
+        }
         ann.morphology.diameter_um = parseFloat((((w + h) / 2) * state.micronsPerPixel).toFixed(1));
         ann.morphology.perimeter_um = parseFloat((((w + h) * 2) * state.micronsPerPixel).toFixed(1));
       });
