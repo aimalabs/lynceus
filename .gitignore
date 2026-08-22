@@ -21,3 +21,5 @@ assets/swin_classifier.onnx.manifest.json
 !assets/cellpose_cpsam_v2_scales.bin
 !assets/cellpose_cpsam_v2_dequant_meta.json
 !assets/cellpose_cyto3_unet_*.onnx
+__pycache__/
+*.pyc
