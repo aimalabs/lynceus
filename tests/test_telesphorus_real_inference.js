@@ -34,7 +34,8 @@ const assert = require('assert');
     console.error('  [Request Failed]:', req.url(), req.failure().errorText);
   });
 
-  const filePath = `file://${path.resolve(__dirname, '../index.html')}`;
+  const sampleDoeHash = 'a0e23d8c95e1a4af32b58edcf84e3442242231bb37a4cfd51298ebcd8ff653c3';
+  const filePath = `file://${path.resolve(__dirname, '../index.html')}?hash=${sampleDoeHash}`;
   await page.goto(filePath, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.ort !== undefined, { timeout: 10000 });
 

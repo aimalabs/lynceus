@@ -2060,16 +2060,24 @@
         image: img,
         imageLoaded: !!img.complete && !!img.naturalWidth,
         imageDataUri: (imageSrc && imageSrc.startsWith('data:')) ? imageSrc : null,
-        annotations: (annotations || []).map(a => ({
-          ...a,
-          origin: a.origin || (a.isUserCreated ? 'user_created' : (a.isUserModified ? 'user_reclassified' : 'ai_generated')),
-          isAiGenerated: a.isAiGenerated !== undefined ? a.isAiGenerated : !a.isUserCreated,
-          isUserModified: a.isUserModified !== undefined ? a.isUserModified : false,
-          isUserCreated: a.isUserCreated !== undefined ? a.isUserCreated : false,
-          aiClassId: a.aiClassId || a.classId,
-          aiLabel: a.aiLabel || a.label,
-          aiConfidence: a.aiConfidence || a.confidence
-        })),
+        annotations: (annotations || []).map(a => {
+          const w = a.width !== undefined ? a.width : (a.w !== undefined ? a.w : 50);
+          const h = a.height !== undefined ? a.height : (a.h !== undefined ? a.h : 50);
+          return {
+            ...a,
+            width: w,
+            height: h,
+            w: w,
+            h: h,
+            origin: a.origin || (a.isUserCreated ? 'user_created' : (a.isUserModified ? 'user_reclassified' : 'ai_generated')),
+            isAiGenerated: a.isAiGenerated !== undefined ? a.isAiGenerated : !a.isUserCreated,
+            isUserModified: a.isUserModified !== undefined ? a.isUserModified : false,
+            isUserCreated: a.isUserCreated !== undefined ? a.isUserCreated : false,
+            aiClassId: a.aiClassId || a.classId,
+            aiLabel: a.aiLabel || a.label,
+            aiConfidence: a.aiConfidence || a.confidence
+          };
+        }),
         measurements: measurements ? [...measurements] : [],
         activeFilters: activeFilters ? [...activeFilters] : [],
         micronsPerPixel: micronsPerPixel || 0.125,
@@ -2101,6 +2109,7 @@
           state.imageLoaded = true;
           state.image = img;
           state.imageDataUri = caseObj.imageDataUri;
+          resizeCanvas();
           updateMinimapBg();
           fitToScreen();
           renderTaxonomyList();
@@ -2400,8 +2409,8 @@
     function getVisibleAnnotations() {
       if (!state.overlaysVisible) return [];
       return state.annotations.filter(ann => {
-        if (ann.confidence < state.minConfidence) return false;
-        if (state.classFilter[ann.classId] === false) return false;
+        if (ann.confidence !== undefined && ann.confidence < state.minConfidence) return false;
+        if (state.classFilter && state.classFilter[ann.classId] === false) return false;
         return true;
       });
     }
@@ -2806,7 +2815,64 @@
       showToast(`✓ Switched to smear: ${target.metadata?.patientLastName || 'DOE'} (${target.id})`);
     }
 
-    function deleteActiveCase() {
+    function updateWorkspaceLayout() {
+      const hasSmear = !!(state.cases && state.cases.length > 0 && state.activeCaseId);
+      const hud = document.getElementById('empty-workspace-hud');
+      const headerLeft = document.getElementById('header-workspace-left');
+      const headerRight = document.getElementById('header-workspace-right');
+      const bottomBar = document.getElementById('bottom-optical-bar');
+      const minimap = document.getElementById('minimap-panel');
+      const leftSidebarEl = document.getElementById('left-sidebar');
+      const leftResizerEl = document.getElementById('left-resizer');
+      const rightSidebarEl = document.getElementById('right-sidebar');
+      const rightResizerEl = document.getElementById('right-resizer');
+      const btnExpLeft = document.getElementById('btn-expand-left');
+      const btnExpRight = document.getElementById('btn-expand-right');
+
+      if (hasSmear) {
+        if (hud) hud.classList.add('hidden');
+        if (headerLeft) headerLeft.classList.remove('hidden');
+        if (headerRight) headerRight.classList.remove('hidden');
+        if (bottomBar) bottomBar.classList.remove('hidden');
+        if (minimap) minimap.classList.remove('hidden');
+        if (leftSidebarEl) {
+          leftSidebarEl.classList.remove('hidden');
+          if (leftSidebarEl.style.width === '0px' || leftSidebarEl.style.opacity === '0') {
+            if (leftResizerEl) leftResizerEl.classList.add('hidden');
+            if (btnExpLeft) btnExpLeft.classList.remove('hidden');
+          } else {
+            if (leftResizerEl) leftResizerEl.classList.remove('hidden');
+            if (btnExpLeft) btnExpLeft.classList.add('hidden');
+          }
+        }
+        if (rightSidebarEl) {
+          rightSidebarEl.classList.remove('hidden');
+          if (rightSidebarEl.style.width === '0px' || rightSidebarEl.style.opacity === '0') {
+            if (rightResizerEl) rightResizerEl.classList.add('hidden');
+            if (btnExpRight) btnExpRight.classList.remove('hidden');
+          } else {
+            if (rightResizerEl) rightResizerEl.classList.remove('hidden');
+            if (btnExpRight) btnExpRight.classList.add('hidden');
+          }
+        }
+      } else {
+        if (hud) hud.classList.remove('hidden');
+        if (headerLeft) headerLeft.classList.add('hidden');
+        if (headerRight) headerRight.classList.add('hidden');
+        if (bottomBar) bottomBar.classList.add('hidden');
+        if (minimap) minimap.classList.add('hidden');
+        if (leftSidebarEl) leftSidebarEl.classList.add('hidden');
+        if (leftResizerEl) leftResizerEl.classList.add('hidden');
+        if (btnExpLeft) btnExpLeft.classList.add('hidden');
+        if (rightSidebarEl) rightSidebarEl.classList.add('hidden');
+        if (rightResizerEl) rightResizerEl.classList.add('hidden');
+        if (btnExpRight) btnExpRight.classList.add('hidden');
+      }
+
+      resizeCanvas();
+    }
+
+    function unloadActiveSmear(alertMessage = null) {
       state.cases = [];
       state.activeCaseId = null;
       state.image = null;
@@ -2817,9 +2883,11 @@
       state.metadata = null;
       state.selectedCellId = null;
       state.selectedMeasurementId = null;
+      state.hoveredCellId = null;
 
       syncUrlHash(null);
-      renderEmptyStateHUD();
+      updateWorkspaceLayout();
+      renderEmptyStateHUD(alertMessage);
       updateDocumentTitle();
       updateCaseHeaderPill();
       renderTaxonomyList();
@@ -2827,8 +2895,14 @@
       render();
       renderMinimap();
 
-      autoSaveToLocalStorage();
-      showToast(`✓ Smear unloaded. No smear currently loaded.`);
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {}
+    }
+
+    function deleteActiveCase() {
+      unloadActiveSmear();
+      showToast(`✓ Smear unloaded. Returned to Workspace Hub.`);
     }
 
     function deleteCase(caseId) {
@@ -2843,6 +2917,64 @@
       }
 
       try {
+        let sampleAnnotations = [];
+        const gtGlobal = (typeof window !== 'undefined' ? window.__GROUND_TRUTH_SAMPLES_DATA__ : (typeof globalThis !== 'undefined' ? globalThis.__GROUND_TRUTH_SAMPLES_DATA__ : null));
+        if (gtGlobal && gtGlobal[sample.id] && Array.isArray(gtGlobal[sample.id].annotations)) {
+          sampleAnnotations = JSON.parse(JSON.stringify(gtGlobal[sample.id].annotations));
+        } else if (sample.id === 'smear-field') {
+          sampleAnnotations = JSON.parse(JSON.stringify(INITIAL_ANNOTATIONS_FIELD));
+        } else {
+          sampleAnnotations = JSON.parse(JSON.stringify(INITIAL_ANNOTATIONS));
+        }
+
+        const mpp = 0.125;
+        // Harmonize morphometrics and shapes
+        sampleAnnotations.forEach((ann, idx) => {
+          if (!ann.id) ann.id = `cell-${idx + 1}`;
+          const w = ann.width !== undefined ? ann.width : (ann.w !== undefined ? ann.w : 50);
+          const h = ann.height !== undefined ? ann.height : (ann.h !== undefined ? ann.h : 50);
+          ann.width = w;
+          ann.height = h;
+          ann.w = w;
+          ann.h = h;
+          if (ann.shape === undefined) {
+            ann.shape = Math.abs(w - h) <= 8 ? 'circle' : 'box';
+          }
+          if (ann.area_um2 === undefined && (!ann.morphology || ann.morphology.area_um2 === undefined)) {
+            const areaPx = ann.shape === 'circle' ? Math.PI * (w / 2) * (h / 2) : w * h;
+            ann.area_um2 = parseFloat((areaPx * mpp * mpp).toFixed(1));
+          } else if (ann.morphology && ann.morphology.area_um2 !== undefined) {
+            ann.area_um2 = ann.morphology.area_um2;
+          }
+          if (ann.diameter_um === undefined && (!ann.morphology || ann.morphology.diameter_um === undefined)) {
+            ann.diameter_um = parseFloat((((w + h) / 2) * mpp).toFixed(1));
+          } else if (ann.morphology && ann.morphology.diameter_um !== undefined) {
+            ann.diameter_um = ann.morphology.diameter_um;
+          }
+          if (ann.circularity === undefined && (!ann.morphology || ann.morphology.circularity === undefined)) {
+            const r1 = w / 2;
+            const r2 = h / 2;
+            const perimPx = ann.shape === 'circle' ? Math.PI * (3 * (r1 + r2) - Math.sqrt((3 * r1 + r2) * (r1 + 3 * r2))) : 2 * (w + h);
+            const areaPx = ann.shape === 'circle' ? Math.PI * r1 * r2 : w * h;
+            ann.circularity = parseFloat(Math.min(1.0, Math.max(0.1, (4 * Math.PI * areaPx) / (perimPx * perimPx))).toFixed(2));
+          } else if (ann.morphology && ann.morphology.circularity !== undefined) {
+            ann.circularity = ann.morphology.circularity;
+          }
+          if (ann.nc_ratio === undefined && (!ann.morphology || ann.morphology.nc_ratio === undefined)) {
+            ann.nc_ratio = parseFloat((0.40 + (((ann.x * 13 + ann.y * 7) % 40) / 100)).toFixed(2));
+          } else if (ann.morphology && ann.morphology.nc_ratio !== undefined) {
+            ann.nc_ratio = ann.morphology.nc_ratio;
+          }
+          if (!ann.morphology) {
+            ann.morphology = {
+              area_um2: ann.area_um2,
+              diameter_um: ann.diameter_um,
+              circularity: ann.circularity,
+              nc_ratio: ann.nc_ratio
+            };
+          }
+        });
+
         const newCase = createCaseInstance({
           id: sample.id,
           metadata: {
@@ -2850,14 +2982,16 @@
             patientFirstName: sample.patientFirstName,
             patientMrn: sample.patientMrn,
             collectionDate: sample.collectionDate,
-            clinicalIndication: 'Cytopenia workup / High-density morphological survey',
+            clinicalIndication: 'Ground truth benchmark cytology analysis',
             stainType: sample.stain,
             reviewStatus: 'in_review',
             notes: ''
           },
           imageSrc: sample.imageSrc,
-          annotations: sample.id === 'smear-field' ? INITIAL_ANNOTATIONS_FIELD : INITIAL_ANNOTATIONS,
-          activeFilters: sample.id === 'smear-field' ? ['clahe', 'fov_crop', 'two_tone', 'reinhard_lab'] : ['clahe', 'fov_crop', 'reinhard_lab']
+          annotations: sampleAnnotations,
+          activeFilters: sample.id === 'smear-field' ? ['clahe', 'fov_crop', 'two_tone', 'reinhard_lab'] : ['clahe', 'fov_crop', 'reinhard_lab'],
+          micronsPerPixel: mpp,
+          minConfidence: 0.0
         });
         newCase.hash = sample.hash;
 
@@ -2916,10 +3050,12 @@
     }
 
     async function renderEmptyStateHUD(alertMessage = null) {
+      updateWorkspaceLayout();
+
       const hud = document.getElementById('empty-workspace-hud');
       if (!hud) return;
 
-      if (!state.cases || state.cases.length === 0) {
+      if (!state.cases || state.cases.length === 0 || !state.activeCaseId) {
         hud.classList.remove('hidden');
       } else {
         hud.classList.add('hidden');
@@ -2936,30 +3072,30 @@
         alertEl.classList.add('hidden');
       }
 
-      // 1. Render Sample Smears List
+      // 1. Render Sample Smears List (Crisp, Square/Rectangular, Vertical Stack)
       const samplesContainer = document.getElementById('sample-smears-list');
       if (samplesContainer) {
         samplesContainer.innerHTML = SAMPLE_SMEARS.map(s => {
           return `
-            <div class="p-2.5 rounded-xl bg-[#141316] hover:bg-[#272527] border border-[#272527] hover:border-[#38bdf8]/40 transition flex items-center justify-between gap-2 text-left">
-              <div class="space-y-0.5 min-w-0">
-                <div class="flex items-center space-x-1.5 font-bold text-xs text-white truncate">
-                  <span class="text-[#38bdf8]">${s.id}</span>
+            <div class="p-3 bg-[#110f12] hover:bg-[#1a181b] border border-[#272527] hover:border-[#38bdf8]/50 transition flex items-center justify-between gap-3 text-left group cursor-pointer btn-load-sample-card" data-sample-id="${s.id}">
+              <div class="space-y-1 min-w-0">
+                <div class="flex items-center space-x-2 font-bold text-xs text-white truncate">
+                  <span class="text-[#38bdf8] group-hover:text-white transition">${s.id}</span>
                   <span class="text-[#5a575a]">•</span>
-                  <span class="text-[#9e9a9e] text-[11px] font-normal">${s.patientLastName}, ${s.patientFirstName[0]}.</span>
+                  <span class="text-[#9e9a9e] text-[11px] font-normal">${s.patientLastName}, ${s.patientFirstName[0]}. (${s.patientMrn})</span>
                 </div>
                 <div class="text-[10px] text-[#7a767a] truncate font-mono">
-                  ${s.stain} • ${s.dimensions}
+                  ${s.stain} • ${s.dimensions} • 0.125 µm/px
                 </div>
                 <div class="text-[9px] text-[#5a575a] truncate font-mono">
-                  Hash: ${s.hash.slice(0, 12)}...
+                  SHA-256: ${s.hash.slice(0, 16)}...
                 </div>
               </div>
               <div class="flex items-center space-x-2 shrink-0">
-                <span class="text-[10px] px-2 py-0.5 rounded bg-[#272527] text-white font-mono border border-[#373437]">${s.cellCount} cells</span>
-                <button data-sample-id="${s.id}" class="btn-load-sample-card px-2.5 py-1 rounded-lg bg-[#38bdf8]/15 hover:bg-[#38bdf8]/30 border border-[#38bdf8]/40 text-[#38bdf8] hover:text-white text-[11px] font-bold transition cursor-pointer">
-                  Load
-                </button>
+                <span class="text-[10px] px-2 py-0.5 bg-[#1a181b] text-white font-mono border border-[#373437]">${s.cellCount} cells</span>
+                <span class="px-3 py-1 bg-[#38bdf8]/15 group-hover:bg-[#38bdf8] border border-[#38bdf8]/40 group-hover:border-[#38bdf8] text-[#38bdf8] group-hover:text-black text-[11px] font-bold tracking-wider uppercase transition">
+                  LOAD
+                </span>
               </div>
             </div>
           `;
@@ -2973,25 +3109,25 @@
         });
       }
 
-      // 2. Render Local History List from IndexedDB
+      // 2. Render Local History List from IndexedDB (Crisp, Square/Rectangular, Vertical Stack)
       const historyContainer = document.getElementById('history-smears-list');
       if (historyContainer) {
         const historyItems = await getAllSmearsFromHistory();
         if (historyItems.length === 0) {
           historyContainer.innerHTML = `
-            <div class="p-6 text-center text-[#7a767a] text-xs space-y-1">
-              <div>No upload history in local database.</div>
-              <div class="text-[10px] text-[#5a575a]">Uploaded blood smears and saved packages will be listed here.</div>
+            <div class="p-4 text-center text-[#7a767a] text-xs space-y-1 border border-[#272527]/50 bg-[#110f12]/50">
+              <div class="text-white/80 font-medium">No upload history in local database.</div>
+              <div class="text-[10px] text-[#5a575a]">Uploaded blood smears, edited annotations, and datasets will be automatically preserved here.</div>
             </div>
           `;
         } else {
           historyContainer.innerHTML = historyItems.map(h => {
             const formattedDate = h.timestamp ? new Date(h.timestamp).toLocaleDateString() : '';
             return `
-              <div class="p-2.5 rounded-xl bg-[#141316] hover:bg-[#272527] border border-[#272527] hover:border-[#10b981]/40 transition flex items-center justify-between gap-2 text-left">
-                <div class="space-y-0.5 min-w-0">
-                  <div class="flex items-center space-x-1.5 font-bold text-xs text-white truncate">
-                    <span class="text-[#10b981]">${h.smearId || 'Smear'}</span>
+              <div class="p-3 bg-[#110f12] hover:bg-[#1a181b] border border-[#272527] hover:border-[#10b981]/50 transition flex items-center justify-between gap-3 text-left group">
+                <div class="space-y-1 min-w-0 flex-1 cursor-pointer btn-load-history-card" data-history-hash="${h.hash}">
+                  <div class="flex items-center space-x-2 font-bold text-xs text-white truncate">
+                    <span class="text-[#10b981] group-hover:text-white transition">${h.smearId || 'Smear'}</span>
                     <span class="text-[#5a575a]">•</span>
                     <span class="text-[#9e9a9e] text-[11px] font-normal">${h.patientLastName || 'DOE'}, ${(h.patientFirstName || 'J')[0]}.</span>
                   </div>
@@ -2999,16 +3135,16 @@
                     ${h.collectionDate || formattedDate} • ${h.stainType || 'Wright-Giemsa'}
                   </div>
                   <div class="text-[9px] text-[#5a575a] truncate font-mono">
-                    Hash: ${(h.hash || '').slice(0, 12)}...
+                    SHA-256: ${(h.hash || '').slice(0, 16)}...
                   </div>
                 </div>
-                <div class="flex items-center space-x-1.5 shrink-0">
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#272527] text-white font-mono border border-[#373437]">${h.cellCount || 0} cells</span>
-                  <button data-history-hash="${h.hash}" class="btn-load-history-card px-2.5 py-1 rounded-lg bg-[#10b981]/15 hover:bg-[#10b981]/30 border border-[#10b981]/40 text-[#10b981] hover:text-white text-[11px] font-bold transition cursor-pointer">
-                    Open
+                <div class="flex items-center space-x-2 shrink-0">
+                  <span class="text-[10px] px-2 py-0.5 bg-[#1a181b] text-white font-mono border border-[#373437]">${h.cellCount || 0} cells</span>
+                  <button data-history-hash="${h.hash}" class="btn-load-history-card px-3 py-1 bg-[#10b981]/15 hover:bg-[#10b981] border border-[#10b981]/40 hover:border-[#10b981] text-[#10b981] hover:text-black text-[11px] font-bold tracking-wider uppercase transition cursor-pointer">
+                    OPEN
                   </button>
-                  <button data-delete-hash="${h.hash}" class="btn-delete-history-item p-1 rounded-lg bg-[#272527] hover:bg-[#e52246]/20 border border-[#373437] hover:border-[#e52246]/40 text-[#7a767a] hover:text-[#e52246] transition cursor-pointer" title="Delete from local history">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  <button data-delete-hash="${h.hash}" class="btn-delete-history-item p-1 bg-[#1a181b] hover:bg-[#e52246]/20 border border-[#373437] hover:border-[#e52246]/40 text-[#7a767a] hover:text-[#e52246] transition cursor-pointer" title="Delete from local history">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                   </button>
                 </div>
               </div>
@@ -3212,13 +3348,27 @@
       const visible = getVisibleAnnotations();
       for (let i = visible.length - 1; i >= 0; i--) {
         const ann = visible[i];
-        if (
-          worldX >= ann.x &&
-          worldX <= ann.x + ann.width &&
-          worldY >= ann.y &&
-          worldY <= ann.y + ann.height
-        ) {
-          return ann;
+        const w = ann.width !== undefined ? ann.width : (ann.w !== undefined ? ann.w : 50);
+        const h = ann.height !== undefined ? ann.height : (ann.h !== undefined ? ann.h : 50);
+        if (ann.shape === 'circle') {
+          const cx = ann.x + w / 2;
+          const cy = ann.y + h / 2;
+          const rx = w / 2;
+          const ry = h / 2;
+          const dx = (worldX - cx) / rx;
+          const dy = (worldY - cy) / ry;
+          if (dx * dx + dy * dy <= 1.0) {
+            return ann;
+          }
+        } else {
+          if (
+            worldX >= ann.x &&
+            worldX <= ann.x + w &&
+            worldY >= ann.y &&
+            worldY <= ann.y + h
+          ) {
+            return ann;
+          }
         }
       }
       return null;
@@ -3686,17 +3836,27 @@
     function resizeCanvas() {
       const container = document.getElementById('canvas-container');
       if (!container) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w <= 0 || h <= 0) return;
       const dpr = window.devicePixelRatio || 1;
-      canvas.width = container.clientWidth * dpr;
-      canvas.height = container.clientHeight * dpr;
-      ctx.resetTransform?.();
-      ctx.scale(dpr, dpr);
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
       render();
       renderMinimap();
       updateScaleBar();
     }
 
     window.addEventListener('resize', resizeCanvas);
+    if (typeof ResizeObserver !== 'undefined') {
+      const containerEl = document.getElementById('canvas-container');
+      if (containerEl) {
+        const ro = new ResizeObserver(() => {
+          resizeCanvas();
+        });
+        ro.observe(containerEl);
+      }
+    }
 
     // Mouse events: Pan, Zoom, Drawing, Caliper, Hover HUD
     canvas.addEventListener('wheel', (e) => {
@@ -3710,17 +3870,21 @@
     }, { passive: false });
 
     let clickStartPos = { x: 0, y: 0 };
+    let clickTargetCell = null;
 
     canvas.addEventListener('mousedown', (e) => {
       clickStartPos = { x: e.clientX, y: e.clientY };
-      
+      clickTargetCell = null;
 
       if (e.button === 0) {
         const worldPos = screenToWorld(e.clientX, e.clientY);
 
         if (state.tool === 'select') {
           const hit = hitTestAnnotation(worldPos.x, worldPos.y);
-          if (!hit) {
+          if (hit) {
+            clickTargetCell = hit;
+            selectCell(hit.id);
+          } else {
             state.isDragging = true;
             state.dragStart.x = e.clientX - state.view.x;
             state.dragStart.y = e.clientY - state.view.y;
@@ -3842,7 +4006,7 @@
         }
       }
 
-      if (moved < 5 && e.button === 0 && e.target === canvas && state.tool === 'select') {
+      if (moved < 6 && e.button === 0 && state.tool === 'select') {
         const worldPos = screenToWorld(e.clientX, e.clientY);
         const hitM = hitTestMeasurement(worldPos.x, worldPos.y);
         if (hitM) {
@@ -3854,7 +4018,7 @@
           const hitA = hitTestAnnotation(worldPos.x, worldPos.y);
           if (hitA) {
             selectCell(hitA.id);
-          } else {
+          } else if (!clickTargetCell) {
             selectCell(null);
           }
         }
@@ -4889,15 +5053,28 @@
 
     function render() {
       const container = document.getElementById('canvas-container');
+      if (!container) return;
+      const dpr = window.devicePixelRatio || 1;
       const w = container.clientWidth;
       const h = container.clientHeight;
-      ctx.clearRect(0, 0, w, h);
+      if (w <= 0 || h <= 0) return;
 
-      if (!state.cases || state.cases.length === 0) {
+      const targetCanvasW = Math.round(w * dpr);
+      const targetCanvasH = Math.round(h * dpr);
+      if (canvas.width !== targetCanvasW || canvas.height !== targetCanvasH) {
+        canvas.width = targetCanvasW;
+        canvas.height = targetCanvasH;
+      }
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!state.cases || state.cases.length === 0 || !state.activeCaseId) {
         return;
       }
 
       if (!state.imageLoaded || !state.image) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.fillStyle = '#9e9a9e';
         ctx.font = '14px sans-serif';
         ctx.textAlign = 'center';
@@ -4905,6 +5082,7 @@
         return;
       }
 
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.save();
       ctx.translate(state.view.x, state.view.y);
       ctx.scale(state.view.zoom, state.view.zoom);
@@ -6075,8 +6253,9 @@
       const notesBadge = document.getElementById('notes-badge-text');
       const modalTag = document.getElementById('modal-patient-tag');
       const dot = document.getElementById('patient-status-dot');
+      const btnUnload = document.getElementById('btn-unload-smear');
 
-      if (!state.metadata || !state.cases || state.cases.length === 0) {
+      if (!state.metadata || !state.cases || state.cases.length === 0 || !state.activeCaseId) {
         if (pName) pName.textContent = 'No Smear Loaded';
         if (pDate) pDate.textContent = '—';
         if (sTitle) sTitle.textContent = 'empty';
@@ -6086,7 +6265,16 @@
           dot.title = 'No case loaded';
         }
         if (notesBadge) notesBadge.textContent = 'No Case';
+        if (btnUnload) {
+          btnUnload.classList.add('hidden');
+          btnUnload.classList.remove('flex');
+        }
         return;
+      }
+
+      if (btnUnload) {
+        btnUnload.classList.remove('hidden');
+        btnUnload.classList.add('flex');
       }
 
       const meta = state.metadata;
@@ -6217,6 +6405,25 @@
 
     const btnCaseMeta = document.getElementById('btn-case-meta');
     if (btnCaseMeta) btnCaseMeta.onclick = openCaseModal;
+
+    const btnUnloadSmear = document.getElementById('btn-unload-smear');
+    if (btnUnloadSmear) {
+      btnUnloadSmear.onclick = (e) => {
+        e.stopPropagation();
+        unloadActiveSmear();
+        showToast('✓ Active smear closed. Returned to Workspace Hub.');
+      };
+    }
+
+    const btnUnloadCase = document.getElementById('btn-unload-case');
+    if (btnUnloadCase) {
+      btnUnloadCase.onclick = (e) => {
+        e.stopPropagation();
+        closeCaseModal();
+        unloadActiveSmear();
+        showToast('✓ Active smear closed. Returned to Workspace Hub.');
+      };
+    }
 
     const btnAddTab = document.getElementById('btn-add-tab');
     if (btnAddTab) {
@@ -7103,6 +7310,7 @@
 
     // Image loading
     state.image.onload = () => {
+      if (!state.image) return;
       state.imageLoaded = true;
       state.filterCache = {};
       try {
@@ -7116,7 +7324,7 @@
         }
       } catch (e) {}
       const resReadout = document.getElementById('meta-res-readout');
-      if (resReadout) resReadout.textContent = `${state.image.naturalWidth} × ${state.image.naturalHeight} px`;
+      if (resReadout && state.image) resReadout.textContent = `${state.image.naturalWidth} × ${state.image.naturalHeight} px`;
       updateMinimapBg();
       fitToScreen();
       renderTaxonomyList();
@@ -7127,6 +7335,7 @@
     };
 
     state.image.onerror = () => {
+      if (!state.image) return;
       console.warn("Generating high-res smear fallback canvas");
       const fbCanvas = document.createElement('canvas');
       fbCanvas.width = 1500;
@@ -7316,28 +7525,11 @@
           const found = await loadSmearByHash(reqHash);
           if (!found) {
             const politeMessage = `Specimen not found: We couldn't find a blood smear matching hash "${reqHash}". Please choose from available ground truth samples below or upload a file.`;
-            state.cases = [];
-            state.activeCaseId = null;
-            state.image = null;
-            state.imageLoaded = false;
-            state.annotations = [];
-            renderEmptyStateHUD(politeMessage);
-            updateDocumentTitle();
-            updateCaseHeaderPill();
-            syncUrlHash(null);
+            unloadActiveSmear(politeMessage);
           }
         } else {
-          loadFromLocalStorage();
-          if (state.cases && state.cases.length > 0) {
-            const active = getActiveCase();
-            if (active) {
-              if (!active.hash) {
-                const matchedSample = SAMPLE_SMEARS.find(s => s.id === active.id);
-                active.hash = matchedSample ? matchedSample.hash : await saveSmearToHistory(active);
-              }
-              if (active.hash) syncUrlHash(active.hash);
-            }
-          }
+          // No hash requested -> Display clean Empty Workspace Hub (zero smear loaded)
+          unloadActiveSmear();
         }
       } catch (e) {
         console.warn('[Hash Routing] init error:', e);
@@ -7368,6 +7560,7 @@
       getActiveImageSource,
       FILTER_CONFIG,
       SAMPLE_SMEARS,
+      updateWorkspaceLayout,
       loadSampleSmear,
       loadSmearByHash,
       saveSmearToHistory,
@@ -7406,6 +7599,7 @@
       createCaseInstance,
       getActiveCase,
       switchActiveCase,
+      unloadActiveSmear,
       deleteActiveCase,
       deleteCase,
       renderCaseSelectorDropdown,

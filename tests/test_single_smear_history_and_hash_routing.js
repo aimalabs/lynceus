@@ -42,41 +42,75 @@ const fs = require('fs');
     await page.setViewport({ width: 1440, height: 900 });
 
     // =========================================================================
-    // SECTION 1: Standard Page Load, Chip Metadata & URL Hash Sync
+    // SECTION 1: Root Landing Page (Empty Workspace Hub & 4 Benchmark Samples)
     // =========================================================================
     await page.goto(`http://localhost:${testPort}/index.html`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => window.__CYTO_APP__ && window.__CYTO_APP__.state.imageLoaded, { timeout: 15000 });
+    await page.waitForFunction(() => window.__CYTO_APP_ROUTING_READY__ && window.__CYTO_APP__, { timeout: 15000 });
 
-    // Verify header UI: only the chip exists (no dropdowns, no tabs)
-    const headerInfo = await page.evaluate(() => {
+    const rootLandingState = await page.evaluate(() => {
+      const hud = document.getElementById('empty-workspace-hud');
+      const isVisible = hud && !hud.classList.contains('hidden');
+      const sampleCards = document.querySelectorAll('#sample-smears-list .btn-load-sample-card');
+      const uploadBtn = document.getElementById('btn-empty-upload-image');
       const chip = document.getElementById('btn-case-meta');
       const dropdownTrigger = document.getElementById('btn-case-dropdown-trigger');
-      const dropdownMenu = document.getElementById('case-selector-dropdown');
       const tabs = document.getElementById('case-tabs-container');
       const url = window.location.href;
       return {
+        isHudVisible: isVisible,
+        sampleCount: sampleCards.length,
+        hasUploadBtn: !!uploadBtn,
         hasChip: !!chip,
         hasDropdownTrigger: !!dropdownTrigger,
-        hasDropdownMenu: !!dropdownMenu,
         hasTabs: !!tabs,
-        url,
-        activeCaseId: window.__CYTO_APP__.state.activeCaseId,
-        patientName: document.getElementById('patient-name-display')?.textContent
+        casesCount: window.__CYTO_APP__.state.cases.length,
+        url
       };
     });
 
-    console.log(`✓ Header UI: Chip=${headerInfo.hasChip}, DropdownTrigger=${headerInfo.hasDropdownTrigger}, Tabs=${headerInfo.hasTabs}`);
-    console.log(`✓ Active Smear: ${headerInfo.activeCaseId} (${headerInfo.patientName})`);
-    console.log(`✓ URL Hash Synced: ${headerInfo.url}`);
-
-    assert.ok(headerInfo.hasChip, 'Header must have case metadata chip');
-    assert.strictEqual(headerInfo.hasDropdownTrigger, false, 'No dropdown trigger button should exist');
-    assert.strictEqual(headerInfo.hasDropdownMenu, false, 'No dropdown menu should exist');
-    assert.strictEqual(headerInfo.hasTabs, false, 'No tabs container should exist');
-    assert.ok(headerInfo.url.includes('hash='), 'URL must contain ?hash= parameter');
+    console.log(`✓ Root Landing: HUD=${rootLandingState.isHudVisible}, Samples=${rootLandingState.sampleCount}, Cases=${rootLandingState.casesCount}`);
+    assert.ok(rootLandingState.isHudVisible, 'Empty Workspace Hub must be directly visible on index.html with no hash');
+    assert.strictEqual(rootLandingState.casesCount, 0, 'No smears should be loaded initially without a hash');
+    assert.strictEqual(rootLandingState.sampleCount, 4, 'Should list 4 ground truth benchmark samples');
+    assert.ok(rootLandingState.hasUploadBtn, 'Upload smear button must be present');
+    assert.strictEqual(rootLandingState.hasDropdownTrigger, false, 'Dropdown trigger must be removed');
+    assert.strictEqual(rootLandingState.hasTabs, false, 'Header tabs must be removed');
+    assert.strictEqual(rootLandingState.url.includes('?hash='), false, 'URL should NOT automatically redirect to a hash');
 
     // =========================================================================
-    // SECTION 2: Case Metadata Dialog: No Deletion Button & Save to History
+    // SECTION 2: 1-Click Load Sample Smear (smear-02) & URL Hash Sync
+    // =========================================================================
+    await page.evaluate(() => {
+      window.__CYTO_APP__.loadSampleSmear('smear-02');
+    });
+    await page.waitForFunction(() => window.__CYTO_APP__ && window.__CYTO_APP__.state.imageLoaded, { timeout: 15000 });
+
+    const smearLoadedState = await page.evaluate(() => {
+      const hud = document.getElementById('empty-workspace-hud');
+      const btnUnload = document.getElementById('btn-unload-smear');
+      const url = window.location.href;
+      return {
+        isHudHidden: hud ? hud.classList.contains('hidden') : true,
+        hasUnloadBtn: btnUnload && !btnUnload.classList.contains('hidden'),
+        activeCaseId: window.__CYTO_APP__.state.activeCaseId,
+        patientLastName: window.__CYTO_APP__.state.metadata?.patientLastName,
+        patientFirstName: window.__CYTO_APP__.state.metadata?.patientFirstName,
+        cellCount: window.__CYTO_APP__.state.annotations.length,
+        casesCount: window.__CYTO_APP__.state.cases.length,
+        url
+      };
+    });
+
+    console.log(`✓ Active Smear: ${smearLoadedState.activeCaseId} (${smearLoadedState.patientLastName}, ${smearLoadedState.patientFirstName})`);
+    assert.strictEqual(smearLoadedState.casesCount, 1, 'Only 1 smear should be loaded');
+    assert.strictEqual(smearLoadedState.activeCaseId, 'smear-02');
+    assert.strictEqual(smearLoadedState.patientLastName, 'DOE');
+    assert.ok(smearLoadedState.isHudHidden, 'Empty HUD hidden when smear is active');
+    assert.ok(smearLoadedState.hasUnloadBtn, 'Unload smear button must be visible');
+    assert.ok(smearLoadedState.url.includes('?hash=a0e23d8c95e1a4af32b58edcf84e3442242231bb37a4cfd51298ebcd8ff653c3'), 'URL should sync to smear-02 SHA-256 hash');
+
+    // =========================================================================
+    // SECTION 3: Case Metadata Dialog: No Deletion Button & Save to History
     // =========================================================================
     await page.click('#btn-case-meta');
 
@@ -84,17 +118,20 @@ const fs = require('fs');
       const modal = document.getElementById('case-modal');
       const deleteBtn = document.getElementById('btn-delete-case');
       const saveBtn = document.getElementById('btn-save-case-modal');
+      const unloadBtn = document.getElementById('btn-unload-case');
       return {
         isOpen: modal && !modal.classList.contains('hidden'),
         hasDeleteBtn: !!deleteBtn,
-        hasSaveBtn: !!saveBtn
+        hasSaveBtn: !!saveBtn,
+        hasUnloadBtn: !!unloadBtn
       };
     });
 
-    console.log(`✓ Case Modal: isOpen=${modalCheck.isOpen}, hasDeleteBtn=${modalCheck.hasDeleteBtn}, hasSaveBtn=${modalCheck.hasSaveBtn}`);
+    console.log(`✓ Case Modal: isOpen=${modalCheck.isOpen}, hasDeleteBtn=${modalCheck.hasDeleteBtn}, hasUnloadBtn=${modalCheck.hasUnloadBtn}`);
     assert.ok(modalCheck.isOpen, 'Clicking chip must open Case Metadata modal');
     assert.strictEqual(modalCheck.hasDeleteBtn, false, 'Deletion button must be removed from dialog');
     assert.ok(modalCheck.hasSaveBtn, 'Save button must exist in dialog');
+    assert.ok(modalCheck.hasUnloadBtn, 'Unload button must exist in dialog');
 
     // Modify metadata and save to history
     await page.evaluate(() => {
@@ -114,12 +151,8 @@ const fs = require('fs');
     const matchedHistory = historyAfterSave.find(e => e.patientLastName === 'HISTPATIENT');
     assert.ok(matchedHistory, 'History entry for HISTPATIENT must exist');
 
-    // =========================================================================
-    // SECTION 3: Unload Smear to View Redesigned Empty Workspace HUD
-    // =========================================================================
-    await page.evaluate(() => {
-      window.__CYTO_APP__.deleteActiveCase();
-    });
+    // Click Unload button to return to Empty Workspace Hub
+    await page.click('#btn-unload-smear');
 
     const emptyHudState = await page.evaluate(() => {
       const hud = document.getElementById('empty-workspace-hud');

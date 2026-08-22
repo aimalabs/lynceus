@@ -3,7 +3,8 @@ const path = require('path');
 const assert = require('assert');
 
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
+const sampleDoeHash = 'a0e23d8c95e1a4af32b58edcf84e3442242231bb37a4cfd51298ebcd8ff653c3';
+const indexPath = 'file://' + path.resolve(__dirname, '../index.html') + '?hash=' + sampleDoeHash;
 
 (async () => {
   console.log('🧪 Running Test Suite: Task 2.1 - Interactive Minimap (Slide Navigator)');

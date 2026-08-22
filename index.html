@@ -29,9 +29,12 @@
         <b>AIMALABS</b>
         <span class="text-white font-light text-[15px] tracking-normal opacity-90 hidden sm:inline" style="font-family: var(--font-display);">Lynceus</span>
       </a>
-      <div class="h-3.5 w-px bg-[#373437] hidden md:block"></div>
-      <!-- Patient & Smear Clinical Metadata Pill -->
-      <div class="relative flex items-center shrink-0" id="case-pill-container">
+
+      <!-- Smear Workspace Left Controls (Hidden on empty workspace) -->
+      <div id="header-workspace-left" class="flex items-center space-x-2.5 shrink-0 hidden">
+        <div class="h-3.5 w-px bg-[#373437] hidden md:block"></div>
+      <!-- Patient & Smear Clinical Metadata Pill & Unload Action -->
+      <div class="relative flex items-center space-x-1 shrink-0" id="case-pill-container">
         <!-- Main Case Pill (Click opens Case Metadata Dialog) -->
         <button id="btn-case-meta" class="flex items-center space-x-1.5 text-[11px] bg-[#110f12] hover:bg-[#272527] px-2.5 py-1 rounded-lg border border-[#373437] hover:border-[#e52246]/50 transition cursor-pointer font-mono hidden md:flex text-left group shrink-0" data-help="Case Metadata & Clinical Notes|View patient details, smear info, and edit doctor's diagnostic notes (Hotkey: N)|CASE">
           <span id="patient-status-dot" class="inline-block w-2 h-2 rounded-full bg-[#f59e0b] shadow-[0_0_6px_rgba(245,158,11,0.5)] shrink-0 transition-colors duration-200"></span>
@@ -44,6 +47,11 @@
             <svg width="10" height="10" class="w-2.5 h-2.5 text-[#e52246] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             <span id="notes-badge-text">Notes</span>
           </span>
+        </button>
+
+        <!-- Unload Smear Button (Closes active smear and returns to empty workspace hub) -->
+        <button id="btn-unload-smear" title="Close smear and return to workspace hub" class="hidden items-center justify-center w-7 h-7 bg-[#110f12] hover:bg-[#e52246]/20 text-[#9e9a9e] hover:text-[#e52246] rounded-lg border border-[#373437] hover:border-[#e52246]/50 transition cursor-pointer shrink-0" data-help="Close Smear|Unload active blood film and return to Empty Workspace hub.|CLOSE">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
@@ -245,9 +253,10 @@
         <select id="draw-class-select" class="hidden"></select>
       </div>
     </div>
+    </div>
 
     <!-- Right: View Controls & Actions -->
-    <div class="flex items-center space-x-1.5 shrink-0">
+    <div id="header-workspace-right" class="flex items-center space-x-1.5 shrink-0 hidden">
       <!-- Master Overlay Toggle (H) - Streamlined Icon-Only -->
       <button id="btn-toggle-overlay" title="Toggle AI Overlays (H)" class="p-1.5 text-xs text-white bg-[#e52246] hover:bg-[#ce1438] rounded-lg border border-[#e52246] transition flex items-center justify-center font-mono shadow-sm" data-help="Toggle Overlays|Instantly show or hide all AI bounding boxes to review raw optical morphology.|H">
         <svg id="icon-eye-on" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -296,7 +305,7 @@
   <!-- Main Viewport Workspace -->
   <main class="flex-1 flex relative overflow-hidden" id="workspace-container">
     <!-- Left Sidebar: Slide & Taxonomy Summary (Resizable & Collapsible) -->
-    <aside id="left-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-hidden" style="width: 240px; max-width: 480px;">
+    <aside id="left-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-hidden hidden" style="width: 240px; max-width: 480px;">
       <!-- Filter Header -->
       <div class="p-2.5 border-b border-[#373437] flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2">
@@ -340,7 +349,7 @@
     </aside>
 
     <!-- Left Resizer Gutter -->
-    <div id="left-resizer" class="sidebar-resizer shrink-0" title="Drag to resize or collapse left sidebar" data-help="Resize / Collapse Sidebar|Drag to resize panel. Dragging to the edge collapses sidebar.|DRAG"></div>
+    <div id="left-resizer" class="sidebar-resizer shrink-0 hidden" title="Drag to resize or collapse left sidebar" data-help="Resize / Collapse Sidebar|Drag to resize panel. Dragging to the edge collapses sidebar.|DRAG"></div>
 
     <!-- Expand Left Sidebar Handle (Visible when collapsed) -->
     <button id="btn-expand-left" class="hidden absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-[#1a181b]/95 hover:bg-[#272527] border-y border-r border-[#373437] hover:border-[#e52246]/60 rounded-r-lg p-1.5 text-[#9e9a9e] hover:text-white shadow-2xl transition cursor-pointer group" title="Expand Filters (Cell Taxonomy & Lineage Differential)" data-help="Expand Filters|Restore left sidebar panel.|EXPAND">
@@ -352,74 +361,71 @@
       <canvas id="microscope-canvas" class="w-full h-full block cursor-grab"></canvas>
       
       <!-- Zero Cases / Empty Smear Workspace HUD Overlay -->
-      <div id="empty-workspace-hud" class="hidden absolute inset-0 z-20 flex flex-col items-center justify-start p-4 sm:p-6 bg-[#110f12]/95 backdrop-blur-md overflow-y-auto font-mono select-none">
-        <div class="max-w-4xl w-full my-auto py-4 space-y-5">
+      <div id="empty-workspace-hud" class="hidden absolute inset-0 z-20 flex flex-col items-center justify-start p-4 sm:p-8 bg-[#110f12] overflow-y-auto font-mono select-none">
+        <div class="max-w-3xl w-full my-auto py-6 space-y-5">
           
           <!-- Polite Alert Banner (Shown when URL GET hash is not found) -->
-          <div id="empty-state-alert" class="hidden w-full p-3.5 rounded-xl bg-[#e52246]/10 border border-[#e52246]/40 text-white text-xs flex items-center justify-between shadow-lg">
+          <div id="empty-state-alert" class="hidden w-full p-3 bg-[#e52246]/10 border border-[#e52246]/40 text-white text-xs flex items-center justify-between shadow-lg">
             <div class="flex items-center space-x-2.5">
-              <span class="text-[#e52246] text-base">⚠️</span>
+              <span class="text-[#e52246] text-sm">⚠️</span>
               <span id="empty-state-alert-text" class="text-[#f7aab8] leading-relaxed">Specimen not found: We couldn't find a blood smear matching the requested hash. Please choose from available ground truth samples below or upload a file.</span>
             </div>
-            <button id="btn-dismiss-empty-alert" class="text-[#9e9a9e] hover:text-white text-xs font-bold px-2 py-1 rounded hover:bg-[#272527] transition shrink-0">✕</button>
+            <button id="btn-dismiss-empty-alert" class="text-[#9e9a9e] hover:text-white text-xs font-bold px-2 py-1 hover:bg-[#272527] transition shrink-0 cursor-pointer">✕</button>
           </div>
 
-          <!-- Hero Header & Upload Action -->
-          <div class="bg-[#1B191E] border border-[#373437] rounded-2xl p-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex items-center space-x-4">
-              <div class="w-12 h-12 rounded-2xl bg-[#e52246]/10 border border-[#e52246]/30 flex items-center justify-center text-[#e52246] shadow-[0_0_20px_rgba(229,34,70,0.15)] shrink-0">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>
+          <!-- Hero Action Header (Minimalist, Stylish, Square Borders) -->
+          <div class="bg-[#161418] border border-[#272527] p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-2xl">
+            <div class="space-y-1.5">
+              <div class="flex items-center space-x-2">
+                <span class="text-[10px] tracking-widest uppercase px-1.5 py-0.5 bg-[#e52246]/15 text-[#e52246] border border-[#e52246]/30 font-bold">AIMALABS LYNCEUS</span>
+                <span class="text-[10px] text-[#7a767a]">•</span>
+                <span class="text-[10px] text-[#9e9a9e] tracking-wider uppercase">Hematopathology Workspace</span>
               </div>
-              <div class="text-left space-y-1">
-                <h3 class="font-display font-bold text-lg text-white">AIMALABS Lynceus Hematology</h3>
-                <p class="text-xs text-[#9e9a9e]">Next-generation deep learning cytology review platform for peripheral blood film examination.</p>
-              </div>
+              <h2 class="text-lg font-bold text-white tracking-tight">Cytology Review & Inference Hub</h2>
+              <p class="text-xs text-[#7a767a] max-w-lg leading-relaxed">Examine whole blood smears, benchmark models against expert ground truth datasets, or upload clinical specimen packages.</p>
             </div>
-            <button id="btn-empty-upload-image" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#e52246] to-[#f97316] hover:from-[#ce1438] hover:to-[#ea580c] text-white text-xs font-bold transition shadow-lg shadow-[#e52246]/25 flex items-center justify-center space-x-2 cursor-pointer shrink-0">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              <span>Upload Smear (.aimalabs, .zip, .json, image)</span>
+            <button id="btn-empty-upload-image" class="w-full sm:w-auto px-5 py-2.5 bg-[#e52246] hover:bg-[#ce1438] text-white text-xs font-bold tracking-wider uppercase transition flex items-center justify-center space-x-2 border border-[#e52246] shadow-md shadow-[#e52246]/20 cursor-pointer shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>Upload Smear</span>
             </button>
           </div>
 
-          <!-- 2 Columns: Samples (Left) and Local History (Right) -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Vertically Stacked Sections -->
+          <div class="space-y-5">
             
-            <!-- Column 1: Ground Truth Reference Samples -->
-            <div class="bg-[#1B191E] border border-[#373437] rounded-2xl p-4 shadow-xl flex flex-col justify-between space-y-3">
-              <div class="flex items-center justify-between border-b border-[#373437] pb-2">
-                <div class="flex items-center space-x-2 text-left">
-                  <span class="text-[#38bdf8]">🔬</span>
-                  <div>
-                    <h4 class="font-bold text-xs text-white">Reference Ground Truth Smears</h4>
-                    <span class="text-[10px] text-[#7a767a]">Pre-validated hematopathology benchmark samples</span>
-                  </div>
+            <!-- Section 1: Reference Ground Truth Smears -->
+            <div class="bg-[#161418] border border-[#272527] p-4 space-y-3 shadow-xl">
+              <div class="flex items-center justify-between border-b border-[#272527] pb-2.5">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 bg-[#38bdf8]"></span>
+                  <h3 class="font-bold text-xs uppercase tracking-wider text-white">Reference Ground Truth Smears</h3>
                 </div>
-                <span class="text-[10px] px-2 py-0.5 rounded bg-[#38bdf8]/15 text-[#38bdf8] font-bold border border-[#38bdf8]/30">4 samples</span>
+                <span class="text-[10px] px-2 py-0.5 bg-[#38bdf8]/10 text-[#38bdf8] border border-[#38bdf8]/30 font-mono">4 SPECIMENS</span>
               </div>
 
-              <!-- Sample Smears List -->
-              <div id="sample-smears-list" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+              <!-- Sample Smears List (Vertical Stack) -->
+              <div id="sample-smears-list" class="space-y-2">
                 <!-- Dynamically rendered sample cards -->
               </div>
             </div>
 
-            <!-- Column 2: Local Upload History (Stored locally in IndexedDB) -->
-            <div id="history-smears-container" class="bg-[#1B191E] border border-[#373437] rounded-2xl p-4 shadow-xl flex flex-col justify-between space-y-3">
-              <div class="flex items-center justify-between border-b border-[#373437] pb-2">
-                <div class="flex items-center space-x-2 text-left">
-                  <span class="text-[#10b981]">🕒</span>
-                  <div>
-                    <h4 class="font-bold text-xs text-white">Local Upload History</h4>
-                    <span class="text-[10px] text-[#10b981]/80">🔒 Stored locally in your browser DB on your computer</span>
+            <!-- Section 2: Local Upload History (Stacked Below) -->
+            <div id="history-smears-container" class="bg-[#161418] border border-[#272527] p-4 space-y-3 shadow-xl">
+              <div class="flex items-center justify-between border-b border-[#272527] pb-2.5">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 bg-[#10b981]"></span>
+                  <div class="flex items-center space-x-2">
+                    <h3 class="font-bold text-xs uppercase tracking-wider text-white">Local Workspace History</h3>
+                    <span class="text-[10px] text-[#5a575a] hidden sm:inline">• Stored locally in browser DB on your computer</span>
                   </div>
                 </div>
-                <button id="btn-clear-all-history" class="text-[10px] px-2 py-0.5 rounded bg-[#272527] hover:bg-[#e52246]/20 border border-[#373437] hover:border-[#e52246]/40 text-[#9e9a9e] hover:text-[#e52246] transition cursor-pointer" title="Clear all local history entries">
+                <button id="btn-clear-all-history" class="text-[10px] px-2 py-0.5 bg-[#201e22] hover:bg-[#e52246]/20 border border-[#373437] hover:border-[#e52246]/40 text-[#9e9a9e] hover:text-[#e52246] transition cursor-pointer font-mono" title="Clear all local history entries">
                   Clear History
                 </button>
               </div>
 
-              <!-- History Smears List -->
-              <div id="history-smears-list" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+              <!-- History Smears List (Vertical Stack) -->
+              <div id="history-smears-list" class="space-y-2">
                 <!-- Dynamically rendered history cards or empty state -->
               </div>
             </div>
@@ -448,7 +454,7 @@
       </div>
 
       <!-- Discreet Optical Telemetry Badge (Bottom-Left Corner) -->
-      <div id="bottom-optical-bar" class="absolute bottom-3 left-3 bg-[#131215]/90 backdrop-blur-md border border-[#272527] rounded-xl px-2.5 py-1 text-[11px] font-mono text-[#9e9a9e] shadow-xl flex items-center space-x-2 z-20 select-none">
+      <div id="bottom-optical-bar" class="hidden absolute bottom-3 left-3 bg-[#131215]/90 backdrop-blur-md border border-[#272527] rounded-xl px-2.5 py-1 text-[11px] font-mono text-[#9e9a9e] shadow-xl flex items-center space-x-2 z-20 select-none">
         <!-- Scale Bar / Pixel Calibrator Clickable Trigger -->
         <button id="btn-scale-calibrator" class="flex items-center space-x-1.5 shrink-0 hover:bg-[#272527] px-1.5 py-0.5 rounded cursor-pointer transition" data-help="Pixel Size Calibrator|Click on scale legend to calibrate optical pixel size (µm/px).|CALIBRATE">
           <span class="text-white font-medium text-[10px]" id="scale-value-text">50 µm</span>
@@ -513,7 +519,7 @@
       </div>
 
       <!-- Interactive Slide Navigator (Minimap - Bottom Right, Minimal Border) -->
-      <div id="minimap-panel" class="absolute bottom-3 right-3 bg-[#131215]/85 backdrop-blur-sm border border-[#272527] rounded-lg p-1 shadow-lg z-20 flex flex-col space-y-1 transition-all">
+      <div id="minimap-panel" class="hidden absolute bottom-3 right-3 bg-[#131215]/85 backdrop-blur-sm border border-[#272527] rounded-lg p-1 shadow-lg z-20 flex flex-col space-y-1 transition-all">
         <div class="flex items-center justify-between px-1 text-[9px] font-mono text-[#7a767a]">
           <span class="flex items-center space-x-1">
             <span class="w-1 h-1 rounded-full bg-[#e52246]"></span>
@@ -533,10 +539,10 @@
     </button>
 
     <!-- Right Resizer Gutter -->
-    <div id="right-resizer" class="sidebar-resizer shrink-0" title="Drag to resize or collapse right sidebar"></div>
+    <div id="right-resizer" class="sidebar-resizer shrink-0 hidden" title="Drag to resize or collapse right sidebar"></div>
 
     <!-- Right Sidebar: Cell Inspector & Gallery (Resizable & Collapsible) -->
-    <aside id="right-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-hidden" style="width: 280px; max-width: 540px;">
+    <aside id="right-sidebar" class="bg-[#1a181b] flex flex-col shrink-0 z-10 overflow-hidden hidden" style="width: 280px; max-width: 540px;">
       <!-- Tab Header -->
       <div class="p-2 border-b border-[#373437] flex items-center justify-between shrink-0 bg-[#141316] gap-3">
         <div class="h-7 flex items-center space-x-1 bg-[#1B191E] p-0.5 rounded-lg border border-[#373437] text-[11px] font-mono shrink-0">
@@ -1144,8 +1150,12 @@
 
       <!-- Action Buttons -->
       <div class="flex items-center justify-between pt-2 border-t border-[#373437]">
-        <div class="text-[10px] text-[#7a767a] flex items-center gap-1">
-          <span>🔒 Stored locally in browser DB</span>
+        <div class="flex items-center space-x-2">
+          <button id="btn-unload-case" type="button" class="px-3 py-1.5 rounded-lg bg-[#e52246]/10 hover:bg-[#e52246]/20 border border-[#e52246]/30 text-[#e52246] hover:text-white text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer" title="Close active smear and return to workspace hub">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+            <span>Unload Smear / Workspace Hub</span>
+          </button>
+          <span class="text-[10px] text-[#7a767a] hidden sm:inline">🔒 Local DB</span>
         </div>
 
         <div class="flex items-center space-x-2">
@@ -1260,6 +1270,7 @@
     <div id="help-tooltip-desc" class="text-[11px] text-[#B4AFBA] leading-snug">Description text explaining this control</div>
   </div>
 
+  <script src="js/sample_annotations.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

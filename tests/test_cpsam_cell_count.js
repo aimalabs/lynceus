@@ -54,7 +54,8 @@ const fs = require('fs');
     }
   });
 
-  await page.goto(`http://localhost:${testPort}/index.html`, { waitUntil: 'domcontentloaded' });
+  const sampleDoeHash = 'a0e23d8c95e1a4af32b58edcf84e3442242231bb37a4cfd51298ebcd8ff653c3';
+  await page.goto(`http://localhost:${testPort}/index.html?hash=${sampleDoeHash}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__CYTO_APP__ !== undefined, { timeout: 10000 });
 
   console.log('  ✓ Triggering Telesphorus Live AI Inference (Cellpose SAM-v2 ViT + Swin-T)...');
