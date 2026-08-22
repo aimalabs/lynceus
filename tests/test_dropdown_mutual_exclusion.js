@@ -41,18 +41,9 @@ const fs = require('fs');
     await page.goto(`http://localhost:${testPort}/index.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.__CYTO_APP__ && window.__CYTO_APP__.state.imageLoaded, { timeout: 15000 });
 
-    // Step 1: Verify the Add Smear button text is strictly a single '+'
-    const addBtnText = await page.evaluate(() => {
-      const btn = document.getElementById('btn-add-new-case-trigger');
-      return btn ? btn.textContent.trim() : null;
-    });
-    console.log(`✓ Add Smear button content: "${addBtnText}"`);
-    assert.strictEqual(addBtnText, '+', 'Add Smear button should contain only a single "+"');
-
     const getOpenDropdowns = async () => {
       return page.evaluate(() => {
         const ids = [
-          'case-selector-dropdown',
           'filter-dropdown-menu',
           'tool-dropdown-menu',
           'obj-dropdown-menu',
@@ -65,15 +56,9 @@ const fs = require('fs');
       });
     };
 
-    // Step 2: Open Case Selector Dropdown
-    await page.click('#btn-case-dropdown-trigger');
-    let openList = await getOpenDropdowns();
-    console.log('✓ Opened case-selector-dropdown:', openList);
-    assert.deepStrictEqual(openList, ['case-selector-dropdown']);
-
-    // Step 3: Open Filter Dropdown -> Case Selector must fold!
+    // Step 1: Open Filter Dropdown
     await page.click('#filter-dropdown-trigger');
-    openList = await getOpenDropdowns();
+    let openList = await getOpenDropdowns();
     console.log('✓ Opened filter-dropdown-menu:', openList);
     assert.deepStrictEqual(openList, ['filter-dropdown-menu'], 'Only filter dropdown should be open');
 

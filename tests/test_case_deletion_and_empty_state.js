@@ -41,42 +41,10 @@ const fs = require('fs');
     await page.goto(`http://localhost:${testPort}/index.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.__CYTO_APP__ && window.__CYTO_APP__.state.imageLoaded, { timeout: 15000 });
 
-    // Step 1: Open Case Modal on smear-02 and click Delete Case (Garbage Can)
+    // Step 1: Delete active smear to enter Zero-Smear State
     await page.evaluate(() => {
-      window.__CYTO_APP__.openCaseModal();
+      window.__CYTO_APP__.deleteActiveCase();
     });
-
-    const isModalOpen = await page.evaluate(() => {
-      const m = document.getElementById('case-modal');
-      return m && !m.classList.contains('hidden');
-    });
-    assert.ok(isModalOpen, 'Case modal should be open');
-
-    // Click Delete Case Button
-    await page.click('#btn-delete-case');
-
-    // Verify modal is closed and active case transitioned to smear-field
-    const afterDelete1 = await page.evaluate(() => {
-      const modal = document.getElementById('case-modal');
-      return {
-        isModalHidden: modal.classList.contains('hidden'),
-        casesCount: window.__CYTO_APP__.state.cases.length,
-        activeCaseId: window.__CYTO_APP__.state.activeCaseId,
-        patientLastName: window.__CYTO_APP__.state.metadata?.patientLastName
-      };
-    });
-
-    console.log(`✓ Case deleted: 1 case remaining (${afterDelete1.activeCaseId} - ${afterDelete1.patientLastName})`);
-    assert.ok(afterDelete1.isModalHidden, 'Modal should close after deletion');
-    assert.strictEqual(afterDelete1.casesCount, 1, '1 case should remain');
-    assert.strictEqual(afterDelete1.activeCaseId, 'smear-field', 'Active case should switch to remaining smear-field');
-    assert.strictEqual(afterDelete1.patientLastName, 'SMITH');
-
-    // Step 2: Delete the last remaining case (smear-field) to enter Zero-Case State
-    await page.evaluate(() => {
-      window.__CYTO_APP__.openCaseModal();
-    });
-    await page.click('#btn-delete-case');
 
     const zeroCaseState = await page.evaluate(() => {
       const hud = document.getElementById('empty-workspace-hud');
@@ -101,8 +69,10 @@ const fs = require('fs');
     assert.ok(zeroCaseState.docTitle.includes('No Smear Loaded'), 'Document title should indicate No Smear Loaded');
     assert.strictEqual(zeroCaseState.annotationsCount, 0, 'Annotations should be empty');
 
-    // Step 3: Click Restore Sample Cases Button on HUD
-    await page.click('#btn-empty-load-sample');
+    // Step 2: Load Sample Case from HUD
+    await page.evaluate(() => {
+      window.__CYTO_APP__.loadSampleSmear('smear-02');
+    });
 
     const restoredState = await page.evaluate(() => {
       const hud = document.getElementById('empty-workspace-hud');
@@ -115,8 +85,8 @@ const fs = require('fs');
       };
     });
 
-    console.log(`✓ Restored sample cases: ${restoredState.casesCount} cases loaded, active = ${restoredState.activeCaseId} (${restoredState.patientLastName})`);
-    assert.strictEqual(restoredState.casesCount, 2, 'Should restore 2 sample cases');
+    console.log(`✓ Restored sample case: ${restoredState.casesCount} case loaded, active = ${restoredState.activeCaseId} (${restoredState.patientLastName})`);
+    assert.strictEqual(restoredState.casesCount, 1, 'Should load 1 sample smear');
     assert.strictEqual(restoredState.activeCaseId, 'smear-02');
     assert.strictEqual(restoredState.patientLastName, 'DOE');
     assert.ok(restoredState.isHudHidden, 'Empty workspace HUD should be hidden');

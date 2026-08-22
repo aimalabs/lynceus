@@ -2440,6 +2440,289 @@
       render();
     }
 
+    // Benchmark Ground Truth Sample Smears Registry
+    const SAMPLE_SMEARS = [
+      {
+        id: 'smear-02',
+        title: 'smear-02 (May-Grünwald Giemsa)',
+        patientLastName: 'DOE',
+        patientFirstName: 'John',
+        patientMrn: 'PT-8402',
+        collectionDate: '2026-08-18',
+        stain: 'May-Grünwald Giemsa (MGG)',
+        dimensions: '1500 × 1125 px',
+        cellCount: 102,
+        hash: 'a0e23d8c95e1a4af32b58edcf84e3442242231bb37a4cfd51298ebcd8ff653c3',
+        imageSrc: 'assets/smear-02.jpg',
+        aimalabsUrl: 'test_images/aimalabs/smear-02.aimalabs',
+        annotationsJsonUrl: 'test_images/aimalabs/smear-02.annotations.json',
+        description: 'Canonical hematopathology benchmark smear with 102 validated leukocyte and erythrocyte morphologies.'
+      },
+      {
+        id: 'smear-field',
+        title: 'smear-field (Field Stain)',
+        patientLastName: 'SMITH',
+        patientFirstName: 'Jane',
+        patientMrn: 'PT-9114',
+        collectionDate: '2026-08-19',
+        stain: 'Field / Romanowski',
+        dimensions: '1500 × 1125 px',
+        cellCount: 103,
+        hash: '9f8b05a598fdd22246ae8aa8b626a30f789687b6f907eaa3f5c68b3c5cbccb63',
+        imageSrc: 'assets/smear-field.jpg',
+        aimalabsUrl: 'test_images/aimalabs/smear-field.aimalabs',
+        annotationsJsonUrl: 'test_images/aimalabs/smear-field.annotations.json',
+        description: 'High-density clinical peripheral blood smear with dark cytoplasmic inclusions and platelets.'
+      },
+      {
+        id: 'Image_104',
+        title: 'Image_104 (High-Res Survey)',
+        patientLastName: 'KOWALSKI',
+        patientFirstName: 'A.',
+        patientMrn: 'PT-1040',
+        collectionDate: '2026-08-15',
+        stain: 'Wright-Giemsa',
+        dimensions: '1920 × 1440 px',
+        cellCount: 151,
+        hash: 'bdcda34cc83e361afd5d47276bea3eaef48e4a5922e43168c1e795171696c28c',
+        imageSrc: 'test_images/Image_104.png',
+        aimalabsUrl: 'test_images/aimalabs/Image_104.aimalabs',
+        annotationsJsonUrl: 'test_images/aimalabs/Image_104.annotations.json',
+        description: 'High-resolution peripheral blood film benchmark dataset containing 151 annotated cells.'
+      },
+      {
+        id: 'Image_105',
+        title: 'Image_105 (High-Res Survey)',
+        patientLastName: 'VASQUEZ',
+        patientFirstName: 'M.',
+        patientMrn: 'PT-1050',
+        collectionDate: '2026-08-16',
+        stain: 'Wright-Giemsa',
+        dimensions: '1920 × 1440 px',
+        cellCount: 153,
+        hash: 'd0bafe9af3dca29774a77f4da0dcd4efc4c881c515b3fbd0df9b9bfedfd298c1',
+        imageSrc: 'test_images/Image_105.png',
+        aimalabsUrl: 'test_images/aimalabs/Image_105.aimalabs',
+        annotationsJsonUrl: 'test_images/aimalabs/Image_105.annotations.json',
+        description: 'High-resolution peripheral blood film benchmark dataset containing 153 annotated cells.'
+      }
+    ];
+
+    // IndexedDB Smear History Engine (Stored locally in browser database on your computer)
+    const HISTORY_DB_NAME = 'lynceus_smear_history_db';
+    const HISTORY_STORE_NAME = 'smear_history';
+
+    function openHistoryDB() {
+      return new Promise((resolve) => {
+        if (typeof indexedDB === 'undefined') {
+          resolve(null);
+          return;
+        }
+        try {
+          const req = indexedDB.open(HISTORY_DB_NAME, 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(HISTORY_STORE_NAME)) {
+              const store = db.createObjectStore(HISTORY_STORE_NAME, { keyPath: 'hash' });
+              store.createIndex('timestamp', 'timestamp', { unique: false });
+              store.createIndex('smearId', 'smearId', { unique: false });
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => {
+            console.warn('[History DB] IndexedDB unavailable:', req.error);
+            resolve(null);
+          };
+        } catch (err) {
+          console.warn('[History DB] openHistoryDB error:', err);
+          resolve(null);
+        }
+      });
+    }
+
+    async function computeStringSHA256(str) {
+      try {
+        if (typeof crypto !== 'undefined' && crypto.subtle) {
+          const buffer = new TextEncoder().encode(str);
+          const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+          return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch (e) {}
+      // Simple fallback hash
+      let h = 0;
+      for (let i = 0; i < str.length; i++) {
+        h = ((h << 5) - h) + str.charCodeAt(i);
+        h |= 0;
+      }
+      return Math.abs(h).toString(16).padStart(16, '0').repeat(4).slice(0, 64);
+    }
+
+    async function computeBufferSHA256(arrayBuffer) {
+      try {
+        if (typeof crypto !== 'undefined' && crypto.subtle) {
+          const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+          return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch (e) {}
+      const view = new Uint8Array(arrayBuffer);
+      let h = 0;
+      for (let i = 0; i < Math.min(view.length, 10000); i++) {
+        h = ((h << 5) - h) + view[i];
+        h |= 0;
+      }
+      return Math.abs(h).toString(16).padStart(16, '0').repeat(4).slice(0, 64);
+    }
+
+    async function saveSmearToHistory(caseObj, rawBlob = null, explicitHash = null) {
+      try {
+        if (!caseObj) return null;
+        let hash = explicitHash || caseObj.hash;
+
+        if (!hash) {
+          if (rawBlob) {
+            const ab = rawBlob instanceof ArrayBuffer ? rawBlob : await rawBlob.arrayBuffer();
+            hash = await computeBufferSHA256(ab);
+          } else {
+            const contentKey = JSON.stringify({
+              id: caseObj.id,
+              meta: caseObj.metadata,
+              annotationsCount: caseObj.annotations ? caseObj.annotations.length : 0,
+              annotationsSummary: (caseObj.annotations || []).map(a => `${a.id}:${a.classId}:${a.x}:${a.y}:${a.width}:${a.height}`).join(',')
+            });
+            hash = await computeStringSHA256(contentKey);
+          }
+        }
+
+        caseObj.hash = hash;
+        const db = await openHistoryDB();
+        if (!db) return hash;
+
+        const meta = caseObj.metadata || {};
+        const cellCount = (caseObj.annotations || []).length;
+        const entry = {
+          hash,
+          smearId: caseObj.id,
+          patientLastName: meta.patientLastName || 'DOE',
+          patientFirstName: meta.patientFirstName || 'John',
+          patientMrn: meta.patientMrn || 'PT-8402',
+          collectionDate: meta.collectionDate || new Date().toISOString().slice(0, 10),
+          stainType: meta.stainType || 'Wright-Giemsa',
+          cellCount,
+          timestamp: Date.now(),
+          micronsPerPixel: caseObj.micronsPerPixel || 0.125,
+          activeFilters: caseObj.activeFilters || [],
+          postprocessingConfig: caseObj.postprocessingConfig || {},
+          annotations: caseObj.annotations || [],
+          measurements: caseObj.measurements || [],
+          imageDataUri: caseObj.imageDataUri || null,
+          imageSrc: caseObj.imageSrc || null
+        };
+
+        return new Promise((resolve) => {
+          const tx = db.transaction(HISTORY_STORE_NAME, 'readwrite');
+          const store = tx.objectStore(HISTORY_STORE_NAME);
+          store.put(entry);
+          tx.oncomplete = () => {
+            console.log(`[History DB] ✓ Saved smear "${entry.smearId}" to local IndexedDB with hash ${entry.hash}`);
+            resolve(hash);
+          };
+          tx.onerror = () => {
+            console.warn('[History DB] Failed to put entry:', tx.error);
+            resolve(hash);
+          };
+        });
+      } catch (err) {
+        console.warn('[History DB] saveSmearToHistory error:', err);
+        return caseObj.hash || null;
+      }
+    }
+
+    async function getSmearFromHistory(hash) {
+      try {
+        const db = await openHistoryDB();
+        if (!db) return null;
+        return new Promise((resolve) => {
+          const tx = db.transaction(HISTORY_STORE_NAME, 'readonly');
+          const store = tx.objectStore(HISTORY_STORE_NAME);
+          const req = store.get(hash);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        });
+      } catch (err) {
+        return null;
+      }
+    }
+
+    async function getAllSmearsFromHistory() {
+      try {
+        const db = await openHistoryDB();
+        if (!db) return [];
+        return new Promise((resolve) => {
+          const tx = db.transaction(HISTORY_STORE_NAME, 'readonly');
+          const store = tx.objectStore(HISTORY_STORE_NAME);
+          const req = store.getAll();
+          req.onsuccess = () => {
+            const items = req.result || [];
+            items.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            resolve(items);
+          };
+          req.onerror = () => resolve([]);
+        });
+      } catch (err) {
+        return [];
+      }
+    }
+
+    async function deleteSmearFromHistory(hash) {
+      try {
+        const db = await openHistoryDB();
+        if (!db) return;
+        return new Promise((resolve) => {
+          const tx = db.transaction(HISTORY_STORE_NAME, 'readwrite');
+          const store = tx.objectStore(HISTORY_STORE_NAME);
+          store.delete(hash);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        });
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    async function clearAllSmearHistory() {
+      try {
+        const db = await openHistoryDB();
+        if (!db) return;
+        return new Promise((resolve) => {
+          const tx = db.transaction(HISTORY_STORE_NAME, 'readwrite');
+          const store = tx.objectStore(HISTORY_STORE_NAME);
+          store.clear();
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        });
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    function syncUrlHash(hash) {
+      try {
+        if (typeof window === 'undefined' || !window.location || !window.history) return;
+        const url = new URL(window.location.href);
+        if (!hash) {
+          url.searchParams.delete('hash');
+          url.searchParams.delete('smear');
+          window.history.replaceState(null, '', url.pathname + (url.search ? url.search : ''));
+          return;
+        }
+        url.searchParams.set('hash', hash);
+        url.searchParams.delete('smear');
+        window.history.replaceState(null, '', url.toString());
+      } catch (e) {
+        // Ignore in environments without window.location
+      }
+    }
+
     // Multi-Case State Engine & State Persistence
     function getActiveCase() {
       if (!state.cases || state.cases.length === 0) return null;
@@ -2494,10 +2777,18 @@
       state.postprocessingConfig = { ...(target.postprocessingConfig || DEFAULT_POSTPROCESSING_CONFIG) };
       state.filterCache = {};
 
+      if (!target.hash) {
+        const sampleMatch = SAMPLE_SMEARS.find(s => s.id === target.id);
+        if (sampleMatch) target.hash = sampleMatch.hash;
+      }
+      if (target.hash) {
+        syncUrlHash(target.hash);
+      }
+
       renderEmptyStateHUD();
       updateDocumentTitle();
       updateCaseHeaderPill();
-      renderCaseSelectorDropdown();
+      renderCaseTabs();
       updateFilterUI();
       syncPostprocessingUI();
       setCalibration(state.micronsPerPixel);
@@ -2516,119 +2807,284 @@
     }
 
     function deleteActiveCase() {
-      const active = getActiveCase();
-      if (!active) return;
-      deleteCase(active.id);
+      state.cases = [];
+      state.activeCaseId = null;
+      state.image = null;
+      state.imageLoaded = false;
+      state.imageDataUri = null;
+      state.annotations = [];
+      state.measurements = [];
+      state.metadata = null;
+      state.selectedCellId = null;
+      state.selectedMeasurementId = null;
+
+      syncUrlHash(null);
+      renderEmptyStateHUD();
+      updateDocumentTitle();
+      updateCaseHeaderPill();
+      renderTaxonomyList();
+      updateUI();
+      render();
+      renderMinimap();
+
+      autoSaveToLocalStorage();
+      showToast(`✓ Smear unloaded. No smear currently loaded.`);
     }
 
     function deleteCase(caseId) {
-      const idx = (state.cases || []).findIndex(c => c.id === caseId);
-      if (idx === -1) return;
+      deleteActiveCase();
+    }
 
-      const deletedCase = state.cases[idx];
-      state.cases.splice(idx, 1);
-      closeCaseModal();
+    async function loadSampleSmear(sampleIdOrHash) {
+      const sample = SAMPLE_SMEARS.find(s => s.id === sampleIdOrHash || s.hash === sampleIdOrHash);
+      if (!sample) {
+        showToast(`Sample smear "${sampleIdOrHash}" not found`, 'warn');
+        return false;
+      }
 
-      if (state.cases.length > 0) {
-        const nextCase = state.cases[Math.min(idx, state.cases.length - 1)];
-        switchActiveCase(nextCase.id, true);
-        showToast(`✓ Deleted smear "${deletedCase.id}". Switched to ${nextCase.id}`);
-      } else {
-        // Zero cases state
-        state.activeCaseId = null;
-        state.image = null;
-        state.imageLoaded = false;
-        state.imageDataUri = null;
-        state.annotations = [];
-        state.measurements = [];
-        state.metadata = null;
-        state.selectedCellId = null;
-        state.selectedMeasurementId = null;
+      try {
+        const newCase = createCaseInstance({
+          id: sample.id,
+          metadata: {
+            patientLastName: sample.patientLastName,
+            patientFirstName: sample.patientFirstName,
+            patientMrn: sample.patientMrn,
+            collectionDate: sample.collectionDate,
+            clinicalIndication: 'Cytopenia workup / High-density morphological survey',
+            stainType: sample.stain,
+            reviewStatus: 'in_review',
+            notes: ''
+          },
+          imageSrc: sample.imageSrc,
+          annotations: sample.id === 'smear-field' ? INITIAL_ANNOTATIONS_FIELD : INITIAL_ANNOTATIONS,
+          activeFilters: sample.id === 'smear-field' ? ['clahe', 'fov_crop', 'two_tone', 'reinhard_lab'] : ['clahe', 'fov_crop', 'reinhard_lab']
+        });
+        newCase.hash = sample.hash;
 
+        state.cases = [newCase];
+        switchActiveCase(newCase.id);
+        syncUrlHash(sample.hash);
+        await saveSmearToHistory(newCase, null, sample.hash);
         renderEmptyStateHUD();
-        updateDocumentTitle();
-        updateCaseHeaderPill();
-        renderCaseSelectorDropdown();
-        renderTaxonomyList();
-        updateUI();
-        render();
-        renderMinimap();
-
-        autoSaveToLocalStorage();
-        showToast(`✓ Deleted smear "${deletedCase.id}". No smears loaded.`);
+        return true;
+      } catch (err) {
+        console.error('[Load Sample] Error:', err);
+        showToast(`Failed to load sample smear: ${err.message}`, 'error');
+        return false;
       }
     }
 
-    function renderEmptyStateHUD() {
+    async function loadSmearByHash(reqHash) {
+      if (!reqHash) return false;
+
+      // 1. Check in SAMPLE_SMEARS
+      const sample = SAMPLE_SMEARS.find(s => s.hash === reqHash || s.id === reqHash);
+      if (sample) {
+        return await loadSampleSmear(sample.id);
+      }
+
+      // 2. Check in IndexedDB History
+      const histItem = await getSmearFromHistory(reqHash);
+      if (histItem) {
+        const restoredCase = createCaseInstance({
+          id: histItem.smearId || `smear-${Date.now()}`,
+          metadata: {
+            patientLastName: histItem.patientLastName || 'DOE',
+            patientFirstName: histItem.patientFirstName || 'John',
+            patientMrn: histItem.patientMrn || 'PT-8402',
+            collectionDate: histItem.collectionDate || new Date().toISOString().slice(0, 10),
+            stainType: histItem.stainType || 'Wright-Giemsa',
+            clinicalIndication: 'Restored from local browser database',
+            notes: histItem.notes || '',
+            reviewStatus: 'in_review'
+          },
+          imageSrc: histItem.imageDataUri || histItem.imageSrc || 'assets/smear-02.jpg',
+          annotations: histItem.annotations || [],
+          activeFilters: histItem.activeFilters || ['clahe', 'fov_crop', 'reinhard_lab'],
+          micronsPerPixel: histItem.micronsPerPixel || 0.125
+        });
+        restoredCase.hash = histItem.hash;
+        state.cases = [restoredCase];
+        switchActiveCase(restoredCase.id);
+        syncUrlHash(histItem.hash);
+        renderEmptyStateHUD();
+        showToast(`✓ Loaded smear "${histItem.smearId}" from local history`);
+        return true;
+      }
+
+      return false;
+    }
+
+    async function renderEmptyStateHUD(alertMessage = null) {
       const hud = document.getElementById('empty-workspace-hud');
       if (!hud) return;
+
       if (!state.cases || state.cases.length === 0) {
         hud.classList.remove('hidden');
       } else {
         hud.classList.add('hidden');
-      }
-    }
-
-    function renderCaseSelectorDropdown() {
-      const listContainer = document.getElementById('case-selector-list');
-      const countBadge = document.getElementById('loaded-cases-count');
-      const totalCases = (state.cases || []).length;
-      if (countBadge) {
-        countBadge.textContent = `${totalCases} smear${totalCases === 1 ? '' : 's'}`;
-      }
-      if (!listContainer) return;
-
-      if (!state.cases || state.cases.length === 0) {
-        listContainer.innerHTML = `
-          <div class="p-3 text-center text-[11px] text-[#7a767a]">
-            No smears currently loaded.
-          </div>
-        `;
         return;
       }
 
-      listContainer.innerHTML = state.cases.map(c => {
-        const isActive = c.id === state.activeCaseId;
-        const meta = c.metadata || DEFAULT_METADATA_DOE;
-        const initial = meta.patientFirstName ? `${meta.patientFirstName[0]}.` : 'J.';
-        const cellCount = c.annotations ? c.annotations.length : 0;
-        const status = meta.reviewStatus || 'in_review';
-        const dotColor = status === 'reviewed' ? 'bg-[#10b981]' : (status === 'critical' ? 'bg-[#e52246]' : 'bg-[#f59e0b]');
+      // Handle polite alert banner
+      const alertEl = document.getElementById('empty-state-alert');
+      const alertText = document.getElementById('empty-state-alert-text');
+      if (alertMessage) {
+        if (alertText) alertText.textContent = alertMessage;
+        if (alertEl) alertEl.classList.remove('hidden');
+      } else if (alertEl) {
+        alertEl.classList.add('hidden');
+      }
 
-        return `
-          <div data-case-id="${c.id}" class="btn-select-case w-full flex items-center justify-between p-2 rounded-lg cursor-pointer transition ${isActive ? 'bg-[#e52246]/15 border border-[#e52246]/50 text-white shadow-sm' : 'bg-[#141316] hover:bg-[#272527] border border-[#272527] text-[#9e9a9e] hover:text-white'}">
-            <div class="flex items-center space-x-2 min-w-0 pr-1">
-              <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
-              <div class="flex flex-col min-w-0 text-left">
-                <div class="flex items-center space-x-1 font-semibold text-xs text-white truncate">
-                  <span>${meta.patientLastName || 'DOE'}, ${initial}</span>
+      // 1. Render Sample Smears List
+      const samplesContainer = document.getElementById('sample-smears-list');
+      if (samplesContainer) {
+        samplesContainer.innerHTML = SAMPLE_SMEARS.map(s => {
+          return `
+            <div class="p-2.5 rounded-xl bg-[#141316] hover:bg-[#272527] border border-[#272527] hover:border-[#38bdf8]/40 transition flex items-center justify-between gap-2 text-left">
+              <div class="space-y-0.5 min-w-0">
+                <div class="flex items-center space-x-1.5 font-bold text-xs text-white truncate">
+                  <span class="text-[#38bdf8]">${s.id}</span>
                   <span class="text-[#5a575a]">•</span>
-                  <span class="text-[#f7aab8] text-[10px]">${c.id}</span>
+                  <span class="text-[#9e9a9e] text-[11px] font-normal">${s.patientLastName}, ${s.patientFirstName[0]}.</span>
                 </div>
                 <div class="text-[10px] text-[#7a767a] truncate font-mono">
-                  ${meta.collectionDate || ''} • ${meta.stainType || 'Wright-Giemsa'}
+                  ${s.stain} • ${s.dimensions}
+                </div>
+                <div class="text-[9px] text-[#5a575a] truncate font-mono">
+                  Hash: ${s.hash.slice(0, 12)}...
                 </div>
               </div>
+              <div class="flex items-center space-x-2 shrink-0">
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#272527] text-white font-mono border border-[#373437]">${s.cellCount} cells</span>
+                <button data-sample-id="${s.id}" class="btn-load-sample-card px-2.5 py-1 rounded-lg bg-[#38bdf8]/15 hover:bg-[#38bdf8]/30 border border-[#38bdf8]/40 text-[#38bdf8] hover:text-white text-[11px] font-bold transition cursor-pointer">
+                  Load
+                </button>
+              </div>
             </div>
-            <div class="flex items-center space-x-1 shrink-0">
-              <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#272527] border border-[#373437] text-white font-mono">${cellCount} cells</span>
-              ${isActive ? '<span class="text-[#10b981] font-bold text-xs ml-1">✓</span>' : ''}
+          `;
+        }).join('');
+
+        samplesContainer.querySelectorAll('.btn-load-sample-card').forEach(btn => {
+          btn.onclick = () => {
+            const sid = btn.getAttribute('data-sample-id');
+            if (sid) loadSampleSmear(sid);
+          };
+        });
+      }
+
+      // 2. Render Local History List from IndexedDB
+      const historyContainer = document.getElementById('history-smears-list');
+      if (historyContainer) {
+        const historyItems = await getAllSmearsFromHistory();
+        if (historyItems.length === 0) {
+          historyContainer.innerHTML = `
+            <div class="p-6 text-center text-[#7a767a] text-xs space-y-1">
+              <div>No upload history in local database.</div>
+              <div class="text-[10px] text-[#5a575a]">Uploaded blood smears and saved packages will be listed here.</div>
             </div>
+          `;
+        } else {
+          historyContainer.innerHTML = historyItems.map(h => {
+            const formattedDate = h.timestamp ? new Date(h.timestamp).toLocaleDateString() : '';
+            return `
+              <div class="p-2.5 rounded-xl bg-[#141316] hover:bg-[#272527] border border-[#272527] hover:border-[#10b981]/40 transition flex items-center justify-between gap-2 text-left">
+                <div class="space-y-0.5 min-w-0">
+                  <div class="flex items-center space-x-1.5 font-bold text-xs text-white truncate">
+                    <span class="text-[#10b981]">${h.smearId || 'Smear'}</span>
+                    <span class="text-[#5a575a]">•</span>
+                    <span class="text-[#9e9a9e] text-[11px] font-normal">${h.patientLastName || 'DOE'}, ${(h.patientFirstName || 'J')[0]}.</span>
+                  </div>
+                  <div class="text-[10px] text-[#7a767a] truncate font-mono">
+                    ${h.collectionDate || formattedDate} • ${h.stainType || 'Wright-Giemsa'}
+                  </div>
+                  <div class="text-[9px] text-[#5a575a] truncate font-mono">
+                    Hash: ${(h.hash || '').slice(0, 12)}...
+                  </div>
+                </div>
+                <div class="flex items-center space-x-1.5 shrink-0">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#272527] text-white font-mono border border-[#373437]">${h.cellCount || 0} cells</span>
+                  <button data-history-hash="${h.hash}" class="btn-load-history-card px-2.5 py-1 rounded-lg bg-[#10b981]/15 hover:bg-[#10b981]/30 border border-[#10b981]/40 text-[#10b981] hover:text-white text-[11px] font-bold transition cursor-pointer">
+                    Open
+                  </button>
+                  <button data-delete-hash="${h.hash}" class="btn-delete-history-item p-1 rounded-lg bg-[#272527] hover:bg-[#e52246]/20 border border-[#373437] hover:border-[#e52246]/40 text-[#7a767a] hover:text-[#e52246] transition cursor-pointer" title="Delete from local history">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          historyContainer.querySelectorAll('.btn-load-history-card').forEach(btn => {
+            btn.onclick = async () => {
+              const hash = btn.getAttribute('data-history-hash');
+              if (hash) await loadSmearByHash(hash);
+            };
+          });
+
+          historyContainer.querySelectorAll('.btn-delete-history-item').forEach(btn => {
+            btn.onclick = async (e) => {
+              e.stopPropagation();
+              const hash = btn.getAttribute('data-delete-hash');
+              if (hash) {
+                await deleteSmearFromHistory(hash);
+                showToast('✓ Smear removed from local history');
+                await renderEmptyStateHUD();
+              }
+            };
+          });
+        }
+      }
+    }
+
+    function renderCaseTabs() {
+      const container = document.getElementById('case-tabs-container');
+      if (!container) return;
+
+      if (!state.cases || state.cases.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = state.cases.map(c => {
+        const isActive = c.id === state.activeCaseId;
+        const meta = c.metadata || DEFAULT_METADATA_DOE;
+        const lastName = meta.patientLastName || 'DOE';
+        const cellCount = c.annotations ? c.annotations.length : 0;
+
+        return `
+          <div data-case-id="${c.id}" class="btn-case-tab group flex items-center space-x-1.5 px-2 py-1 rounded-lg border text-xs font-mono transition cursor-pointer shrink-0 ${isActive ? 'bg-[#272527] border-[#e52246]/60 text-white shadow-sm font-semibold' : 'bg-[#110f12] border-[#373437] text-[#9e9a9e] hover:bg-[#1a181b] hover:text-white'}">
+            <span class="truncate max-w-[85px]" title="${lastName} (${c.id})">${lastName} • ${c.id}</span>
+            <span class="text-[9px] px-1 py-0.2 rounded bg-[#110f12] text-[#7a767a] group-hover:text-white border border-[#373437]">${cellCount}</span>
+            <button data-close-case-id="${c.id}" class="btn-close-tab text-[#7a767a] hover:text-[#e52246] hover:bg-[#373437]/50 rounded px-1 transition text-[10px]" title="Close tab">✕</button>
           </div>
         `;
       }).join('');
 
-      listContainer.querySelectorAll('.btn-select-case').forEach(el => {
-        el.onclick = (e) => {
-          e.stopPropagation();
-          const cid = el.getAttribute('data-case-id');
-          if (cid) {
+      container.querySelectorAll('.btn-case-tab').forEach(tabEl => {
+        tabEl.onclick = (e) => {
+          if (e.target.closest('.btn-close-tab')) return;
+          const cid = tabEl.getAttribute('data-case-id');
+          if (cid && cid !== state.activeCaseId) {
             switchActiveCase(cid);
-            const menu = document.getElementById('case-selector-dropdown');
-            if (menu) menu.classList.add('hidden');
           }
         };
       });
+
+      container.querySelectorAll('.btn-close-tab').forEach(closeBtn => {
+        closeBtn.onclick = (e) => {
+          e.stopPropagation();
+          const cid = closeBtn.getAttribute('data-close-case-id');
+          if (cid) {
+            deleteCase(cid);
+          }
+        };
+      });
+    }
+
+    // Alias for backwards compatibility
+    function renderCaseSelectorDropdown() {
+      renderCaseTabs();
     }
 
     const STORAGE_KEY = 'aimalabs_hemapath_multicase_v2';
@@ -4018,7 +4474,6 @@
 
     // Universal Dropdown Coordinator (Ensures only one dropdown menu is open at any time)
     const ALL_DROPDOWN_IDS = [
-      'case-selector-dropdown',
       'filter-dropdown-menu',
       'tool-dropdown-menu',
       'obj-dropdown-menu',
@@ -5355,6 +5810,15 @@
           });
 
           await applyPayload(parsed, img);
+          const fileHash = await computeBufferSHA256(arrayBuffer);
+          const current = getActiveCase();
+          if (current) {
+            current.hash = fileHash;
+            await saveSmearToHistory(current, arrayBuffer, fileHash);
+            syncUrlHash(fileHash);
+          }
+          renderCaseTabs();
+          renderEmptyStateHUD();
         } catch (err) {
           console.error('[Import .aimalabs] Error:', err);
           showToast(`❌ Import Failed: ${err.message}`, 'error', 5000);
@@ -5403,15 +5867,19 @@
             measurements: []
           });
 
-          if (!state.cases) state.cases = [];
-          const existingIdx = state.cases.findIndex(c => c.id === smearId);
-          if (existingIdx >= 0) {
-            state.cases[existingIdx] = newCase;
-          } else {
-            state.cases.push(newCase);
-          }
-
+          state.cases = [newCase];
           switchActiveCase(newCase.id);
+
+          try {
+            file.arrayBuffer().then(async (ab) => {
+              const fileHash = await computeBufferSHA256(ab);
+              newCase.hash = fileHash;
+              await saveSmearToHistory(newCase, ab, fileHash);
+              syncUrlHash(fileHash);
+              renderCaseTabs();
+              renderEmptyStateHUD();
+            });
+          } catch (e) {}
 
           const resReadout = document.getElementById('meta-res-readout');
           if (resReadout) resReadout.textContent = `${img.naturalWidth} × ${img.naturalHeight} px`;
@@ -5688,7 +6156,7 @@
       if (modal) modal.classList.add('hidden');
     }
 
-    function saveCaseMetadata() {
+    async function saveCaseMetadata() {
       const inLastName = document.getElementById('input-patient-lastname');
       const inMrn = document.getElementById('input-patient-mrn');
       const inDate = document.getElementById('input-patient-date');
@@ -5733,26 +6201,46 @@
 
       updateDocumentTitle();
       updateCaseHeaderPill();
-      renderCaseSelectorDropdown();
       autoSaveToLocalStorage();
       closeCaseModal();
-      showToast('✓ Case metadata & diagnostic notes saved');
+      showToast('✓ Case metadata saved & updated in local history');
+
+      if (active) {
+        saveSmearToHistory(active).then(newHash => {
+          if (newHash) {
+            active.hash = newHash;
+            syncUrlHash(newHash);
+          }
+        });
+      }
     }
 
     const btnCaseMeta = document.getElementById('btn-case-meta');
     if (btnCaseMeta) btnCaseMeta.onclick = openCaseModal;
 
-    const btnCaseDropdownTrigger = document.getElementById('btn-case-dropdown-trigger');
-    const caseSelectorDropdown = document.getElementById('case-selector-dropdown');
-    if (btnCaseDropdownTrigger && caseSelectorDropdown) {
-      btnCaseDropdownTrigger.onclick = (e) => {
-        e.stopPropagation();
-        hideHelpTooltip();
-        renderCaseSelectorDropdown();
-        const willOpen = caseSelectorDropdown.classList.contains('hidden');
-        closeAllDropdowns(caseSelectorDropdown);
-        if (willOpen) caseSelectorDropdown.classList.remove('hidden');
-        else caseSelectorDropdown.classList.add('hidden');
+    const btnAddTab = document.getElementById('btn-add-tab');
+    if (btnAddTab) {
+      btnAddTab.onclick = () => {
+        triggerSmearLoad();
+      };
+    }
+
+    const btnClearAllHist = document.getElementById('btn-clear-all-history');
+    if (btnClearAllHist) {
+      btnClearAllHist.onclick = async () => {
+        if (confirm('Clear all locally saved smear history from this browser?')) {
+          await clearAllSmearHistory();
+          showToast('✓ Local smear history cleared');
+          await renderEmptyStateHUD();
+        }
+      };
+    }
+
+    const btnDismissAlert = document.getElementById('btn-dismiss-empty-alert');
+    if (btnDismissAlert) {
+      btnDismissAlert.onclick = () => {
+        const alertEl = document.getElementById('empty-state-alert');
+        if (alertEl) alertEl.classList.add('hidden');
       };
     }
 
@@ -5763,7 +6251,6 @@
         return el && el.contains(e.target);
       });
       const isTriggerClick = [
-        'btn-case-dropdown-trigger',
         'filter-dropdown-trigger',
         'tool-dropdown-trigger',
         'obj-dropdown-trigger',
@@ -5780,23 +6267,11 @@
       }
     });
 
-    const btnAddNewCaseTrigger = document.getElementById('btn-add-new-case-trigger');
-    if (btnAddNewCaseTrigger) {
-      btnAddNewCaseTrigger.onclick = (e) => {
-        e.stopPropagation();
-        if (caseSelectorDropdown) caseSelectorDropdown.classList.add('hidden');
-        triggerSmearLoad();
-      };
-    }
-
     const btnCloseCaseModal = document.getElementById('btn-close-case-modal');
     if (btnCloseCaseModal) btnCloseCaseModal.onclick = closeCaseModal;
 
     const btnCancelCaseModal = document.getElementById('btn-cancel-case-modal');
     if (btnCancelCaseModal) btnCancelCaseModal.onclick = closeCaseModal;
-
-    const btnDeleteCase = document.getElementById('btn-delete-case');
-    if (btnDeleteCase) btnDeleteCase.onclick = deleteActiveCase;
 
     const btnSaveCaseModal = document.getElementById('btn-save-case-modal');
     if (btnSaveCaseModal) btnSaveCaseModal.onclick = saveCaseMetadata;
@@ -5804,30 +6279,14 @@
     const btnEmptyLoadSample = document.getElementById('btn-empty-load-sample');
     if (btnEmptyLoadSample) {
       btnEmptyLoadSample.onclick = () => {
-        const dDoe = createCaseInstance({
-          id: 'smear-02',
-          metadata: DEFAULT_METADATA_DOE,
-          imageSrc: 'assets/smear-02.jpg',
-          annotations: INITIAL_ANNOTATIONS,
-          activeFilters: ['clahe', 'fov_crop', 'reinhard_lab']
-        });
-        const dSmith = createCaseInstance({
-          id: 'smear-field',
-          metadata: DEFAULT_METADATA_SMITH,
-          imageSrc: 'assets/smear-field.jpg',
-          annotations: INITIAL_ANNOTATIONS_FIELD,
-          activeFilters: ['clahe', 'fov_crop', 'two_tone', 'reinhard_lab']
-        });
-        state.cases = [dDoe, dSmith];
-        switchActiveCase('smear-02');
-        showToast('✓ Sample smear cases restored');
+        loadSampleSmear('smear-02');
       };
     }
 
     const btnEmptyUploadImage = document.getElementById('btn-empty-upload-image');
     if (btnEmptyUploadImage) {
       btnEmptyUploadImage.onclick = () => {
-        triggerImageLoad();
+        triggerSmearLoad();
       };
     }
 
@@ -6847,15 +7306,54 @@
           refreshAppViews();
           autoSaveToLocalStorage();
           
+    async function initUrlHashRouting() {
+      try {
+        if (typeof window === 'undefined' || !window.location) return;
+        const params = new URLSearchParams(window.location.search);
+        const reqHash = params.get('hash') || params.get('smear');
+
+        if (reqHash) {
+          const found = await loadSmearByHash(reqHash);
+          if (!found) {
+            const politeMessage = `Specimen not found: We couldn't find a blood smear matching hash "${reqHash}". Please choose from available ground truth samples below or upload a file.`;
+            state.cases = [];
+            state.activeCaseId = null;
+            state.image = null;
+            state.imageLoaded = false;
+            state.annotations = [];
+            renderEmptyStateHUD(politeMessage);
+            updateDocumentTitle();
+            updateCaseHeaderPill();
+            syncUrlHash(null);
+          }
+        } else {
+          loadFromLocalStorage();
+          if (state.cases && state.cases.length > 0) {
+            const active = getActiveCase();
+            if (active) {
+              if (!active.hash) {
+                const matchedSample = SAMPLE_SMEARS.find(s => s.id === active.id);
+                active.hash = matchedSample ? matchedSample.hash : await saveSmearToHistory(active);
+              }
+              if (active.hash) syncUrlHash(active.hash);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[Hash Routing] init error:', e);
+      } finally {
+        window.__CYTO_APP_ROUTING_READY__ = true;
+      }
+    }
+
     // Initialize
-    loadFromLocalStorage();
     resizeCanvas();
     renderTaxonomyList();
-    renderCaseSelectorDropdown();
     renderEmptyStateHUD();
     updateDocumentTitle();
     updateCaseHeaderPill();
     checkMobileDevice();
+    initUrlHashRouting();
 
     // Global testing API
     window.__CYTO_APP__ = {
@@ -6869,6 +7367,17 @@
       setCanvasFilters,
       getActiveImageSource,
       FILTER_CONFIG,
+      SAMPLE_SMEARS,
+      loadSampleSmear,
+      loadSmearByHash,
+      saveSmearToHistory,
+      getSmearFromHistory,
+      getAllSmearsFromHistory,
+      deleteSmearFromHistory,
+      clearAllSmearHistory,
+      renderCaseTabs,
+      syncUrlHash,
+      initUrlHashRouting,
       addCellAnnotation,
       focusOnCell,
       selectCell,
