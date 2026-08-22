@@ -1,0 +1,46 @@
+{
+  "description": "Benchmark and validation cytology test images and ground truth packages for evaluating AI model inference.",
+  "aimalabsDirectory": "test_images/aimalabs",
+  "images": [
+    {
+      "id": "Image_104",
+      "imageFile": "Image_104.png",
+      "groundTruthPackage": "aimalabs/Image_104.aimalabs",
+      "groundTruthJson": "aimalabs/Image_104.annotations.json",
+      "dimensions": "1920 × 1440 px",
+      "expectedCells": 151,
+      "stainType": "Wright-Giemsa",
+      "activeFilters": ["clahe", "fov_crop", "reinhard_lab"]
+    },
+    {
+      "id": "Image_105",
+      "imageFile": "Image_105.png",
+      "groundTruthPackage": "aimalabs/Image_105.aimalabs",
+      "groundTruthJson": "aimalabs/Image_105.annotations.json",
+      "dimensions": "1920 × 1440 px",
+      "expectedCells": 153,
+      "stainType": "Wright-Giemsa",
+      "activeFilters": ["clahe", "fov_crop", "reinhard_lab"]
+    },
+    {
+      "id": "smear-02",
+      "imageFile": "smear-02.png",
+      "groundTruthPackage": "aimalabs/smear-02.aimalabs",
+      "groundTruthJson": "aimalabs/smear-02.annotations.json",
+      "dimensions": "1500 × 1125 px",
+      "expectedCells": 102,
+      "stainType": "Wright-Giemsa",
+      "activeFilters": ["clahe", "fov_crop", "reinhard_lab"]
+    },
+    {
+      "id": "smear-field",
+      "imageFile": "smear-field.jpg",
+      "groundTruthPackage": "aimalabs/smear-field.aimalabs",
+      "groundTruthJson": "aimalabs/smear-field.annotations.json",
+      "dimensions": "1500 × 1125 px",
+      "expectedCells": 103,
+      "stainType": "Wright-Giemsa",
+      "activeFilters": ["clahe", "fov_crop", "reinhard_lab"]
+    }
+  ]
+}

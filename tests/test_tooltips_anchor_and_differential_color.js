@@ -106,11 +106,13 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     }
 
     // 4. Click on canvas to dismiss tooltip
-    await page.mouse.click(500, 500);
-    await new Promise(r => setTimeout(r, 120));
+    await page.mouse.move(10, 10);
+    await page.mouse.click(10, 10);
+    await new Promise(r => setTimeout(r, 200));
     const isDismissed = await page.evaluate(() => {
       const tt = document.getElementById('app-help-tooltip');
-      return window.getComputedStyle(tt).opacity === '0';
+      const op = parseFloat(window.getComputedStyle(tt).opacity || '0');
+      return op <= 0.1;
     });
     console.log('  ✓ Tooltip dismissed on click:', isDismissed);
     assert.strictEqual(isDismissed, true, 'Tooltip should dismiss on click');

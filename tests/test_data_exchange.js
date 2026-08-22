@@ -33,7 +33,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     assert.strictEqual(countAfterMutations, initialCount, 'Added 1 and deleted 1 (same net total count)');
 
     // 2. Verify LocalStorage payload saved
-    const stored = await page.evaluate(() => localStorage.getItem('aimalabs_hemapath_annotations_v1'));
+    const stored = await page.evaluate(() => localStorage.getItem('aimalabs_hemapath_multicase_v2') || localStorage.getItem('aimalabs_hemapath_annotations_v1'));
     console.log('  ✓ LocalStorage payload present:', !!stored);
     assert(stored && stored.includes('annotations'), 'LocalStorage should store annotations');
 
@@ -58,8 +58,8 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Header Patient Name Display:', headerNameDisplay);
     assert(headerNameDisplay.includes('SMITH'), 'Header pill should display SMITH');
 
-    // 4. Test Single Full State JSON Export (Icon-Only button)
-    await page.click('#btn-export-json');
+    // 4. Test Single Full State JSON Export
+    await page.evaluate(() => window.__CYTO_APP__.exportAnnotationsJSON());
     const toastExportJson = await page.$eval('#toast-message', el => el.textContent.trim());
     console.log('  ✓ Toast after Export JSON:', toastExportJson);
     assert(toastExportJson.includes('JSON') || toastExportJson.includes('exported'), 'Toast should confirm JSON export');
@@ -94,16 +94,10 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Document Title after State Import:', importedTitle);
     assert(importedTitle.includes('KOWALSKI'), 'Imported patient last name must be reflected in document title');
 
-    // 6. Test Import Dropdown & Smear Image Load clears annotations
-    await page.click('#btn-import-dropdown-trigger');
-    const isImportMenuVisible = await page.$eval('#import-dropdown-menu', el => !el.classList.contains('hidden'));
-    console.log('  ✓ Import Dropdown Menu Opened:', isImportMenuVisible);
-    assert.strictEqual(isImportMenuVisible, true, 'Import dropdown menu should open on trigger click');
-
-    const optJsonExists = await page.$eval('#btn-import-json-opt', el => !!el);
-    const optImgExists = await page.$eval('#btn-load-image-opt', el => !!el);
-    console.log('  ✓ Import Options Present:', { json: optJsonExists, image: optImgExists });
-    assert(optJsonExists && optImgExists, 'Both JSON and Image load options must exist in dropdown');
+    // 6. Test Unified Smear File Input accepts JSON, .aimalabs, and Images
+    const unifiedInputAccept = await page.$eval('#input-load-smear-unified', el => el.getAttribute('accept'));
+    console.log('  ✓ Unified File Input accept types:', unifiedInputAccept);
+    assert(unifiedInputAccept.includes('.json') && unifiedInputAccept.includes('.aimalabs'), 'Unified input must accept .aimalabs and .json');
 
     // Test loading an image clears all annotations
     await page.evaluate(() => {

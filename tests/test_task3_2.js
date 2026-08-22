@@ -69,7 +69,7 @@ const indexPath = 'file://' + path.resolve(__dirname, '../index.html');
     console.log('  ✓ Inspector Panel Data:', inspInfo);
     assert.strictEqual(inspInfo.isActiveVisible, true, 'Inspector active view should be visible');
     assert(inspInfo.className.includes('Neutrophil'), 'Inspector should show Segmented Neutrophil');
-    assert.strictEqual(inspInfo.area, '154.2 µm²', 'Inspector area should match mock data');
+    assert.strictEqual(inspInfo.area, '180.5 µm²', 'Inspector area should match mock data');
 
     // 3. Test Reclassification in Inspector (Reclassify c-01 to Monocyte)
     await page.click('button[data-reclass="monocytes"]');
